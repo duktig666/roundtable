@@ -58,6 +58,14 @@ decisions: [DEC-001]
 ### 目标
 通用化最复杂的角色（architect，含三阶段 + AskUserQuestion）和主编排命令（/workflow），端到端验证 **D2 B-0 + D8 skill 形态 + D9 target_project 识别** 链路。
 
+### 前置：原型归档隔离
+
+P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 Claude Code 自动发现路径挪到**归档位置**，避免测试时干扰（可能无前缀调用优先命中原型，让 plugin 的 bug 被静默 fallback 掩盖）。
+
+- 原型归档位置：workspace 下 `.claude-prototype-archive/`（不在 Claude Code 发现路径）
+- 作为维护者实现 skill/agent 时的"参考答案"，用于行为对照；但不 commit 进 roundtable
+- P4 自消耗验证通过后再决定是否永久删除
+
 ### 任务清单
 
 - [ ] `plugin.json` 保持**无 userConfig 字段**（D2 B-0 决策）

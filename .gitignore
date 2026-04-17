@@ -1,6 +1,7 @@
-# Editor
+# Editor / IDE
 .vscode/
 .idea/
+**/.history/
 *.swp
 *.swo
 
@@ -8,14 +9,25 @@
 .DS_Store
 Thumbs.db
 
-# Local Claude Code state
+# Claude Code — 本地化配置忽略，团队共享的提交
 .claude/settings.local.json
 .claude/agent-memory/
 .claude/agent-memory-local/
+# .claude/rules/ 若未来使用，需团队共享，不忽略
+
+# 个人 CLAUDE.md 覆盖（不入库）
+**/CLAUDE-local.md
+**/CLAUDE.local.md
 
 # Logs
 *.log
+logs/
 
 # Dev scratch
 scratch/
 tmp/
+
+# Python（若 examples/ 下有 Python 示例项目）
+__pycache__/
+*.pyc
+.venv/
