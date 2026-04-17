@@ -151,32 +151,25 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 
 ---
 
-## P3 文档 + 模板 + onboarding
+## P3 文档 + 模板 + onboarding（2026-04-17 已完成）
 
 ### 目标
 让任何新用户 5 分钟跑通首次工作流。
 
 ### 任务清单
 
-- [ ] 写 `docs/claude-md-template.md`（完整可抄模板，空槽位让用户按项目填）
-- [ ] 写 `docs/onboarding.md`
-  ```
-  1. /plugin marketplace add duktig666/roundtable
-  2. /plugin install roundtable@roundtable --scope user（零弹窗）
-  3. 在项目 CLAUDE.md 追加「# 多角色工作流配置」section（抄模板改）
-  4. /roundtable:workflow <你的任务>
-  ```
-- [ ] 写 `docs/migration-from-local.md`（给原来在项目本地 `.claude/` 定义了 agent/command 的用户）
-- [ ] 写 `examples/` 下典型项目类型的片段
-  - `examples/rust-backend-snippet.md`
-  - `examples/ts-frontend-snippet.md`
-  - `examples/python-datapipeline-snippet.md`
-  - （其他按需追加）
-- [ ] 完善 README：Quick Start、各角色简介、常见问题、链接到 design.md / onboarding.md
+- [x] 写 `docs/claude-md-template.md`（完整模板 + 填写提示 + FAQ + 最小可用示例，139 行）
+- [x] 写 `docs/onboarding.md`（5 分钟上手，安装 → 配置 → 首次跑，含常见问题，125 行）
+- [x] 写 `docs/migration-from-local.md`（5 步迁移 runbook + 3 个常见坑 + 回归测试 checklist，139 行）
+- [x] 写 `examples/rust-backend-snippet.md`（Rust 后端 / CLI，80 行）
+- [x] 写 `examples/ts-frontend-snippet.md`（TS + React 前端，89 行）
+- [x] 写 `examples/python-datapipeline-snippet.md`（Python 数据管道 / ML，93 行）
+- [x] 更新 `docs/INDEX.md`（把 P3 新文件链上）
+- [ ] 完善 README：Quick Start、各角色简介、常见问题、链接到 design.md / onboarding.md（README 已在 P0 完成并已含 Quick Start / 角色表；P3 不需要再改）
 
 ### 成功信号
-- [ ] 挑一个没用过 plugin 的人按 onboarding 5 分钟跑通
-- [ ] README 里的安装命令直接复制粘贴能用
+- [x] README 里的安装命令直接复制粘贴能用
+- [ ] 挑一个没用过 plugin 的人按 onboarding 5 分钟跑通（放到 P5 外部试装一起做）
 
 ---
 

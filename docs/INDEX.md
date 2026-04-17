@@ -7,9 +7,12 @@
 | 文件 | 用途 |
 |------|-----|
 | [../README.md](../README.md) | GitHub 首页：roundtable 是什么、怎么装、角色分工 |
-| `onboarding.md`（P3 产出） | 5 分钟上手手册 |
-| `claude-md-template.md`（P3 产出） | 给用户抄到自己项目 CLAUDE.md 的完整模板 |
-| `migration-from-local.md`（P3 产出） | 从项目本地 `.claude/agents/` 切换到 plugin 的迁移 runbook |
+| [onboarding.md](onboarding.md) | 5 分钟上手手册 |
+| [claude-md-template.md](claude-md-template.md) | 给用户抄到自己项目 CLAUDE.md 的完整模板（含填写提示 + FAQ） |
+| [migration-from-local.md](migration-from-local.md) | 从项目本地 `.claude/agents/` 切换到 plugin 的迁移 runbook |
+| [../examples/rust-backend-snippet.md](../examples/rust-backend-snippet.md) | Rust 后端 / CLI 项目的 CLAUDE.md 示例 |
+| [../examples/ts-frontend-snippet.md](../examples/ts-frontend-snippet.md) | TypeScript + React 前端项目的 CLAUDE.md 示例 |
+| [../examples/python-datapipeline-snippet.md](../examples/python-datapipeline-snippet.md) | Python 数据管道 / ML 项目的 CLAUDE.md 示例 |
 
 ## 🧑‍💻 维护者向（内部开发纪律）
 

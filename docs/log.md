@@ -38,6 +38,11 @@
 
 ---
 
+## docs | P3 用户文档 + 模板 + onboarding | 2026-04-17
+- 操作者: Claude + 用户
+- 影响文件: docs/claude-md-template.md (139 行), docs/onboarding.md (125 行), docs/migration-from-local.md (139 行), examples/rust-backend-snippet.md (80 行), examples/ts-frontend-snippet.md (89 行), examples/python-datapipeline-snippet.md (93 行), docs/INDEX.md（更新链接）
+- 说明: P3 用户向文档完成。claude-md-template.md 是核心（完整模板 + 填写提示 + FAQ + 最小可用示例）；onboarding.md 5 分钟上手手册；migration-from-local.md 给已有本地 `.claude/` 的项目的迁移 runbook；3 个 examples 片段覆盖 Rust 后端 / TS 前端 / Python 数据管道典型场景
+
 ## feat | P2 批量通用化剩余 5 角色 + 2 命令 | 2026-04-17
 - 操作者: Claude + 用户
 - 影响文件: skills/analyst.md (新建 157 行), agents/developer.md (163 行), agents/tester.md (163 行), agents/reviewer.md (130 行), agents/dba.md (134 行), commands/bugfix.md (97 行), commands/lint.md (106 行)
