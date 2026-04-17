@@ -34,7 +34,7 @@ claude --plugin-dir /path/to/your/workspace/roundtable
 
 ## 文档变更纪律
 
-本仓库的文档体系参考 dex-sui 的三件套（见 `docs/design-docs/roundtable.md` §2.2）：
+本仓库的文档体系采用"三件套"（见 `docs/design-docs/roundtable.md`）：
 
 | 位置 | 记录什么 |
 |------|---------|
@@ -52,4 +52,4 @@ v0.1 尚无自动化 CI，手动测试清单：
 - [ ] `marketplace.json` JSON 合法
 - [ ] `/plugin install` 在本地 `--plugin-dir` 模式下能装上
 - [ ] 各 skill / agent / command 在本地模拟触发能执行（参考 `docs/onboarding.md`）
-- [ ] grep 硬编码：`grep -rE "dex-sui|hyperliquid|cargo xclippy|撮合" skills/ agents/ commands/` 应返回空
+- [ ] grep 硬编码：`grep -rEi "<project-specific-term>|<language-specific-cmd>" skills/ agents/ commands/` 应返回空 —— 所有业务 / 语言特定术语都应在 skill/agent prompt 里用占位符（`{target_project}` / `{docs_root}` 等），运行时从检测或 CLAUDE.md 声明填充

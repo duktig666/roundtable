@@ -9,7 +9,7 @@
 | [../README.md](../README.md) | GitHub 首页：roundtable 是什么、怎么装、角色分工 |
 | `onboarding.md`（P3 产出） | 5 分钟上手手册 |
 | `claude-md-template.md`（P3 产出） | 给用户抄到自己项目 CLAUDE.md 的完整模板 |
-| `migration-from-dex-sui.md`（P3 产出） | dex-sui 团队从本地 `.claude/` 切换到 plugin 的 runbook |
+| `migration-from-local.md`（P3 产出） | 从项目本地 `.claude/agents/` 切换到 plugin 的迁移 runbook |
 
 ## 🧑‍💻 维护者向（内部开发纪律）
 

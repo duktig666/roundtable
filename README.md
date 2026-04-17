@@ -132,6 +132,5 @@ Apache-2.0 — 详见 [LICENSE](LICENSE)
 
 ## 致谢
 
-- 原型来自 [`/data/rsw/.claude/`](https://github.com/duktig666/roundtable)（dex-sui 工作流的演化版本）
-- 六问框架借鉴自 gstack 的 office-hours 实践
+- 六问框架借鉴自 gstack office-hours 实践
 - 文档三件套（design-docs + decision-log + log）机制参考 Karpathy LLM Wiki 的"Raw Source → Wiki → Schema"分层
