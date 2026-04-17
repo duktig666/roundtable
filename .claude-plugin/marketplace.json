@@ -1,0 +1,15 @@
+{
+  "name": "roundtable",
+  "owner": {
+    "name": "duktig666",
+    "url": "https://github.com/duktig666"
+  },
+  "plugins": [
+    {
+      "name": "roundtable",
+      "source": ".",
+      "description": "Multi-role AI development workflow (analyst / architect / developer / tester / reviewer / dba) with plan-then-execute discipline.",
+      "version": "0.1.0-alpha.1"
+    }
+  ]
+}

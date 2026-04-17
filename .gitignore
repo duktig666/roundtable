@@ -1,0 +1,21 @@
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Claude Code state
+.claude/settings.local.json
+.claude/agent-memory/
+.claude/agent-memory-local/
+
+# Logs
+*.log
+
+# Dev scratch
+scratch/
+tmp/
