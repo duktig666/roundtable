@@ -38,6 +38,11 @@
 
 ---
 
+## feat | P2 批量通用化剩余 5 角色 + 2 命令 | 2026-04-17
+- 操作者: Claude + 用户
+- 影响文件: skills/analyst.md (新建 157 行), agents/developer.md (163 行), agents/tester.md (163 行), agents/reviewer.md (130 行), agents/dba.md (134 行), commands/bugfix.md (97 行), commands/lint.md (106 行)
+- 说明: 基于 P1 已验证的机制批量通用化。skill 形态：analyst（六问框架 + 研究澄清 AskUserQuestion）。agent 形态（subagent 隔离 + AskUserQuestion 不可用，需调度方注入上下文变量）：developer（plan-then-code + 自动工具链检测）、tester（对抗性 + benchmark + critical_modules 触发）、reviewer（决策一致性审查 + 按 critical_modules 落盘）、dba（schema/SQL/迁移审查，支持 PG/MySQL/SQLite/等多种 DB 类型自动识别）。command：bugfix（跳过 design，强制回归测试）、lint（8 项文档健康检查，纯只读报告）。全部 7 个新文件通过硬编码 grep 扫描 0 命中
+
 ## verify | P1 POC 方式 A 端到端通过 | 2026-04-17
 - 操作者: 用户（Claude Code 真实会话）+ Claude
 - 影响文件: docs/exec-plans/active/roundtable-plan.md（勾选方式 A 验收项）

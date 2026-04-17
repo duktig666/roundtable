@@ -120,33 +120,22 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 
 ---
 
-## P2 批量通用化其余角色
+## P2 批量通用化其余角色（2026-04-17 已完成）
 
 ### 目标
 通用化剩余 5 个角色 + 2 个命令，使 workflow 全链路可跑。
 
 ### 任务清单
 
-- [ ] `skills/analyst.md`（交互式，六问框架 + 研究中 AskUserQuestion 澄清）
-  - 占位符化 docs_root，去除所有业务术语
-  - 保留：六问框架、开放问题清单的"事实层"纪律
-- [ ] `agents/developer.md`
-  - frontmatter 声明 `tools`（developer 需要 Read / Edit / Write / Bash）
-  - 去除所有语言 / 技术栈硬编码，改为读 target_project 的 CLAUDE.md 工具链覆盖或自动检测
-  - 保留：plan-then-code 纪律、TDD 开启测试先写
-- [ ] `agents/tester.md`
-  - 关键模块触发条件从"读 CLAUDE.md 的 critical_modules section"动态获取
-  - 对抗性测试 + E2E + benchmark 的方法论保留；具体框架命令靠检测
-- [ ] `agents/reviewer.md`
-  - 通用代码审查规则
-  - 关键模块 / 安全敏感判断从 CLAUDE.md 读
-- [ ] `agents/dba.md`
-  - 通用 DB schema / migration 审查
-  - 特定 DB 类型（PG / MySQL / ...）从 target_project 自动检测
-- [ ] `commands/bugfix.md`（Bug 修复工作流，跳过 design 阶段）
-- [ ] `commands/lint.md`（项目文档健康检查，通用程度高，改造点最少）
-- [ ] 补全 `commands/workflow.md` 的"派发 agent"编排逻辑（P1 只走到 architect skill；P2 补齐 developer/tester/reviewer/dba 派发；派发时注入 target_project 变量）
-- [ ] 在一个真实项目里端到端跑一次 `/roundtable:workflow`，全角色链路触发
+- [x] `skills/analyst.md`（交互式，六问框架 + 研究中 AskUserQuestion 澄清；开放问题清单"事实层"纪律）
+- [x] `agents/developer.md`（plan-then-code；工具链靠 target_project 根文件自动检测 + CLAUDE.md 覆盖；上下文变量由调度方注入）
+- [x] `agents/tester.md`（对抗性 / E2E / benchmark；critical_modules 触发条件从注入变量读）
+- [x] `agents/reviewer.md`（代码审查 + 决策一致性对照 decision-log；按 critical_modules 决定是否落盘 reviews）
+- [x] `agents/dba.md`（DB schema / SQL / 迁移审查；支持 PG / MySQL / SQLite 等多种 DB 类型自动识别）
+- [x] `commands/bugfix.md`（跳过 design 阶段，强制回归测试，发现设计缺陷即中止转 /workflow）
+- [x] `commands/lint.md`（8 项文档健康检查，纯只读报告）
+- [x] `commands/workflow.md` 的派发编排：P1 版本已包含完整的 skill 激活 + agent 派发逻辑，P2 无需新增（仅在 P4 真实使用时如有不足再调整）
+- [ ] 在真实项目里端到端跑一次 `/roundtable:workflow`，全角色链路触发（放到 P4 自消耗验证时做）
 
 ### 成功信号
 - [ ] 全 7 个角色 + 3 个命令通用化完成
