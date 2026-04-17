@@ -38,6 +38,11 @@
 
 ---
 
+## feat | P1 POC：architect skill + workflow command | 2026-04-17
+- 操作者: Claude + 用户
+- 影响文件: skills/architect.md（新建，242 行）, commands/workflow.md（新建，118 行）
+- 说明: P1 首批通用化产出 —— `skills/architect.md` 包含项目上下文识别（D9 + 工具链检测 + CLAUDE.md 加载）、三阶段工作流、AskUserQuestion 强制规则、design-doc / exec-plan / api-doc 模板；`commands/workflow.md` 实现规模判断 + 编排逻辑（skill 用 Skill 工具激活、agent 用 Task 派发时注入 target_project 上下文）；零业务术语硬编码，全部走占位符 + 运行时检测 / CLAUDE.md 声明
+
 ## design | roundtable (含 DEC-001 + exec-plan) | 2026-04-17
 - 操作者: Claude (architect) + 用户
 - 影响文件: docs/design-docs/roundtable.md, docs/decision-log.md, docs/exec-plans/active/roundtable-plan.md
