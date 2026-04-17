@@ -225,20 +225,33 @@ roundtable/                            # GitHub: duktig666/roundtable
 │   ├── bugfix.md
 │   └── lint.md
 ├── hooks/                                  # 预留，v0.1 暂不用
-├── docs/
-│   ├── design.md                           # 本 doc（2026-04-17 从 dex-sui 迁入）
-│   ├── claude-md-template.md               # 给用户抄的 CLAUDE.md section 模板
-│   ├── onboarding.md                       # 5 分钟上手
-│   ├── migration-from-dex-sui.md           # dex-sui 自消耗 runbook
-│   └── decision-log.md                     # roundtable 自己的决策日志（DEC-001 承接自 dex-sui DEC-010）
+├── docs/                                   # dogfooding：roundtable 自己按 plugin 推荐的"产出契约"管理文档
+│   ├── INDEX.md                            # 全文档导航
+│   ├── decision-log.md                     # DEC 注册表（DEC-001 承接自 dex-sui DEC-010）
+│   ├── log.md                              # 设计层文档时间索引（append-only）
+│   ├── analyze/[slug].md                   # analyst 调研报告（按需）
+│   ├── design-docs/
+│   │   └── roundtable.md                   # 本 doc（2026-04-17 从 dex-sui 迁入）
+│   ├── exec-plans/
+│   │   ├── active/
+│   │   │   └── roundtable-plan.md          # P0-P6 路线
+│   │   └── completed/                      # 归档
+│   ├── testing/plans/[slug].md             # tester 测试计划（按需）
+│   ├── reviews/[YYYY-MM-DD]-[slug].md      # reviewer/dba 落盘审查（按需）
+│   ├── onboarding.md                       # [P3] 5 分钟上手
+│   ├── claude-md-template.md               # [P3] 给用户抄的 CLAUDE.md section 模板
+│   └── migration-from-dex-sui.md           # [P3] dex-sui 自消耗 runbook
 ├── examples/
-│   └── dex-sui-snippet.md                  # 示例：dex-sui 怎么写 CLAUDE.md
+│   └── dex-sui-snippet.md                  # [P3] 示例：dex-sui 怎么写 CLAUDE.md
 ├── README.md                               # GitHub 首页（install 命令 + Quick Start）
-├── LICENSE
-└── CHANGELOG.md
+├── LICENSE                                 # Apache-2.0 全文
+├── CHANGELOG.md
+└── CONTRIBUTING.md
 ```
 
-> 关键点：plugin 目录结构由 Claude Code 规范限定 —— 只有 `plugin.json` 必须在 `.claude-plugin/` 下，其他目录（`agents/`、`commands/`、`skills/`、`hooks/`）放在仓库根。
+> **关键点 1**：plugin 目录结构由 Claude Code 规范限定 —— 只有 `plugin.json` 必须在 `.claude-plugin/` 下，其他目录（`agents/`、`commands/`、`skills/`、`hooks/`）放在仓库根。
+>
+> **关键点 2**：`docs/` 下的"内部维护者文档"按 roundtable plugin 自己推荐的"多角色工作流产出契约"组织（slug 命名 + design-docs / exec-plans / analyze / reviews 分层）—— **dogfooding**，方便用户安装后直接把本仓库当作标准样本参考。"用户向文档"（onboarding / claude-md-template / migration）平铺在 `docs/` 根。
 
 ### 3.2 plugin.json Manifest
 
@@ -441,7 +454,7 @@ claude --plugin-dir /data/rsw/roundtable
 
 | 方案 | 决策 |
 |------|------|
-| **选择** | **B 仅 roundtable/docs/design.md** |
+| **选择** | **B 仅 roundtable/docs/design-docs/roundtable.md** |
 | 备选 | A 仅 dex-sui；C 双份 dex-sui 主；D 双份 roundtable 主 |
 | 理由 | single source of truth，避免双份漂移维护成本；plugin 面向所有用户，文档本应归属 plugin 仓库本身 |
 | 落地状态 | 2026-04-17 已从 `dex-sui/docs/design-docs/moongpt-harness-plugin.md` 迁至 `duktig666/roundtable`（本文件），dex-sui 副本已删除，dex-sui 的 `decision-log.md` DEC-010 的"相关文档"字段指向本仓库 URL |
@@ -633,7 +646,7 @@ claude --plugin-dir /data/rsw/roundtable
 
 | Phase | 动作 | 产出 | 成功信号 |
 |-------|------|------|---------|
-| **P0 建 repo** | 在 duktig666 组织创建 `roundtable` 仓库；clone 原型 `/data/rsw/.claude/` 内容进来；写 plugin.json 骨架、README（Apache-2.0 License 声明）、LICENSE 文件（Apache-2.0）、marketplace.json；建 `skills/` `agents/` `commands/` 三目录；**从 dex-sui 迁出本 design-doc 到 `docs/design.md` 后删除 dex-sui 副本**；初始化 roundtable 自己的 `docs/decision-log.md` | 可安装 plugin 骨架（内容尚未通用化） | `/plugin marketplace add duktig666/roundtable` 成功；dex-sui 本地 `/data/rsw/dex-sui/docs/design-docs/roundtable-plugin.md` 已删除，仅 dex-sui log.md 保留"design 创建 + 迁出"两条索引 |
+| **P0 建 repo**（2026-04-17 已完成） | duktig666 账号创建公开仓库；初始化 plugin.json / marketplace.json / LICENSE / README / CHANGELOG / CONTRIBUTING / .gitignore；建 `skills/` `agents/` `commands/` `hooks/` `examples/` 目录；从 dex-sui 迁入 design-doc 和 exec-plan 到 `docs/design-docs/roundtable.md` + `docs/exec-plans/active/roundtable-plan.md`；初始化 `docs/decision-log.md`（DEC-001）、`docs/log.md`、`docs/INDEX.md`；dex-sui 原副本删除 | 可安装 plugin 骨架（内容尚未通用化） | `/plugin marketplace add duktig666/roundtable` 成功；dex-sui `docs/design-docs/moongpt-harness-plugin.md` 已删除 |
 | **P1 POC：architect skill + workflow command** | 把原型 `agents/architect.md` 改造为 **`skills/architect.md`**（保留 AskUserQuestion 三阶段流程，替换路径、删 dex-sui 术语）；改 `commands/workflow.md` 的编排逻辑区分"激活 skill"和"派发 agent" | 2 份文件 + userConfig schema（docs_root 至少） | dex-sui 本地 `--plugin-dir` 装上，`/roundtable:workflow` 能跑架构阶段，**AskUserQuestion 真实弹窗**，文档落到 `${docs_root}/design-docs/` |
 | **P2 批量改剩余角色** | `skills/analyst.md`（另一交互式）；`agents/developer.md` `agents/tester.md` `agents/reviewer.md` `agents/dba.md`（隔离执行）；`commands/bugfix.md` `commands/lint.md` | 2 skill + 4 agent + 2 command | 全流程跑一遍，不残留 dex-sui 硬编码，skill / agent 分工清晰 |
 | **P3 文档 + 模板 + onboarding** | `docs/claude-md-template.md`、`docs/onboarding.md`、`docs/migration-from-dex-sui.md`、`examples/dex-sui-snippet.md` | 4 份文档 | 任意陌生项目按 5 分钟 onboarding 能跑通 /workflow |

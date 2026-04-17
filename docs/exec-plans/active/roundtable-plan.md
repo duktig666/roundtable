@@ -1,6 +1,6 @@
 ---
 slug: roundtable
-source: docs/design.md
+source: docs/design-docs/roundtable.md
 created: 2026-04-17
 updated: 2026-04-17
 status: Active
@@ -10,8 +10,8 @@ migrated_from: dex-sui/docs/exec-plans/active/moongpt-harness-plugin-plan.md @ 2
 
 # roundtable Plugin 执行计划
 
-> 本计划展开自 design-doc `docs/design.md` 的 §7 分阶段路线（D6 POC 增量策略）
-> **当前进度**：P0 基本完成（建仓、骨架、文档迁入、dex-sui 副本删除）；下一步 P1 POC
+> 本计划展开自 design-doc `docs/design-docs/roundtable.md` 的 §7 分阶段路线（D6 POC 增量策略）
+> **当前进度**：P0 基本完成（建仓、骨架、文档迁入 + dogfooding 重构、首次 commit + push）；下一步 P1 POC
 
 ---
 
@@ -40,38 +40,35 @@ migrated_from: dex-sui/docs/exec-plans/active/moongpt-harness-plugin-plan.md @ 2
 - [x] duktig666 个人账号创建公开仓库 `roundtable`（Apache-2.0 将在首次 commit 加入 LICENSE）
 - [x] 本地 clone 到 `/data/rsw/roundtable/`
 - [x] 配置 SSH（`~/.ssh/id_duktig666` + `~/.ssh/config` alias + `~/.gitconfig-duktig666` + includeIf）
-- [x] 初始化目录结构：
+- [x] 初始化目录结构 + dogfooding 重构：
   ```
-  .claude-plugin/plugin.json        ← 已建（D2 B-0 零 userConfig）
-  .claude-plugin/marketplace.json   ← 已建
-  skills/.gitkeep                   ← 已建
-  agents/.gitkeep                   ← 已建
-  commands/.gitkeep                 ← 已建
-  hooks/.gitkeep                    ← 已建
-  examples/.gitkeep                 ← 已建
-  docs/design.md                    ← 本次从 dex-sui 迁入
-  docs/exec-plan.md                 ← 本次从 dex-sui 迁入（本文件）
-  docs/decision-log.md              ← 本次新建，DEC-001 承接自 dex-sui DEC-010
-  README.md                         ← 已建（含 roundtable 寓意）
-  LICENSE                           ← 已建（Apache-2.0 全文）
-  CHANGELOG.md                      ← 已建
-  CONTRIBUTING.md                   ← 已建
-  .gitignore                        ← 已建
+  .claude-plugin/plugin.json / marketplace.json
+  skills/ agents/ commands/ hooks/ examples/ 下 .gitkeep
+  docs/design-docs/roundtable.md               ← 从 dex-sui 迁入（dogfood slug 分层）
+  docs/exec-plans/active/roundtable-plan.md    ← 从 dex-sui 迁入（本文件）
+  docs/exec-plans/completed/.gitkeep           ← 预留
+  docs/analyze/.gitkeep                        ← 预留
+  docs/testing/plans/.gitkeep                  ← 预留
+  docs/reviews/.gitkeep                        ← 预留
+  docs/decision-log.md                         ← DEC-001
+  docs/log.md                                  ← 新建（时间索引）
+  docs/INDEX.md                                ← 全文档导航
+  README.md / LICENSE(Apache-2.0) / CHANGELOG.md / CONTRIBUTING.md / .gitignore
   ```
-- [ ] **从 dex-sui 删除**：
+- [x] **从 dex-sui 删除**：
   - `docs/design-docs/moongpt-harness-plugin.md`
   - `docs/exec-plans/active/moongpt-harness-plugin-plan.md`
-- [ ] dex-sui `docs/log.md` 追加迁出索引条目
-- [ ] dex-sui DEC-010 的"相关文档"字段更新为 https://github.com/duktig666/roundtable/blob/main/docs/design.md
-- [ ] 首次 commit + push 到 `origin/main`
-- [ ] （可选）打 `v0.1.0-alpha.1` tag
-- [ ] 安装验收：`/plugin marketplace add duktig666/roundtable` + `/plugin install roundtable@roundtable` 能跑完（即使 agents/skills 都空）
+- [x] 更新 dex-sui DEC-010 的"相关文档"字段指向 https://github.com/duktig666/roundtable
+- [x] 更新 dex-sui `docs/log.md` 追加 migrate 索引条目
+- [x] 首次 commit `feat: initialize roundtable plugin repository` + push 到 `origin/main`
+- [x] dogfooding 重构 commit（本次）
+- [ ] 安装验收：`/plugin marketplace add duktig666/roundtable` + `/plugin install roundtable@roundtable --scope user` 能跑完（即使 agents/skills 都空）
 
 ### 成功信号
-- [ ] `duktig666/roundtable` 公开可见，LICENSE 为 Apache-2.0
-- [ ] dex-sui 本地用 `/plugin install` 能装上
-- [ ] `/data/rsw/dex-sui/docs/design-docs/` 下不再有 `moongpt-harness-plugin.md`
-- [ ] dex-sui log.md 有"迁出"索引条目
+- [x] `duktig666/roundtable` 公开可见，LICENSE 为 Apache-2.0
+- [x] `/data/rsw/dex-sui/docs/design-docs/` 下不再有 `moongpt-harness-plugin.md`
+- [x] dex-sui log.md 有"迁出"索引条目（`migrate | roundtable plugin docs 迁出 dex-sui | 2026-04-17`）
+- [ ] dex-sui 本地用 `/plugin install` 或 `--plugin-dir` 能装上（待 P1 验证时一并做）
 
 ### 风险与预案
 | 风险 | 预案 |

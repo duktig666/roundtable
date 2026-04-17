@@ -118,7 +118,8 @@ claude
 
 欢迎提 Issue、PR。贡献者本地开发模式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-- 提 PR 之前读一下 [`docs/design.md`](docs/design.md)，了解 D1-D9 决策脉络，避免提出已被评估过否决的方案
+- 提 PR 之前读一下 [`docs/design-docs/roundtable.md`](docs/design-docs/roundtable.md)，了解 D1-D9 决策脉络，避免提出已被评估过否决的方案
+- 文档导航见 [`docs/INDEX.md`](docs/INDEX.md)
 - 涉及决策变更的 PR 请在 `docs/decision-log.md` 加 DEC-xxx 条目，列明备选和理由
 
 ---

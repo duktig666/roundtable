@@ -34,13 +34,15 @@ claude --plugin-dir /path/to/your/workspace/roundtable
 
 ## 文档变更纪律
 
-本仓库的文档体系参考 dex-sui 的三件套（见 `docs/design.md` §2.2）：
+本仓库的文档体系参考 dex-sui 的三件套（见 `docs/design-docs/roundtable.md` §2.2）：
 
 | 位置 | 记录什么 |
 |------|---------|
 | 文档内"变更记录"章节 | 具体改了什么、为什么改 |
-| `docs/log.md`（未来启用） | 哪个文档在何时被更新（时间索引） |
+| `docs/log.md` | 哪个文档在何时被更新（时间索引） |
 | `docs/decision-log.md` | 决策层面演进（含 Superseded 机制） |
+
+目录结构见 `docs/INDEX.md`。文件名用统一 slug（kebab-case），一个主题从 analyze → design-docs → exec-plans → testing/plans 贯穿。
 
 ## 本地测试
 
