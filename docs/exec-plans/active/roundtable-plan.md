@@ -94,13 +94,14 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
     - `cd <workspace>/<project> && claude --plugin-dir <workspace>/roundtable`
     - 触发 `/roundtable:workflow 设计 <topic>`
     - 验收：`git rev-parse` 短路识别，不弹 D9
-- [ ] 验收清单
-  - [ ] 安装过程零弹窗（D2 B-0）
-  - [ ] D9 识别机制在两种启动方式下都正确
-  - [ ] architect skill 激活后 AskUserQuestion **真的弹决策窗**（不是文字问）
-  - [ ] design-doc 落到正确路径 `<target_project>/<docs_root>/design-docs/<slug>.md`
-  - [ ] 加载了 target_project 的 CLAUDE.md（体现在决策阐释引用到业务规则）
-  - [ ] 工具链自动检测正确（Rust → `cargo` 相关；JS → `pnpm` / `npm` 相关等）
+- [x] 验收清单（方式 A 已完成，2026-04-17）
+  - [x] 安装过程零弹窗（D2 B-0）
+  - [x] D9 识别机制在方式 A（workspace 根启动）下工作
+  - [x] architect skill 激活后 AskUserQuestion **真的弹决策窗**
+  - [ ] design-doc 落到正确路径（需下一轮真实设计任务时观察）
+  - [ ] 加载了 target_project 的 CLAUDE.md（需下一轮任务时观察决策引用）
+  - [ ] 工具链自动检测正确（需下一轮观察）
+  - [ ] 方式 B（从子项目内启动，`git rev-parse` 短路）—— 待验证
 
 ### 成功信号
 - [ ] 零 userConfig 弹窗，装完立即可用

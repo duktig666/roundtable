@@ -38,6 +38,11 @@
 
 ---
 
+## verify | P1 POC 方式 A 端到端通过 | 2026-04-17
+- 操作者: 用户（Claude Code 真实会话）+ Claude
+- 影响文件: docs/exec-plans/active/roundtable-plan.md（勾选方式 A 验收项）
+- 说明: `claude --plugin-dir` 从 workspace 根启动；`/roundtable:workflow` 命令被识别；architect skill 激活；**D9 目标项目识别 AskUserQuestion 原生弹窗触发且可点选** —— 证明零 userConfig + Skill 形态 + AskUserQuestion 机制在 Claude Code 端到端可工作。方式 B（子项目内启动 git rev-parse 短路）及 design-doc 落盘路径 / CLAUDE.md 加载验证，待下一轮真实设计任务时观察
+
 ## feat | P1 POC：architect skill + workflow command | 2026-04-17
 - 操作者: Claude + 用户
 - 影响文件: skills/architect.md（新建，242 行）, commands/workflow.md（新建，118 行）
