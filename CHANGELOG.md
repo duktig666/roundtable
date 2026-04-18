@@ -32,6 +32,14 @@ All notable changes to **roundtable** will be documented in this file.
 
 - `docs/claude-md-template.md`: `工具链覆盖` section gains package manager / runtime / dev cmd fields; new "谁填、何时填、怎么填？" subsection explaining orchestrator-fills-on-P0.1-completion contract; two worked 回填样板 examples (TS+pnpm+vitest / Rust+cargo+nextest)
 
+### Added (INDEX auto-maintenance, 2026-04-19)
+
+- `commands/workflow.md` new Step 7 "Index Maintenance (batched)": orchestrator accumulates `created:` paths across a phase and updates `{docs_root}/INDEX.md` once per phase gate (single Read+Edit), instead of per-subagent-return. ~1-2% token overhead vs ad-hoc update.
+- Role-report contract: every agent's final report MUST list newly-created files under a `created:` section with `path` + `description`. Orchestrator parses this to build the INDEX update.
+- `agents/developer.md` / `tester.md` / `reviewer.md` / `dba.md`: Resource Access `Report to orchestrator` column adds "newly-created files under `{docs_root}/`" entry. Forbidden: roles never edit `INDEX.md` directly.
+- `docs/INDEX.md` header: formalized "index-or-it-didnt-happen" maintenance contract for future drift prevention.
+- New `testing/` subsection under `当前文档清单` indexing the P4 self-consumption report (previously unindexed).
+
 ### Initial scaffolding (P0, 2026-04-17)
 
 - 仓库骨架：`.claude-plugin/`（plugin.json + marketplace.json）、`skills/`、`agents/`、`commands/`、`hooks/`、`examples/`、`docs/`

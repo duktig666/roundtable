@@ -39,7 +39,7 @@ model: sonnet
 |-----------|-------|
 | Read | `src/*`, `migrations/*`, `{docs_root}/design-docs/[slug].md`, `{docs_root}/decision-log.md`, `target_project/CLAUDE.md`, read-only SQL (`EXPLAIN ANALYZE`, `\d`, `SELECT` — only if `db_connection` is injected) |
 | Write | `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` — only when schema change is large or Critical issues emerge |
-| Report to orchestrator | schema / query / migration findings, index recommendations, `{docs_root}/log.md` entries (orchestrator writes) |
+| Report to orchestrator | schema / query / migration findings, index recommendations, `{docs_root}/log.md` entries (orchestrator writes), newly-created files under `{docs_root}/reviews/` with descriptions (orchestrator updates `INDEX.md` per workflow Step 7) |
 | Forbidden | SQL write operations (`INSERT` / `UPDATE` / `DELETE` / `ALTER` / `DROP` / `TRUNCATE`), `src/*` edits, `migrations/*` edits, `target_project/CLAUDE.md` edits (read-only reference), `{docs_root}/design-docs/` edits, git operations |
 
 Write SQL is forbidden regardless of the `db_connection` privilege level. If an `EXPLAIN` requires creating temporary objects, propose the change in the review document instead of executing.
