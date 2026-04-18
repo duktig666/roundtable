@@ -104,11 +104,30 @@ dba       → 读 migrations / schema / 代码
 
 ---
 
+## 步骤 5：Subagent Escalation Handling
+
+Agents (developer / tester / reviewer / dba) cannot use `AskUserQuestion` inside the Task sandbox. When they surface an `<escalation>` block in their final report, the orchestrator MUST:
+
+1. **Parse** the JSON block (type / question / context / options / remaining_work).
+2. **Invoke** `AskUserQuestion` passing the options (carry `rationale` + `tradeoff` into each option's description; flag the `recommended` option with a `★` marker and the `why_recommended` reason).
+3. **On user answer**: re-dispatch the SAME agent (new Task call) with the decision fact injected into the prompt, scoped to the `remaining_work` listed in the escalation.
+4. **Do not decide on behalf of the user.** If unsure which option to recommend, pass through the agent's `recommended` field as guidance — never silently pick.
+
+Escalation block parsing rules:
+- One `<escalation>` block per agent dispatch. Multiple would indicate a poorly-scoped dispatch; consider splitting the task.
+- If the block is malformed (missing required fields), echo the error back to the agent and ask for a corrected block; do not forward to user.
+- If the agent hit an **Abort** (not Escalation) — missing context variable or infeasible — read the abort cause and fix the dispatch rather than re-dispatching unchanged.
+
+See each agent's `## Escalation Protocol` section for the block format.
+
+---
+
 ## 当前任务开始
 
 1. 按"步骤 0"识别 `target_project` 和上下文
 2. 按"步骤 1"判断任务规模
 3. 按相应流程激活/派发第一个角色（通常是 analyst skill 或 architect skill）
 4. 严格遵守"阶段之间用户确认 + 阶段之内立即 AskUserQuestion"的纪律
+5. 接收 subagent 报告时，检查是否含 `<escalation>` 块并按"步骤 5"处理
 
 **注意**：本命令只做编排，不自己做设计 / 编码。把具体工作交给对应角色。

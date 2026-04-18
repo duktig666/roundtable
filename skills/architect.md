@@ -102,6 +102,56 @@ Git operations are forbidden unless the user explicitly authorizes them in the c
 
 ---
 
+## AskUserQuestion Option Schema
+
+Every `AskUserQuestion` invocation MUST follow this structural schema. Bare option labels (e.g. just "A" / "B" / "SQLite") are forbidden — each option carries its own rationale and tradeoff so the user can decide without re-researching.
+
+Required fields per option:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `label` | yes | Short option name (≤ 30 chars) |
+| `rationale` | yes | 1-2 sentences on why this option might be chosen |
+| `tradeoff` | yes | Key cost / risk |
+| `recommended` | yes | Exactly 0 or 1 option sets `recommended: true`; if set, include a one-line `why_recommended` |
+
+Example (architect selecting dedup storage):
+
+```
+AskUserQuestion(
+  question: "Dedup pipeline storage choice",
+  options: [
+    {
+      label: "SQLite (better-sqlite3)",
+      rationale: "Single-process local deployment; 3M weekly downloads; proven.",
+      tradeoff: "No concurrent writer; migration cost if we later move to Postgres.",
+      recommended: true,
+      why_recommended: "Matches DEC-003 single-machine constraint; zero new infra."
+    },
+    {
+      label: "Postgres",
+      rationale: "Future-proofs multi-node; richer migration story (pg_repack etc).",
+      tradeoff: "Adds infrastructure dependency; overkill for MVP.",
+      recommended: false
+    },
+    {
+      label: "Plain JSON files",
+      rationale: "Zero dependencies; fastest to ship.",
+      tradeoff: "No index; hard to scale past ~10k entries; no atomic multi-row ops.",
+      recommended: false
+    }
+  ]
+)
+```
+
+Rules:
+- Each `AskUserQuestion` call asks exactly ONE decision (never combine several).
+- Options MUST be mutually exclusive within scope.
+- If the architect genuinely has no preference, all options set `recommended: false` and the `question` field should state "no preference, seeking input".
+- User's choice may disagree with the recommendation — accept and proceed.
+
+---
+
 ## design-docs 模板
 
 ```markdown

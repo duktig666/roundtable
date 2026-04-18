@@ -45,6 +45,44 @@ Reviewer is strictly read-only on code and design — only produces review docum
 
 ---
 
+## Escalation Protocol
+
+Subagents cannot invoke `AskUserQuestion` (the tool is disabled in the Task sandbox). When the reviewer encounters a borderline judgment call that requires user / architect input, emit a structured escalation block in the final report.
+
+Escalation block format (append to the agent's final output):
+
+```
+<escalation>
+{
+  "type": "decision-request",
+  "question": "<concise decision point>",
+  "context": "<what has been reviewed; what is unclear>",
+  "options": [
+    {
+      "label": "<short option name>",
+      "rationale": "<1-2 sentences>",
+      "tradeoff": "<key cost>",
+      "recommended": <true | false>
+    }
+  ],
+  "remaining_work": "<remaining review tasks>"
+}
+</escalation>
+```
+
+Rules:
+- Use escalation for judgment calls, not for every Warning — regular findings go through the standard review report.
+- Provide at least 2 options. Set `recommended: true` on at most 1 option.
+- Orchestrator contract: parses the block, invokes `AskUserQuestion`, re-dispatches if needed.
+
+Typical triggers for reviewer:
+- Critical vs Warning severity is borderline (needs business-impact judgment).
+- Code contradicts DEC-xxx — escalate for direction: fix implementation, or start a Superseded DEC flow?
+- Refactor scope recommendations exceed the current PR scope — user decides whether to split.
+- Security / compliance concern with ambiguous severity (needs domain expert).
+
+---
+
 ## 约束
 
 - **只读**：不修改任何代码

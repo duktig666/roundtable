@@ -63,6 +63,51 @@ Analyst stays at the factual layer; architecture-layer docs are architect's doma
 
 ---
 
+## AskUserQuestion Option Schema
+
+Every `AskUserQuestion` invocation MUST follow this structural schema. Bare option labels are forbidden — each option carries factual information so the user can decide.
+
+Required fields per option:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `label` | yes | Short option name |
+| `fact` | yes | Factual statement with source (URL / `file:line` / figure) |
+| `tradeoff` | yes | Objective cost / exclusion |
+| `recommended` | **forbidden** | Analyst stays at the factual layer; recommendations are architect's job |
+
+Example (analyst scoping research):
+
+```
+AskUserQuestion(
+  question: "Research scope for X data-source evaluation",
+  options: [
+    {
+      label: "Only official API",
+      fact: "x.com/developers 2026-02-06 changed new accounts to PPU; legacy Basic $100/mo = 10k reads, 7-day search window.",
+      tradeoff: "Excludes third-party / scraping / RSS alternatives from scope."
+    },
+    {
+      label: "Official API + third-party (Rettiwt / Nitter / scraping-as-a-service)",
+      fact: "Rettiwt-API active on GitHub (v6.0.5); public Nitter instances mostly offline per simple-web 2026 review.",
+      tradeoff: "Longer research time; mixes compliance categories (ToS-compliant vs ToS-violating)."
+    },
+    {
+      label: "Only compliant options (exclude scraping / ToS violations)",
+      fact: "Same sources as option 1 plus first-party RSS feeds where publishers offer them.",
+      tradeoff: "Narrower coverage; may leave 'best-for-MVP' off the table."
+    }
+  ]
+)
+```
+
+Rules:
+- Each `AskUserQuestion` call asks exactly ONE research decision.
+- Options are factually distinct choices, not "which is better".
+- **NO `recommended` field** — that is architect-layer reasoning.
+
+---
+
 ## 命名约定
 
 本 skill 输出：`target_project/{docs_root}/analyze/[slug].md`

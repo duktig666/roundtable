@@ -46,6 +46,44 @@ When a bug surfaces in business code, write a failing / `#[ignore]`-marked repro
 
 ---
 
+## Escalation Protocol
+
+Subagents cannot invoke `AskUserQuestion` (the tool is disabled in the Task sandbox). When the tester encounters a user-decision point, emit a structured escalation block in the final report and return control to the orchestrator.
+
+Escalation block format (append to the agent's final output):
+
+```
+<escalation>
+{
+  "type": "decision-request",
+  "question": "<concise decision point>",
+  "context": "<what has been done; what is blocked>",
+  "options": [
+    {
+      "label": "<short option name>",
+      "rationale": "<1-2 sentences on why this option>",
+      "tradeoff": "<key cost>",
+      "recommended": <true | false>
+    }
+  ],
+  "remaining_work": "<tasks pending after this decision>"
+}
+</escalation>
+```
+
+Rules:
+- Emit at most ONE escalation block per dispatch. If multiple decisions arise, pick the most blocking.
+- Provide at least 2 options. Set `recommended: true` on at most 1 option.
+- Orchestrator contract: parses the block, invokes `AskUserQuestion`, re-dispatches with the answer injected.
+
+Typical triggers for tester:
+- Business bug surfaced in `src/*` (reproduction test written — escalate fix decision; never fix business code from within tester).
+- Adversarial case reveals ambiguous specification (what is the intended behavior?).
+- Benchmark threshold selection (p95 latency target, memory cap) needs business input.
+- Test-fixture scope question (how many cases, which flavors).
+
+---
+
 ## 约束
 
 - **只写测试代码**，不修改业务代码

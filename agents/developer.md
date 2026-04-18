@@ -59,6 +59,49 @@ Git operations are forbidden unless the orchestrator explicitly authorizes them 
 
 ---
 
+## Escalation Protocol
+
+Subagents cannot invoke `AskUserQuestion` (the tool is disabled in the Task sandbox). When the role encounters a user-decision point (scope change, design deviation, unplanned dependency, contract mismatch), emit a structured escalation block in the final report and return control to the orchestrator — do not guess.
+
+Escalation block format (append to the agent's final output):
+
+```
+<escalation>
+{
+  "type": "decision-request",
+  "question": "<concise decision point>",
+  "context": "<what has been done; what is blocked>",
+  "options": [
+    {
+      "label": "<short option name>",
+      "rationale": "<1-2 sentences on why this option>",
+      "tradeoff": "<key cost>",
+      "recommended": <true | false>
+    }
+  ],
+  "remaining_work": "<tasks pending after this decision>"
+}
+</escalation>
+```
+
+Rules:
+- Emit at most ONE escalation block per dispatch. If multiple decisions arise, pick the most blocking and list others under `remaining_work`.
+- Provide at least 2 options. Set `recommended: true` on at most 1 option.
+- Continue any work that is unblocked by the decision; describe what remains pending.
+- Orchestrator contract: parses the block, invokes `AskUserQuestion` with the options (carrying rationale / tradeoff in option descriptions), re-dispatches the agent with the answer injected.
+
+Escalation vs abort:
+- **Escalation**: the decision is expected to come from the user / architect; continue unblocked work.
+- **Abort**: a required context variable is missing or task is infeasible — stop and report, do not escalate.
+
+Typical triggers for developer:
+- Design doc does not cover a concrete implementation fork (architecture-level question).
+- Contract mismatch / design drift discovered during implementation.
+- New dependency required (not declared in exec-plan).
+- Scope ambiguity between overlapping exec-plan tasks.
+
+---
+
 ## 约束
 
 - **遵循设计文档**：先完整阅读 `target_project/{docs_root}/design-docs/[slug].md` 和 `exec-plans/active/[slug]-plan.md`
