@@ -41,7 +41,7 @@ decisions: [DEC-001]
 - [x] 配置 SSH（`id_duktig666` + ssh/config alias + gitconfig includeIf）
 - [x] 初始化 plugin manifest：`.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`
 - [x] 建占位目录：`skills/` `agents/` `commands/` `hooks/` `examples/`（各带 .gitkeep）
-- [x] 建内部文档目录：`docs/analyze/` `docs/design-docs/` `docs/exec-plans/active/` `docs/exec-plans/completed/` `docs/testing/plans/` `docs/reviews/`（各带 .gitkeep，已 dogfood plugin 自身的产出契约分层）
+- [x] 建内部文档目录：`docs/analyze/` `docs/design-docs/` `docs/exec-plans/active/` `docs/exec-plans/completed/` `docs/testing/` `docs/reviews/`（各带 .gitkeep，已 dogfood plugin 自身的产出契约分层）
 - [x] 落盘 `docs/design-docs/roundtable.md` / `docs/exec-plans/active/roundtable-plan.md`（本文件）/ `docs/decision-log.md`（DEC-001）/ `docs/log.md`（时间索引）/ `docs/INDEX.md`（文档导航）
 - [x] 基础治理文件：README.md / LICENSE（Apache-2.0）/ CHANGELOG.md / CONTRIBUTING.md / .gitignore
 - [x] 首次 commit + push
@@ -94,20 +94,20 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
     - `cd <workspace>/<project> && claude --plugin-dir <workspace>/roundtable`
     - 触发 `/roundtable:workflow 设计 <topic>`
     - 验收：`git rev-parse` 短路识别，不弹 D9
-- [x] 验收清单（方式 A 已完成，2026-04-17）
+- [x] 验收清单（方式 A + B 均完成）
   - [x] 安装过程零弹窗（D2 B-0）
-  - [x] D9 识别机制在方式 A（workspace 根启动）下工作
-  - [x] architect skill 激活后 AskUserQuestion **真的弹决策窗**
-  - [ ] design-doc 落到正确路径（需下一轮真实设计任务时观察）
-  - [ ] 加载了 target_project 的 CLAUDE.md（需下一轮任务时观察决策引用）
-  - [ ] 工具链自动检测正确（需下一轮观察）
-  - [ ] 方式 B（从子项目内启动，`git rev-parse` 短路）—— 待验证
+  - [x] D9 识别机制在方式 A（workspace 根启动）下工作（2026-04-17 smoke）
+  - [x] architect skill 激活后 AskUserQuestion **真的弹决策窗**（2026-04-17 smoke + 2026-04-18 gleanforge P4 多轮复验）
+  - [x] design-doc 落到正确路径（P4 gleanforge `docs/design-docs/mvp-foundation.md`）
+  - [x] 加载了 target_project 的 CLAUDE.md（P4 中 critical_modules 触发 tester，设计参考体现在 DEC 阐释）
+  - [x] 工具链自动检测正确（P4 识别 pnpm + Node 20 + TS strict ESM + vitest + tsx）
+  - [x] 方式 B（从子项目内启动，`git rev-parse` 短路）（2026-04-18 gleanforge 从 `/data/rsw/gleanforge` 内启动验证）
 
 ### 成功信号
-- [ ] 零 userConfig 弹窗，装完立即可用
-- [ ] D9 target_project 识别在两种启动场景下准确
-- [ ] AskUserQuestion 决策弹窗真实弹出（验证 D8 决策）
-- [ ] `skills/architect.md` 和 `commands/workflow.md` 无任何语言 / 业务 / 项目特定硬编码（grep 验证）
+- [x] 零 userConfig 弹窗，装完立即可用（P4 实测）
+- [x] D9 target_project 识别在两种启动场景下准确（方式 A + B 均验证）
+- [x] AskUserQuestion 决策弹窗真实弹出（P4 analyst / architect 均弹了真窗）
+- [x] `skills/architect.md` 和 `commands/workflow.md` 无任何语言 / 业务 / 项目特定硬编码（grep 验证：feature/p4-dogfood-improvements 分支 commit `8981a0d` 后 0 命中）
 
 ### 风险与预案
 
@@ -135,12 +135,12 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 - [x] `commands/bugfix.md`（跳过 design 阶段，强制回归测试，发现设计缺陷即中止转 /workflow）
 - [x] `commands/lint.md`（8 项文档健康检查，纯只读报告）
 - [x] `commands/workflow.md` 的派发编排：P1 版本已包含完整的 skill 激活 + agent 派发逻辑，P2 无需新增（仅在 P4 真实使用时如有不足再调整）
-- [ ] 在真实项目里端到端跑一次 `/roundtable:workflow`，全角色链路触发（放到 P4 自消耗验证时做）
+- [x] 在真实项目里端到端跑一次 `/roundtable:workflow`，全角色链路触发（2026-04-18 P4 gleanforge 完成）
 
 ### 成功信号
-- [ ] 全 7 个角色 + 3 个命令通用化完成
-- [ ] `grep` 验证：`skills/` `agents/` `commands/` 下 0 命中任何语言 / 业务特定关键词
-- [ ] 端到端跑通：architect skill 决策弹窗 → developer agent 写代码 → tester agent 跑测试 → reviewer agent 审查
+- [x] 全 7 个角色 + 3 个命令通用化完成（2026-04-17 落盘）
+- [x] `grep` 验证：`skills/` `agents/` `commands/` 下 0 命中任何语言 / 业务特定关键词（2026-04-19 commit `8981a0d` 后再次 0 命中）
+- [x] 端到端跑通：architect skill 决策弹窗 → developer agent 写代码 → tester agent 跑测试 → reviewer agent 审查（2026-04-18 gleanforge P4，全角色链路真实触发，9 次 subagent 派发含 3 次并行）
 
 ### 风险与预案
 
@@ -189,7 +189,7 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
   - `## 条件触发规则`（API token / sources/* / LLM prompt / 垂类新增 / 去重触碰）
 - N/A 本地 `.claude/` agent 冲突 —— gleanforge 是绿地项目无同名文件
 - [x] 跑真实需求 `/roundtable:workflow 设计 gleanforge MVP ...` —— 产出完整 design-doc / DEC-001..007 / analyze / exec-plan / testing/plan / review / 代码 50 文件 / 242 tests
-- [x] 记录偏差反馈到 bug 列表 —— 产出 `docs/testing/plans/p4-self-consumption.md`
+- [x] 记录偏差反馈到 bug 列表 —— 产出 `docs/testing/p4-self-consumption.md`
 - N/A `.claude.backup/` 清理 —— 无备份需要
 - [ ] gleanforge 首次 commit + PR —— 推迟（等用户主动，符合 `feedback_no_auto_push` 约束）
 
@@ -254,4 +254,5 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 ## 变更记录
 
 - 2026-04-17 创建；确认 D1-D9 九项决策；P0 已完成（建仓 + 骨架 + 设计文档 + 决策日志）
-- 2026-04-18 P4 自消耗闭环完成：gleanforge 项目从零 build 到 MVP（P0.1-P0.7 + tester + reviewer + dry-run smoke），242 tests 全绿；产出 `docs/testing/plans/p4-self-consumption.md` 观察报告，识别 3 条 top 改进（共享资源协议 / agent→orchestrator 决策协议 / workflow command checklist 化）；gleanforge 首次 commit + PR 推迟（用户主动）
+- 2026-04-18 P4 自消耗闭环完成：gleanforge 项目从零 build 到 MVP（P0.1-P0.7 + tester + reviewer + dry-run smoke），242 tests 全绿；产出 `docs/testing/p4-self-consumption.md` 观察报告，识别 3 条 top 改进（共享资源协议 / agent→orchestrator 决策协议 / workflow command checklist 化）；gleanforge 首次 commit + PR 推迟（用户主动）
+- 2026-04-19 基于 P4 反馈落地三项增量改进（见 DEC-002）+ 回填 P1 / P2 历史 checkbox（方式 B / design-doc 落盘 / CLAUDE.md 加载 / 工具链检测 / grep 0 命中 / 端到端链路 —— 均由 P4 gleanforge 实证）。改进落在 feature 分支 `feature/p4-dogfood-improvements`：commits `02befbf` Resource Access matrix / `066f2a8` Escalation Protocol + Option Schema / `c9c5559` Phase Matrix + inline _detect / `85ecf38` DEC-002 / `309254b` CHANGELOG / `8981a0d` de-hardcode / `c02767d` flatten `docs/testing/` / 本条

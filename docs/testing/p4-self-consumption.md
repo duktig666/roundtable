@@ -45,7 +45,7 @@ decisions: [DEC-001]
 ### 🟠 Process 层
 
 1. **并行调度策略未形成显式 skill**：`/roundtable:workflow` 的 command 文档只描述单向线性流（analyst → architect → developer → tester → reviewer），没给"何时 P0.2 + P0.3 可以并行"的判定规则。本轮靠 exec-plan 的"前置"列手工推导，缺失会给后人埋坑。**建议**：在 command 里加一段"并行派发判定树"或让 `dispatching-parallel-agents` skill 被 workflow command 主动提示。
-2. **exec-plan checkbox 谁回写契约不清**：`developer.md` 说"更新阶段勾选状态"，但并行 developer 同时改同一文件会 race。本轮解法是"agent 不改 checkbox，orchestrator 代写"。**建议**：在 `developer.md` 明文写"仅按报告清单列出完成项，orchestrator 回写"，并把这条升级为**共享资源协议**（包括 `decision-log.md` / `testing/plans/`）。
+2. **exec-plan checkbox 谁回写契约不清**：`developer.md` 说"更新阶段勾选状态"，但并行 developer 同时改同一文件会 race。本轮解法是"agent 不改 checkbox，orchestrator 代写"。**建议**：在 `developer.md` 明文写"仅按报告清单列出完成项，orchestrator 回写"，并把这条升级为**共享资源协议**（包括 `decision-log.md` / `testing/`）。
 3. **`_detect-project-context` skill 是 markdown 文档而非可执行 skill**：主会话 Claude 看到时需要手工执行 4 步。**建议**：把它做成 workflow command 启动时自动注入的 preamble，所有后续 skill / agent 默认上下文都已就绪；或改名保留 `_` 前缀明确为"内部 helper"。
 
 ### 🟠 Agent 能力层
@@ -67,7 +67,7 @@ decisions: [DEC-001]
 
 ## 4. 给 roundtable 的 3 条最高优先级改进
 
-1. **共享资源协议**：把 `exec-plan.md` / `log.md` / `decision-log.md` / `testing/plans/` 的读写权限表升级为一等公民文档，所有 agent 在 prompt 开头看到"不编辑 X、只读 Y、报告 Z"列表。当前靠 orchestrator 逐次 prompt 注入，易遗漏。
+1. **共享资源协议**：把 `exec-plan.md` / `log.md` / `decision-log.md` / `testing/` 的读写权限表升级为一等公民文档，所有 agent 在 prompt 开头看到"不编辑 X、只读 Y、报告 Z"列表。当前靠 orchestrator 逐次 prompt 注入，易遗漏。
 2. **agent → orchestrator 请求决策协议**：让 subagent 能够用结构化 JSON 请求（"我遇到问题 P，选项 A/B/C"），orchestrator 自动转 `AskUserQuestion` 并把答案回注。消除"tester 发现 bug 要 relay"的摩擦。
 3. **workflow command 启动 checklist 化**：当前 `/roundtable:workflow` 只描述 5 步，应该做成可点选的"已完成 / 在进行 / 待启动"矩阵（可视化显示阶段位置 + 每阶段可派的 agent），避免 orchestrator 状态错位。
 

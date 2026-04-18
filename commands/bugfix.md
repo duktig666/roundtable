@@ -17,11 +17,13 @@ argument-hint: <bug 描述 或 issue 编号>
 
 ---
 
-## 步骤 0：项目上下文识别
+## Step 0: Project Context Detection
 
-激活 **`_detect-project-context` skill**（通过 `Skill` 工具），完成全部 4 步：D9 识别 + 工具链检测 + docs_root + CLAUDE.md 业务规则加载。
+**Execute the 4-step detection inline** — `Read` `skills/_detect-project-context.md` and follow the 4 steps directly. Do NOT use the `Skill` tool to activate the underscore-prefixed helper.
 
-后续派发 developer / tester / reviewer / dba 等 agent 时，必须在 prompt 里注入识别结果。
+The 4 steps: D9 target-project identification → toolchain detection → `docs_root` detection → `CLAUDE.md` "# 多角色工作流配置" loading.
+
+When later dispatching `developer` / `tester` / `reviewer` / `dba` agents, inject the detected values (`target_project`, `docs_root`, `lint_cmd`, `test_cmd`, `critical_modules`, `slug`, `primary_lang`) in the dispatch prompt.
 
 ---
 

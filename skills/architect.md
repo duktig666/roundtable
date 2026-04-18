@@ -9,11 +9,24 @@ description: Architect role for system design, interface definition, technology 
 
 ## 开工第一步：项目上下文识别
 
-激活 **`_detect-project-context` skill**（`Skill` 工具），完成全部 4 步（D9 识别 + 工具链检测 + docs_root 检测 + CLAUDE.md 加载）。返回结果存入 session 记忆，后续设计流程直接引用 `target_project` / `docs_root` / `critical_modules` / 设计参考等变量，不要重复检测。
+**Execute the 4-step detection inline** — `Read` `skills/_detect-project-context.md` and run all 4 steps directly (D9 identification + toolchain detection + `docs_root` detection + `CLAUDE.md` loading). Do NOT use the `Skill` tool. Store the result in session memory; subsequent design steps reference `target_project` / `docs_root` / `critical_modules` / `design_ref` from memory instead of re-detecting.
 
 **额外一步：扫描 decision-log**
 
 若 `target_project/{docs_root}/decision-log.md` 存在，读取全部 DEC 条目。**新设计不得与已有 Accepted 状态决策矛盾；若矛盾必须显式引用旧 DEC 编号走 Superseded 流程**。
+
+---
+
+## Resource Access
+
+| Operation | Scope |
+|-----------|-------|
+| Read | `target_project/CLAUDE.md`, `{docs_root}/analyze/`, `{docs_root}/design-docs/`, `{docs_root}/decision-log.md`, existing `{docs_root}/exec-plans/` |
+| Write | `{docs_root}/design-docs/[slug].md`, `{docs_root}/exec-plans/{active,completed}/[slug]-plan.md`, `{docs_root}/api-docs/[slug].md`, `{docs_root}/decision-log.md`, `{docs_root}/log.md` |
+| Report to orchestrator | — (skill runs in the main session; writes directly) |
+| Forbidden | `src/*`, `tests/*`, `{docs_root}/reviews/`, `{docs_root}/testing/`, git operations (commit / push / branch / tag / reset / stash) |
+
+Git operations are forbidden unless the user explicitly authorizes them in the current turn. Default: operate only on the working tree.
 
 ---
 
@@ -86,6 +99,56 @@ description: Architect role for system design, interface definition, technology 
 **不适用**：开放式问题（让用户自由描述需求）—— 直接对话询问
 
 **规则**：每次只问**一个**决策点，等用户回答再问下一个。不要一次弹多个并行问题。
+
+---
+
+## AskUserQuestion Option Schema
+
+Every `AskUserQuestion` invocation MUST follow this structural schema. Bare option labels (e.g. just "A" / "B" / "SQLite") are forbidden — each option carries its own rationale and tradeoff so the user can decide without re-researching.
+
+Required fields per option:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `label` | yes | Short option name (≤ 30 chars) |
+| `rationale` | yes | 1-2 sentences on why this option might be chosen |
+| `tradeoff` | yes | Key cost / risk |
+| `recommended` | yes | Exactly 0 or 1 option sets `recommended: true`; if set, include a one-line `why_recommended` |
+
+Example (architect selecting persistence layer):
+
+```
+AskUserQuestion(
+  question: "Persistence layer choice for <module>",
+  options: [
+    {
+      label: "Embedded SQL (SQLite / equivalent)",
+      rationale: "Single-process local deployment; zero infra; well-supported drivers.",
+      tradeoff: "No concurrent writer; migration cost if scope grows to multi-node.",
+      recommended: true,
+      why_recommended: "Matches the single-machine constraint recorded in DEC-xxx; zero new infrastructure."
+    },
+    {
+      label: "Server DB (Postgres / MySQL)",
+      rationale: "Future-proofs multi-node; richer migration / replication story.",
+      tradeoff: "Adds infrastructure dependency; overkill at current scope.",
+      recommended: false
+    },
+    {
+      label: "Plain structured files (JSON / CSV)",
+      rationale: "Zero dependencies; fastest to ship.",
+      tradeoff: "No index; hard to scale past a few thousand rows; no atomic multi-row ops.",
+      recommended: false
+    }
+  ]
+)
+```
+
+Rules:
+- Each `AskUserQuestion` call asks exactly ONE decision (never combine several).
+- Options MUST be mutually exclusive within scope.
+- If the architect genuinely has no preference, all options set `recommended: false` and the `question` field should state "no preference, seeking input".
+- User's choice may disagree with the recommendation — accept and proceed.
 
 ---
 

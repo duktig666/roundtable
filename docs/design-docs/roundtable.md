@@ -216,7 +216,7 @@ roundtable/                            # GitHub: duktig666/roundtable
 │   │   ├── active/
 │   │   │   └── roundtable-plan.md          # P0-P6 路线
 │   │   └── completed/                      # 归档
-│   ├── testing/plans/[slug].md             # tester 测试计划（按需）
+│   ├── testing/[slug].md             # tester 测试计划（按需）
 │   ├── reviews/[YYYY-MM-DD]-[slug].md      # reviewer/dba 落盘审查（按需）
 │   ├── onboarding.md                       # [P3] 5 分钟上手
 │   ├── claude-md-template.md               # [P3] 给用户抄的 CLAUDE.md section 模板
@@ -598,7 +598,7 @@ claude --plugin-dir <workspace>/roundtable
 
 | Phase | 动作 | 产出 | 成功信号 |
 |-------|------|------|---------|
-| **P0 建仓与骨架** | 创建 GitHub 公开仓库；初始化 plugin.json / marketplace.json / LICENSE / README / CHANGELOG / CONTRIBUTING / .gitignore；建 `skills/` `agents/` `commands/` `hooks/` `examples/` 目录；建 `docs/design-docs/` `docs/exec-plans/active/` `docs/analyze/` `docs/reviews/` `docs/testing/plans/` 子目录；落盘 design-doc / exec-plan / decision-log / log / INDEX | 可安装 plugin 骨架（内容尚未通用化） | `/plugin marketplace add duktig666/roundtable` 成功；目录结构完整 |
+| **P0 建仓与骨架** | 创建 GitHub 公开仓库；初始化 plugin.json / marketplace.json / LICENSE / README / CHANGELOG / CONTRIBUTING / .gitignore；建 `skills/` `agents/` `commands/` `hooks/` `examples/` 目录；建 `docs/design-docs/` `docs/exec-plans/active/` `docs/analyze/` `docs/reviews/` `docs/testing/` 子目录；落盘 design-doc / exec-plan / decision-log / log / INDEX | 可安装 plugin 骨架（内容尚未通用化） | `/plugin marketplace add duktig666/roundtable` 成功；目录结构完整 |
 | **P1 POC：architect skill + workflow command** | 写 `skills/architect.md`（skill 形态，含 AskUserQuestion 三阶段 + D9 识别 + 工具链检测）；写 `commands/workflow.md`（编排逻辑区分"激活 skill"和"派发 agent"） | 2 份文件 | 本地 `--plugin-dir` 装上，`/roundtable:workflow` 能跑架构阶段，**AskUserQuestion 真实弹窗**，D9 识别正确，文档落到正确的 `<target_project>/<docs_root>/design-docs/` |
 | **P2 批量改剩余角色** | `skills/analyst.md`（交互式）；`agents/developer.md` `agents/tester.md` `agents/reviewer.md` `agents/dba.md`（隔离执行）；`commands/bugfix.md` `commands/lint.md` | 2 skill + 4 agent + 2 command | 全流程跑一遍，skill / agent 分工清晰，grep 无业务术语硬编码 |
 | **P3 文档 + 模板 + onboarding** | `docs/claude-md-template.md`、`docs/onboarding.md`、`docs/migration-from-local.md`、`examples/<profile>-snippet.md`（几种典型项目类型的 CLAUDE.md 片段示例） | 4+ 份文档 | 陌生项目按 5 分钟 onboarding 能跑通 /workflow |

@@ -9,7 +9,7 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## 开工第一步：项目上下文识别
 
-激活 **`_detect-project-context` skill**（`Skill` 工具），参数：**跳过工具链检测**（analyst 不跑 lint/test）；完成 D9 识别 + docs_root + CLAUDE.md 加载。返回结果存入 session 记忆，后续调研流程直接引用 `target_project` / `docs_root` / CLAUDE.md 中的业务规则。
+**Execute the detection inline** — `Read` `skills/_detect-project-context.md` and run steps 1 (D9 identification), 3 (`docs_root` detection), and 4 (`CLAUDE.md` loading). Skip step 2 (toolchain) — analyst does not run `lint` / `test`. Do NOT use the `Skill` tool. Store the result in session memory; subsequent research references `target_project` / `docs_root` / CLAUDE.md rules from memory.
 
 ---
 
@@ -20,6 +20,19 @@ description: Analyst role for research, competitive analysis, feasibility assess
 - 需求分析与问题拆解
 
 **边界**：analyst 只产出**事实**和**观察**，不做**方案选型**或**推荐倾向**。方案选型、打分、决策全部属于 architect 职责；analyst 越界会锚定 architect 的后续设计。
+
+---
+
+## Resource Access
+
+| Operation | Scope |
+|-----------|-------|
+| Read | `target_project/CLAUDE.md`, `{docs_root}/analyze/`, source code (read-only), WebFetch / WebSearch |
+| Write | `{docs_root}/analyze/[slug].md`, `{docs_root}/log.md` |
+| Report to orchestrator | — (skill runs in the main session; writes directly) |
+| Forbidden | `{docs_root}/design-docs/`, `{docs_root}/decision-log.md`, `{docs_root}/exec-plans/`, `src/*`, `tests/*`, git operations |
+
+Analyst stays at the factual layer; architecture-layer docs are architect's domain. Git operations are forbidden unless the user explicitly authorizes them.
 
 ---
 
@@ -47,6 +60,51 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ### 后续追问
 报告写完后，接受用户的追问并以 FAQ 形式追加到报告。
+
+---
+
+## AskUserQuestion Option Schema
+
+Every `AskUserQuestion` invocation MUST follow this structural schema. Bare option labels are forbidden — each option carries factual information so the user can decide.
+
+Required fields per option:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `label` | yes | Short option name |
+| `fact` | yes | Factual statement with source (URL / `file:line` / figure) |
+| `tradeoff` | yes | Objective cost / exclusion |
+| `recommended` | **forbidden** | Analyst stays at the factual layer; recommendations are architect's job |
+
+Example (analyst scoping research):
+
+```
+AskUserQuestion(
+  question: "Research scope for X data-source evaluation",
+  options: [
+    {
+      label: "Only official API",
+      fact: "x.com/developers 2026-02-06 changed new accounts to PPU; legacy Basic $100/mo = 10k reads, 7-day search window.",
+      tradeoff: "Excludes third-party / scraping / RSS alternatives from scope."
+    },
+    {
+      label: "Official API + third-party (Rettiwt / Nitter / scraping-as-a-service)",
+      fact: "Rettiwt-API active on GitHub (v6.0.5); public Nitter instances mostly offline per simple-web 2026 review.",
+      tradeoff: "Longer research time; mixes compliance categories (ToS-compliant vs ToS-violating)."
+    },
+    {
+      label: "Only compliant options (exclude scraping / ToS violations)",
+      fact: "Same sources as option 1 plus first-party RSS feeds where publishers offer them.",
+      tradeoff: "Narrower coverage; may leave 'best-for-MVP' off the table."
+    }
+  ]
+)
+```
+
+Rules:
+- Each `AskUserQuestion` call asks exactly ONE research decision.
+- Options are factually distinct choices, not "which is better".
+- **NO `recommended` field** — that is architect-layer reasoning.
 
 ---
 

@@ -32,18 +32,21 @@
 
 ## 工具链覆盖（可选，缺省走自动检测）
 
-<仅在 roundtable 根文件自动检测不准或项目有特殊约定时填；空缺时 roundtable 按项目根的 Cargo.toml / package.json / pyproject.toml / go.mod / Move.toml 自动识别并用默认命令>
+<仅在 roundtable 根文件自动检测不准或项目有特殊约定时填；空缺时 roundtable 按项目根的 Cargo.toml / package.json / pyproject.toml / go.mod / Move.toml 自动识别并用默认命令。首轮 `/roundtable:workflow` 的 P0.1 脚手架阶段由 orchestrator 在 developer 完成脚手架后代填本 section —— developer 在 Resource Access 里没有本文件的 Write 权限，只在报告里建议值；orchestrator 按报告写入>
 
+- package manager: `<如 pnpm@9.15.0 / cargo / uv / bun@1.3 / ...>`（可选）
+- runtime: `<如 Node ">=20" / Python ">=3.12" / Rust 1.80+ / ...>`（可选）
 - lint: `<项目 lint 命令>`
 - test: `<项目 test 命令>`
 - build: `<项目 build 命令>`（可选）
+- dev: `<开发模式命令，如 tsx 热加载 / cargo watch>`（可选）
 
 ## 文档约定（可选，缺省走 roundtable 通用约定）
 
 - 决策日志 `docs/decision-log.md`（追加 DEC-xxx，不删旧条目）
 - 操作日志 `docs/log.md`（append-only，顶部最新）
 - 变更记录写在各 doc 底部"变更记录"章节，不入 log.md
-- 主题 slug 用 kebab-case 英文，贯穿 analyze → design-docs → exec-plans → testing/plans
+- 主题 slug 用 kebab-case 英文，贯穿 analyze → design-docs → exec-plans → testing
 
 ## 条件触发规则（可选，按项目业务写硬性约束）
 
@@ -82,6 +85,49 @@
 - 有自定义 lint 配置（如 `cargo xclippy` alias、自写的 pre-commit hook）
 - 测试命令需要特殊环境变量（如 `FOO=bar pytest`）
 - monorepo 根目录没有标识文件，需要手工指定
+- **新项目首轮接入**：architect 决定了技术栈（pnpm / bun / cargo / uv 等）但还没装，P0.1 脚手架跑完后 orchestrator 代填具体命令和版本号，让后续 Px 的 developer / tester 能直接引用
+
+### 谁填、何时填、怎么填？
+
+| 问题 | 回答 |
+|------|------|
+| **谁填** | **orchestrator**（主会话 Claude）。developer 在 `Resource Access` 里对 `CLAUDE.md` 没有 Write 权限，只在完成脚手架后的报告里建议值，由 orchestrator 写入 |
+| **何时填** | 首轮 `/roundtable:workflow` 的 **P0.1 脚手架阶段完成后**，进入 P0.2 前；这时 `package.json` / `Cargo.toml` / `pyproject.toml` 刚就位，工具链命令已确定 |
+| **为什么走 orchestrator** | 并行 dispatch 时多个 developer 可能同时想改 `CLAUDE.md`，由 orchestrator 串行化避免 race（同 `exec-plan` checkbox 的回写纪律）|
+| **后续变更** | 加 `ESLint` / 换 `biome` 等会改 lint_cmd 的时候；也由 orchestrator 代写 |
+
+### 回填样板
+
+两个典型场景的 "工具链覆盖" 完成态：
+
+**TS + pnpm + vitest（绿地项目典型）**：
+
+```markdown
+## 工具链覆盖
+
+> 由 P0.1 脚手架阶段回填（2026-04-18）。DEC-003 确定：pnpm + Node 20+ + TypeScript strict ESM + vitest + tsx。
+
+- package manager: `pnpm@9.15.0`
+- runtime: Node `>=20`（`engines` 与 cli.ts 双重校验）
+- lint: `pnpm lint`（当前指向 `tsc --noEmit`；ESLint 配置在 P0.8 前补齐）
+- test: `pnpm test`（指向 `vitest run`，`passWithNoTests: true`）
+- build: `pnpm build`（`tsc` 产出 `dist/cli.js`）
+- dev: `pnpm dev`（`tsx src/cli.ts`，不 bundle）
+```
+
+**Rust + cargo + nextest（服务端典型）**：
+
+```markdown
+## 工具链覆盖
+
+> 由 P0.1 脚手架阶段回填。DEC-002 确定：Rust 1.80+ / cargo workspace / nextest 并行跑测试。
+
+- package manager: cargo（workspace root `Cargo.toml`）
+- runtime: Rust `1.80+`（`rust-toolchain.toml` pinned）
+- lint: `cargo clippy --workspace --all-targets -- -D warnings`
+- test: `cargo nextest run --workspace`（CI fallback `cargo test` 若 nextest 不可用）
+- build: `cargo build --release --workspace`
+- dev: `cargo watch -x check -x test`（本地）
 
 ### 条件触发规则用来干嘛？
 
