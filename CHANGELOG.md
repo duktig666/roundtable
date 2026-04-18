@@ -20,6 +20,17 @@ All notable changes to **roundtable** will be documented in this file.
 - `commands/workflow.md`: near-total rewrite (96% rewrite ratio) into phase-matrix orchestrator; all prompt body in English per roundtable-plan cross-phase constraint
 - `_detect-project-context` activation switched from Skill tool invocation to inline `Read + execute 4 steps` across all 5 call-sites (workflow / bugfix / lint / architect / analyst); `Skill` tool activation of underscore-prefixed internal helper was observed to fail in some Claude Code releases
 - Phase gates refined: same-role auto-advance permitted when exec-plan prerequisites are met and no Critical findings; cross-role transitions always require user confirmation (unless `critical_modules` mechanically dictates)
+- `docs/testing/plans/` → `docs/testing/` (flatten double-nesting); tester artifacts now named `[slug].md` / `[slug]-bug-<id>.md` / `[slug]-benchmark.md`; 14 files updated to new path
+- Agent Forbidden list explicitly adds `target_project/CLAUDE.md` (orchestrator owns writes to 工具链覆盖 section); applies to developer / tester / reviewer / dba
+
+### Fixed (P4 dogfood improvements, 2026-04-19)
+
+- Project-specific references (`gleanforge`, `vault/`, `llm/`, `DEC-003`, concrete `P0.x` numbers) removed from prompt files; 0-hardcoded scan passes
+- `docs/exec-plans/active/roundtable-plan.md` P1 / P2 historical checkboxes backfilled with P4 evidence; previously left [ ] pending "real-world validation needed"
+
+### Docs (P4 dogfood improvements, 2026-04-19)
+
+- `docs/claude-md-template.md`: `工具链覆盖` section gains package manager / runtime / dev cmd fields; new "谁填、何时填、怎么填？" subsection explaining orchestrator-fills-on-P0.1-completion contract; two worked 回填样板 examples (TS+pnpm+vitest / Rust+cargo+nextest)
 
 ### Initial scaffolding (P0, 2026-04-17)
 
