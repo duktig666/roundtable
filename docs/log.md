@@ -38,6 +38,11 @@
 
 ---
 
+## test-plan | p4-self-consumption | 2026-04-18
+- 操作者: Claude (observer) + 用户（gleanforge P4 session）
+- 影响文件: docs/testing/plans/p4-self-consumption.md（新建）, docs/exec-plans/active/roundtable-plan.md（勾 P4 checkbox + 更新进度 + 追加变更记录）
+- 说明: P4 自消耗闭环在 gleanforge 项目完成：从零 build 到 P0 完成 + dry-run smoke 通过（9 次 subagent 派发 / 3 次并行 / 7 DEC / 242 tests 全绿）；落盘观察报告，识别 3 条 top 改进（共享资源协议 / agent→orchestrator 决策协议 / workflow command checklist 化）+ 9 条摩擦点 + 6 条工作良好设计；plugin 核心能力（skill+agent 双形态 / critical_module 触发 tester / exec-plan 共享契约 / 分级 review）通过端到端验证
+
 ## refactor | 抽取共享 skill `_detect-project-context` + lint 参数支持 | 2026-04-17
 - 操作者: Claude + 用户
 - 影响文件: skills/_detect-project-context.md（新建 114 行）, skills/architect.md（-51 行）, skills/analyst.md（-10 行；删除越权路径 + 合并重复追问框架）, commands/workflow.md, commands/bugfix.md, commands/lint.md（+13 行，加 argument-hint `$ARGUMENTS`，支持子项目名 / 绝对路径 / `.`）

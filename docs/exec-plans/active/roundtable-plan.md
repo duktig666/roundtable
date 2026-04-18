@@ -10,7 +10,7 @@ decisions: [DEC-001]
 # roundtable Plugin 执行计划
 
 > 本计划展开自 design-doc `docs/design-docs/roundtable.md` §7 分阶段路线（D6 POC 增量策略）
-> **当前进度**：P0 已完成；下一步 P1
+> **当前进度**：P0 → P4 已完成；下一步 P5 外部试装（或先做 P4 反馈的 top 3 plugin 改进）
 
 ---
 
@@ -173,29 +173,29 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 
 ---
 
-## P4 自消耗闭环
+## P4 自消耗闭环（2026-04-18 已完成）
 
 ### 目标
 挑一个真实项目完整走一遍安装 → 配置 → 工作流，作为最小回归。
 
 ### 任务清单
 
-- [ ] 选定自消耗目标项目（推荐挑 v0.1 设计者自己最熟悉的那个）
-- [ ] 在项目根跑 `/plugin install roundtable@roundtable --scope user`（或 `--plugin-dir` 过渡）
-- [ ] 按 `docs/claude-md-template.md` 给该项目的 CLAUDE.md 追加「# 多角色工作流配置」section，按实际填
-  - `## critical_modules`
-  - `## 设计参考`
-  - `## 工具链覆盖`（若自动检测不够精细）
-  - `## 条件触发规则`（按业务填）
-- [ ] 若项目本地 `.claude/` 下有同名 agent / command，`git mv` 到 `.claude.backup/` 保底（避免 override plugin）
-- [ ] 跑一个真实需求 `/roundtable:workflow <需求>` —— 产出 design-doc / decision-log / log.md 条目 / 代码改动
-- [ ] 记录任何与预期不符的行为，反馈到 bug 列表
-- [ ] 回归确认无问题后删 `.claude.backup/`
-- [ ] 提交项目 PR："Integrate roundtable plugin for multi-role workflow"
+- [x] 选定自消耗目标项目：**gleanforge**（TS 栈、AI + Web3 每日资讯聚合工具，全新绿地项目）
+- [x] 在项目根用 `--plugin-dir /data/rsw/roundtable` 过渡加载（marketplace install 留到 P6）
+- [x] 按 `docs/claude-md-template.md` 给 gleanforge CLAUDE.md 追加「# 多角色工作流配置」section
+  - `## critical_modules`（数据源认证 / 去重 / LLM prompt / 调度器）
+  - `## 设计参考`（tldr.tech / The Batch / Feedly / Dune Spellbook）
+  - `## 工具链覆盖`（P0.1 developer 回填：pnpm 9.15 / Node 20 / TS strict ESM / vitest / tsx）
+  - `## 条件触发规则`（API token / sources/* / LLM prompt / 垂类新增 / 去重触碰）
+- N/A 本地 `.claude/` agent 冲突 —— gleanforge 是绿地项目无同名文件
+- [x] 跑真实需求 `/roundtable:workflow 设计 gleanforge MVP ...` —— 产出完整 design-doc / DEC-001..007 / analyze / exec-plan / testing/plan / review / 代码 50 文件 / 242 tests
+- [x] 记录偏差反馈到 bug 列表 —— 产出 `docs/testing/plans/p4-self-consumption.md`
+- N/A `.claude.backup/` 清理 —— 无备份需要
+- [ ] gleanforge 首次 commit + PR —— 推迟（等用户主动，符合 `feedback_no_auto_push` 约束）
 
 ### 成功信号
-- [ ] 目标项目用 roundtable 做的需求，design-doc / decision-log / log.md 落盘位置 / 格式全部正确
-- [ ] 项目 CLAUDE.md 新增的 section 被 architect skill 正确读取（体现在决策阐释引用到业务规则）
+- [x] 目标项目用 roundtable 做的需求，design-doc / decision-log / log.md 落盘位置 / 格式全部正确（gleanforge/docs/ 完整 roundtable 分层）
+- [x] 项目 CLAUDE.md 新增的 section 被 architect skill 正确读取（critical_modules 触发 tester 生效；设计参考体现在 DEC 阐释；条件触发规则被 developer/tester 遵守）
 
 ### 风险与预案
 
@@ -254,3 +254,4 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 ## 变更记录
 
 - 2026-04-17 创建；确认 D1-D9 九项决策；P0 已完成（建仓 + 骨架 + 设计文档 + 决策日志）
+- 2026-04-18 P4 自消耗闭环完成：gleanforge 项目从零 build 到 MVP（P0.1-P0.7 + tester + reviewer + dry-run smoke），242 tests 全绿；产出 `docs/testing/plans/p4-self-consumption.md` 观察报告，识别 3 条 top 改进（共享资源协议 / agent→orchestrator 决策协议 / workflow command checklist 化）；gleanforge 首次 commit + PR 推迟（用户主动）
