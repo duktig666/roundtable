@@ -186,6 +186,45 @@ See each agent's `## Escalation Protocol` section for the block format.
 
 ---
 
+## Step 7: Index Maintenance (batched)
+
+When a role creates new artifacts under `{docs_root}/` (`analyze/` / `design-docs/` / `exec-plans/` / `api-docs/` / `testing/` / `reviews/`), the orchestrator owns the `{docs_root}/INDEX.md` update. Roles do NOT edit `INDEX.md` directly — same serialization pattern as exec-plan checkboxes (DEC-002 shared-resource protocol).
+
+**Batching rule**: Do NOT update `INDEX.md` after every subagent return. Accumulate new-file reports across the phase and update the index **once per phase gate** (before reporting phase summary to the user), or at workflow completion. This keeps token overhead to a single Read + Edit cycle per phase, not per subagent.
+
+**Steps**:
+
+1. **Collect**: Every role's final report MUST list newly-created files under a `created:` section (not merely in prose). Orchestrator parses this from each `Task` result and from each skill's in-session output.
+2. **Aggregate**: Accumulate `created[]` paths across parallel / sequential subagents within the current phase.
+3. **Sync**: Before the phase-gate summary to the user, `Read` `{docs_root}/INDEX.md` once (or `Grep` for the category-section anchors if large).
+4. **Update**: For each new path, identify its category (`analyze` / `design-docs` / `exec-plans/active` / `exec-plans/completed` / `testing` / `reviews` / `api-docs`) and append one line under the matching `### <category>` subsection. If no such subsection exists yet, create it.
+5. **Single Edit**: One `Edit` call on `INDEX.md` covers all appends for the phase.
+6. **Report**: Include "`INDEX.md` updated with N new entries" in the phase-gate summary.
+
+**Entry format**:
+
+```
+- [<file>](<relative-path-from-INDEX.md>) — <one-line description>
+```
+
+Description source priority: artifact frontmatter `description:` → role's report `description:` line → first sentence of the artifact's introduction.
+
+**Role report contract** (for `created:` section):
+
+```
+created:
+  - path: {docs_root}/design-docs/feature-x.md
+    description: Feature X design (API shape + data model + rollout phases)
+  - path: {docs_root}/testing/feature-x.md
+    description: Adversarial / benchmark plan for feature-x (18 cases)
+```
+
+**Fallback**: `/roundtable:lint` detects INDEX orphans / broken links as a safety net for missed Step 7 updates (periodic audit, not creation-time enforcement).
+
+**Forbidden**: roles never edit `INDEX.md` themselves — writes always routed through orchestrator per DEC-002.
+
+---
+
 ## Starting Point
 
 1. Run Step 0 inline (context detection).
@@ -193,6 +232,7 @@ See each agent's `## Escalation Protocol` section for the block format.
 3. Initialize the Phase Matrix (all ⏳).
 4. Activate / dispatch the first role per the size pipeline.
 5. Update the matrix at every phase transition and report it.
-6. Obey the rules in Step 6.
+6. Accumulate `created:` paths from each role's report; update `INDEX.md` at phase gates per Step 7.
+7. Obey the rules in Step 6.
 
 **This command orchestrates only — it does not design, code, or review itself. Delegate all substantive work to the appropriate role.**

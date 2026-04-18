@@ -39,7 +39,7 @@ model: opus
 |-----------|-------|
 | Read | `src/*`, `tests/*`, `{docs_root}/design-docs/[slug].md`, `{docs_root}/decision-log.md`, `target_project/CLAUDE.md` |
 | Write | `tests/*` (adversarial / E2E / benchmark test code), `{docs_root}/testing/[slug].md` (for medium / large tasks) |
-| Report to orchestrator | found bugs (via Escalation Protocol — orchestrator relays to user / developer for fix), `{docs_root}/log.md` entries (orchestrator writes) |
+| Report to orchestrator | found bugs (via Escalation Protocol — orchestrator relays to user / developer for fix), `{docs_root}/log.md` entries (orchestrator writes), newly-created files under `{docs_root}/testing/` with descriptions (orchestrator updates `INDEX.md` per workflow Step 7) |
 | Forbidden | `src/*` edits (tester never fixes business code), `target_project/CLAUDE.md` edits (read-only reference), `{docs_root}/design-docs/` edits, `{docs_root}/exec-plans/` writes, `{docs_root}/decision-log.md` writes, git operations |
 
 When a bug surfaces in business code, write a failing / `#[ignore]`-marked reproduction test and escalate to orchestrator. Never fix business code from within tester. Git operations are forbidden unless the orchestrator explicitly authorizes them.
