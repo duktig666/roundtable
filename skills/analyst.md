@@ -23,6 +23,19 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ---
 
+## Resource Access
+
+| Operation | Scope |
+|-----------|-------|
+| Read | `target_project/CLAUDE.md`, `{docs_root}/analyze/`, source code (read-only), WebFetch / WebSearch |
+| Write | `{docs_root}/analyze/[slug].md`, `{docs_root}/log.md` |
+| Report to orchestrator | — (skill runs in the main session; writes directly) |
+| Forbidden | `{docs_root}/design-docs/`, `{docs_root}/decision-log.md`, `{docs_root}/exec-plans/`, `src/*`, `tests/*`, git operations |
+
+Analyst stays at the factual layer; architecture-layer docs are architect's domain. Git operations are forbidden unless the user explicitly authorizes them.
+
+---
+
 ## 约束
 
 - **只读**：不修改任何代码文件

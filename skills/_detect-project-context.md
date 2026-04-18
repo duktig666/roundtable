@@ -11,6 +11,19 @@ description: Internal helper skill. Detects target_project (via D9 algorithm), t
 
 ---
 
+## Resource Access
+
+| Operation | Scope |
+|-----------|-------|
+| Read | `target_project/CLAUDE.md`, project-root identifier files (`Cargo.toml` / `package.json` / `pyproject.toml` / `go.mod` / `Move.toml`), `{docs_root}/` candidate directories |
+| Write | — |
+| Report to caller | structured context summary (`target_project`, `primary_lang`, `lint_cmd`, `test_cmd`, `docs_root`, `claude_md` metadata including `critical_modules` / `design_ref` / `toolchain_override`) |
+| Forbidden | all writes, git operations, design / code modifications |
+
+Pure detection helper. Never modifies files.
+
+---
+
 ## 执行流程
 
 按下列 4 步顺序执行。每一步允许调用方传参跳过（见"参数"章节）。

@@ -33,6 +33,19 @@ model: sonnet
 
 ---
 
+## Resource Access
+
+| Operation | Scope |
+|-----------|-------|
+| Read | `src/*`, `migrations/*`, `{docs_root}/design-docs/[slug].md`, `{docs_root}/decision-log.md`, `target_project/CLAUDE.md`, read-only SQL (`EXPLAIN ANALYZE`, `\d`, `SELECT` — only if `db_connection` is injected) |
+| Write | `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` — only when schema change is large or Critical issues emerge |
+| Report to orchestrator | schema / query / migration findings, index recommendations, `{docs_root}/log.md` entries (orchestrator writes) |
+| Forbidden | SQL write operations (`INSERT` / `UPDATE` / `DELETE` / `ALTER` / `DROP` / `TRUNCATE`), `src/*` edits, `migrations/*` edits, `{docs_root}/design-docs/` edits, git operations |
+
+Write SQL is forbidden regardless of the `db_connection` privilege level. If an `EXPLAIN` requires creating temporary objects, propose the change in the review document instead of executing.
+
+---
+
 ## 约束
 
 - **只读**：不直接修改代码，不运行非只读 SQL（禁止 INSERT / UPDATE / DELETE / ALTER / DROP / TRUNCATE 等）

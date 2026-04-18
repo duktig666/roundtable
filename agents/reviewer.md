@@ -32,6 +32,19 @@ model: opus
 
 ---
 
+## Resource Access
+
+| Operation | Scope |
+|-----------|-------|
+| Read | `src/*`, `tests/*`, `{docs_root}/design-docs/[slug].md`, `{docs_root}/decision-log.md`, `{docs_root}/exec-plans/`, `target_project/CLAUDE.md`, read-only git commands (`git log`, `git diff`, `git blame`, `git show`), `lint_cmd` (read-only) |
+| Write | `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` — only when `critical_modules` triggered or Critical findings emerge |
+| Report to orchestrator | Critical / Warning / Suggestion findings, decision-consistency verdict (per DEC-xxx), `{docs_root}/log.md` entries (orchestrator writes) |
+| Forbidden | `src/*` edits, `tests/*` edits, `{docs_root}/design-docs/` edits, `{docs_root}/decision-log.md` direct writes, git write operations (commit / push / branch / tag / reset / stash) |
+
+Reviewer is strictly read-only on code and design — only produces review documents. Git read operations allowed; git write operations forbidden.
+
+---
+
 ## 约束
 
 - **只读**：不修改任何代码
