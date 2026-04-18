@@ -131,7 +131,7 @@ dba       → reads migrations / schema / src
 The orchestrator MAY dispatch multiple subagents in parallel when ALL of the following hold. When any fails, dispatch sequentially.
 
 1. **PREREQ MET** — Both candidates have their `前置` from the exec-plan already satisfied (prior phases complete or artifacts in place).
-2. **PATH DISJOINT** — The candidates write to disjoint file sets (e.g., P0.2 writes `vault/`, P0.3 writes `llm/` — no path overlap).
+2. **PATH DISJOINT** — The candidates write to disjoint file sets (e.g., one phase writes `moduleA/`, another writes `moduleB/` — no path overlap).
 3. **SUCCESS-SIGNAL INDEPENDENT** — Each candidate has its own success signals (lint / test checkpoint) that do not depend on the other candidate's output.
 4. **RESOURCE SAFE** — Combined parallel work does not trip rate limits, lockfiles, or shared tool single-writer constraints (e.g., only one process may hold the test DB).
 
@@ -163,7 +163,7 @@ See each agent's `## Escalation Protocol` section for the block format.
 
 ## Step 6: Execution Rules
 
-1. **Phase gates**: after each phase completes, report outcome + artifacts + updated Phase Matrix to the user, then **wait for user confirmation** before advancing to the next phase. Exception: routine transitions within the same role (e.g., `P0.4 → P0.5` in an exec-plan) MAY auto-advance when the exec-plan's prerequisites are met, no Critical findings surfaced, and the user has not requested finer granularity. Cross-role transitions (developer → tester, tester → reviewer, etc.) always require confirmation unless CLAUDE.md `critical_modules` rule dictates the trigger (e.g., tester is mechanically dispatched after developer for `critical_modules`-tagged work; the user still sees the handoff report).
+1. **Phase gates**: after each phase completes, report outcome + artifacts + updated Phase Matrix to the user, then **wait for user confirmation** before advancing to the next phase. Exception: routine transitions within the same role (e.g., sequential `P0.n → P0.n+1` sub-phases inside one exec-plan) MAY auto-advance when the exec-plan's prerequisites are met, no Critical findings surfaced, and the user has not requested finer granularity. Cross-role transitions (developer → tester, tester → reviewer, etc.) always require confirmation unless CLAUDE.md `critical_modules` rule dictates the trigger (e.g., tester is mechanically dispatched after developer for `critical_modules`-tagged work; the user still sees the handoff report).
 
 2. **In-phase decisions**: when an active skill encounters a user-decision point, invoke `AskUserQuestion` IMMEDIATELY following the skill's `## AskUserQuestion Option Schema`. Do not accumulate decisions for a batch ask.
 

@@ -115,29 +115,29 @@ Required fields per option:
 | `tradeoff` | yes | Key cost / risk |
 | `recommended` | yes | Exactly 0 or 1 option sets `recommended: true`; if set, include a one-line `why_recommended` |
 
-Example (architect selecting dedup storage):
+Example (architect selecting persistence layer):
 
 ```
 AskUserQuestion(
-  question: "Dedup pipeline storage choice",
+  question: "Persistence layer choice for <module>",
   options: [
     {
-      label: "SQLite (better-sqlite3)",
-      rationale: "Single-process local deployment; 3M weekly downloads; proven.",
-      tradeoff: "No concurrent writer; migration cost if we later move to Postgres.",
+      label: "Embedded SQL (SQLite / equivalent)",
+      rationale: "Single-process local deployment; zero infra; well-supported drivers.",
+      tradeoff: "No concurrent writer; migration cost if scope grows to multi-node.",
       recommended: true,
-      why_recommended: "Matches DEC-003 single-machine constraint; zero new infra."
+      why_recommended: "Matches the single-machine constraint recorded in DEC-xxx; zero new infrastructure."
     },
     {
-      label: "Postgres",
-      rationale: "Future-proofs multi-node; richer migration story (pg_repack etc).",
-      tradeoff: "Adds infrastructure dependency; overkill for MVP.",
+      label: "Server DB (Postgres / MySQL)",
+      rationale: "Future-proofs multi-node; richer migration / replication story.",
+      tradeoff: "Adds infrastructure dependency; overkill at current scope.",
       recommended: false
     },
     {
-      label: "Plain JSON files",
+      label: "Plain structured files (JSON / CSV)",
       rationale: "Zero dependencies; fastest to ship.",
-      tradeoff: "No index; hard to scale past ~10k entries; no atomic multi-row ops.",
+      tradeoff: "No index; hard to scale past a few thousand rows; no atomic multi-row ops.",
       recommended: false
     }
   ]
