@@ -41,7 +41,7 @@ decisions: [DEC-001]
 - [x] 配置 SSH（`id_duktig666` + ssh/config alias + gitconfig includeIf）
 - [x] 初始化 plugin manifest：`.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`
 - [x] 建占位目录：`skills/` `agents/` `commands/` `hooks/` `examples/`（各带 .gitkeep）
-- [x] 建内部文档目录：`docs/analyze/` `docs/design-docs/` `docs/exec-plans/active/` `docs/exec-plans/completed/` `docs/testing/plans/` `docs/reviews/`（各带 .gitkeep，已 dogfood plugin 自身的产出契约分层）
+- [x] 建内部文档目录：`docs/analyze/` `docs/design-docs/` `docs/exec-plans/active/` `docs/exec-plans/completed/` `docs/testing/` `docs/reviews/`（各带 .gitkeep，已 dogfood plugin 自身的产出契约分层）
 - [x] 落盘 `docs/design-docs/roundtable.md` / `docs/exec-plans/active/roundtable-plan.md`（本文件）/ `docs/decision-log.md`（DEC-001）/ `docs/log.md`（时间索引）/ `docs/INDEX.md`（文档导航）
 - [x] 基础治理文件：README.md / LICENSE（Apache-2.0）/ CHANGELOG.md / CONTRIBUTING.md / .gitignore
 - [x] 首次 commit + push
@@ -189,7 +189,7 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
   - `## 条件触发规则`（API token / sources/* / LLM prompt / 垂类新增 / 去重触碰）
 - N/A 本地 `.claude/` agent 冲突 —— gleanforge 是绿地项目无同名文件
 - [x] 跑真实需求 `/roundtable:workflow 设计 gleanforge MVP ...` —— 产出完整 design-doc / DEC-001..007 / analyze / exec-plan / testing/plan / review / 代码 50 文件 / 242 tests
-- [x] 记录偏差反馈到 bug 列表 —— 产出 `docs/testing/plans/p4-self-consumption.md`
+- [x] 记录偏差反馈到 bug 列表 —— 产出 `docs/testing/p4-self-consumption.md`
 - N/A `.claude.backup/` 清理 —— 无备份需要
 - [ ] gleanforge 首次 commit + PR —— 推迟（等用户主动，符合 `feedback_no_auto_push` 约束）
 
@@ -254,4 +254,4 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 ## 变更记录
 
 - 2026-04-17 创建；确认 D1-D9 九项决策；P0 已完成（建仓 + 骨架 + 设计文档 + 决策日志）
-- 2026-04-18 P4 自消耗闭环完成：gleanforge 项目从零 build 到 MVP（P0.1-P0.7 + tester + reviewer + dry-run smoke），242 tests 全绿；产出 `docs/testing/plans/p4-self-consumption.md` 观察报告，识别 3 条 top 改进（共享资源协议 / agent→orchestrator 决策协议 / workflow command checklist 化）；gleanforge 首次 commit + PR 推迟（用户主动）
+- 2026-04-18 P4 自消耗闭环完成：gleanforge 项目从零 build 到 MVP（P0.1-P0.7 + tester + reviewer + dry-run smoke），242 tests 全绿；产出 `docs/testing/p4-self-consumption.md` 观察报告，识别 3 条 top 改进（共享资源协议 / agent→orchestrator 决策协议 / workflow command checklist 化）；gleanforge 首次 commit + PR 推迟（用户主动）

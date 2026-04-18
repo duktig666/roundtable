@@ -43,7 +43,7 @@
 - 决策日志 `docs/decision-log.md`（追加 DEC-xxx，不删旧条目）
 - 操作日志 `docs/log.md`（append-only，顶部最新）
 - 变更记录写在各 doc 底部"变更记录"章节，不入 log.md
-- 主题 slug 用 kebab-case 英文，贯穿 analyze → design-docs → exec-plans → testing/plans
+- 主题 slug 用 kebab-case 英文，贯穿 analyze → design-docs → exec-plans → testing
 
 ## 条件触发规则（可选，按项目业务写硬性约束）
 

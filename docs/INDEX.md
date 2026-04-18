@@ -31,7 +31,7 @@
 | [design-docs/](design-docs/) | architect | 核心设计文档，文件名 `[slug].md` |
 | `exec-plans/active/` | architect | 进行中的执行计划，文件名 `[slug]-plan.md` |
 | `exec-plans/completed/` | developer（归档） | 已完成的执行计划 |
-| `testing/plans/` | tester | 测试计划，文件名 `[slug].md` |
+| `testing/` | tester | 测试产出（测试计划 / 对抗性 bug 分析 / benchmark 报告），文件名 `[slug].md` 或 `[slug]-<type>.md` |
 | `reviews/` | reviewer / dba | 关键审查归档，文件名 `[YYYY-MM-DD]-[slug].md` 或 `[YYYY-MM-DD]-db-[slug].md` |
 
 ## 当前文档清单
@@ -49,7 +49,7 @@
 
 **文件名使用统一的"主题 slug"**，贯穿整个工作流便于关联：
 
-- `analyze/[slug].md` → `design-docs/[slug].md` → `exec-plans/active/[slug]-plan.md` → `testing/plans/[slug].md`
+- `analyze/[slug].md` → `design-docs/[slug].md` → `exec-plans/active/[slug]-plan.md` → `testing/[slug].md`
 - 主题 slug 使用 kebab-case 英文，例：`roundtable`、`role-profile-system`
 
 ## 变更记录约定（三件套）

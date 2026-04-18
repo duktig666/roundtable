@@ -42,7 +42,7 @@ claude --plugin-dir /path/to/your/workspace/roundtable
 | `docs/log.md` | 哪个文档在何时被更新（时间索引） |
 | `docs/decision-log.md` | 决策层面演进（含 Superseded 机制） |
 
-目录结构见 `docs/INDEX.md`。文件名用统一 slug（kebab-case），一个主题从 analyze → design-docs → exec-plans → testing/plans 贯穿。
+目录结构见 `docs/INDEX.md`。文件名用统一 slug（kebab-case），一个主题从 analyze → design-docs → exec-plans → testing 贯穿。
 
 ## 本地测试
 

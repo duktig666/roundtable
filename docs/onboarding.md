@@ -87,7 +87,7 @@ claude
 ├── exec-plans/
 │   ├── active/           ← 进行中的执行计划
 │   └── completed/        ← 已完成归档
-├── testing/plans/        ← tester 的测试计划
+├── testing/              ← tester 的测试产出（计划 / bug 分析 / benchmark）
 ├── reviews/              ← reviewer/dba 的关键审查落盘
 ├── decision-log.md       ← DEC-xxx 决策注册表
 └── log.md                ← 设计层文档时间索引

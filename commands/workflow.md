@@ -13,7 +13,7 @@ You are orchestrating multi-role collaboration for:
 
 ## Prerequisite
 
-The target project must follow roundtable's docs layout (`design-docs/`, `exec-plans/active/`, `analyze/`, `testing/plans/`, `reviews/`, `decision-log.md`, `log.md`). Missing subdirectories are created on first write by the role that needs them; the orchestrator reports the creation to the user.
+The target project must follow roundtable's docs layout (`design-docs/`, `exec-plans/active/`, `analyze/`, `testing/`, `reviews/`, `decision-log.md`, `log.md`). Missing subdirectories are created on first write by the role that needs them; the orchestrator reports the creation to the user.
 
 ---
 
@@ -28,7 +28,7 @@ Maintain this matrix across the dispatch lifecycle. Report it back to the user o
 | 3. Design | architect skill | ⏳ / 🔄 / ✅ | `{docs_root}/design-docs/[slug].md`, `decision-log.md` DEC entries, optional `{docs_root}/exec-plans/active/[slug]-plan.md`, optional `{docs_root}/api-docs/[slug].md` |
 | 4. Design confirmation | (user) | ⏳ / 🔄 / ✅ | user acknowledgement |
 | 5. Implementation | developer agent(s) | ⏳ / 🔄 / ✅ | code in `src/`, tests in `tests/`, exec-plan checkboxes (orchestrator writes from dev report) |
-| 6. Adversarial testing | tester agent | ⏳ / 🔄 / ✅ / ⏩ skipped | tests, `{docs_root}/testing/plans/[slug].md`, bug findings via escalation |
+| 6. Adversarial testing | tester agent | ⏳ / 🔄 / ✅ / ⏩ skipped | tests, `{docs_root}/testing/[slug].md`, bug findings via escalation |
 | 7. Review | reviewer agent | ⏳ / 🔄 / ✅ / ⏩ skipped | findings in conversation or `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` |
 | 8. DB review (if DB involved) | dba agent | ⏳ / 🔄 / ✅ / ⏩ N/A | findings in conversation or `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` |
 
@@ -112,7 +112,7 @@ developer → reads design-docs/[slug].md + exec-plans/active/[slug]-plan.md
             exec-plan from active/ to completed/
 tester    → reads src/ and design-docs/[slug].md
             writes tests/ (adversarial / E2E / benchmark)
-            medium+ tasks: writes testing/plans/[slug].md
+            medium+ tasks: writes testing/[slug].md
             business bugs: escalate (never fixes src/*)
 reviewer  → reads src / design-docs / decision-log
             default: conversation-only findings

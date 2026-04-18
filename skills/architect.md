@@ -24,7 +24,7 @@ description: Architect role for system design, interface definition, technology 
 | Read | `target_project/CLAUDE.md`, `{docs_root}/analyze/`, `{docs_root}/design-docs/`, `{docs_root}/decision-log.md`, existing `{docs_root}/exec-plans/` |
 | Write | `{docs_root}/design-docs/[slug].md`, `{docs_root}/exec-plans/{active,completed}/[slug]-plan.md`, `{docs_root}/api-docs/[slug].md`, `{docs_root}/decision-log.md`, `{docs_root}/log.md` |
 | Report to orchestrator | — (skill runs in the main session; writes directly) |
-| Forbidden | `src/*`, `tests/*`, `{docs_root}/reviews/`, `{docs_root}/testing/plans/`, git operations (commit / push / branch / tag / reset / stash) |
+| Forbidden | `src/*`, `tests/*`, `{docs_root}/reviews/`, `{docs_root}/testing/`, git operations (commit / push / branch / tag / reset / stash) |
 
 Git operations are forbidden unless the user explicitly authorizes them in the current turn. Default: operate only on the working tree.
 

@@ -53,7 +53,7 @@ model: opus
 | Read | `{docs_root}/design-docs/[slug].md`, `{docs_root}/exec-plans/active/[slug]-plan.md`, `{docs_root}/decision-log.md`, `src/*`, `tests/*`, `target_project/CLAUDE.md` |
 | Write | `src/*`, `tests/*`, and move `{docs_root}/exec-plans/active/[slug]-plan.md` → `completed/` when the feature is fully complete |
 | Report to orchestrator | exec-plan checkbox updates (orchestrator writes the file), new DEC requests, `{docs_root}/log.md` entries (orchestrator writes), escalations (see Escalation Protocol) |
-| Forbidden | `{docs_root}/design-docs/` edits, `{docs_root}/decision-log.md` direct writes, `{docs_root}/reviews/`, `{docs_root}/testing/plans/`, git operations (commit / push / branch / tag / reset / stash / `git add` for staging) |
+| Forbidden | `{docs_root}/design-docs/` edits, `{docs_root}/decision-log.md` direct writes, `{docs_root}/reviews/`, `{docs_root}/testing/`, git operations (commit / push / branch / tag / reset / stash / `git add` for staging) |
 
 Git operations are forbidden unless the orchestrator explicitly authorizes them in the dispatch prompt. Default: operate only on the working tree. When reporting completion, list changed files but do not stage or commit.
 

@@ -29,7 +29,7 @@ model: opus
 - 对抗性测试：边界条件、异常输入、竞态、极端值、溢出 / 下溢
 - E2E 测试：跨模块流程、真实依赖集成
 - 性能基准（benchmark）：延迟、吞吐、资源占用
-- 中大型功能输出测试计划到 `target_project/{docs_root}/testing/plans/[slug].md`
+- 中大型功能输出测试计划到 `target_project/{docs_root}/testing/[slug].md`
 
 ---
 
@@ -38,7 +38,7 @@ model: opus
 | Operation | Scope |
 |-----------|-------|
 | Read | `src/*`, `tests/*`, `{docs_root}/design-docs/[slug].md`, `{docs_root}/decision-log.md`, `target_project/CLAUDE.md` |
-| Write | `tests/*` (adversarial / E2E / benchmark test code), `{docs_root}/testing/plans/[slug].md` (for medium / large tasks) |
+| Write | `tests/*` (adversarial / E2E / benchmark test code), `{docs_root}/testing/[slug].md` (for medium / large tasks) |
 | Report to orchestrator | found bugs (via Escalation Protocol — orchestrator relays to user / developer for fix), `{docs_root}/log.md` entries (orchestrator writes) |
 | Forbidden | `src/*` edits (tester never fixes business code), `{docs_root}/design-docs/` edits, `{docs_root}/exec-plans/` writes, `{docs_root}/decision-log.md` writes, git operations |
 
@@ -147,7 +147,7 @@ Typical triggers for tester:
 
 ## 测试计划模板（中大型任务产出）
 
-落盘到 `target_project/{docs_root}/testing/plans/[slug].md`：
+落盘到 `target_project/{docs_root}/testing/[slug].md`：
 
 ```markdown
 ---
@@ -207,7 +207,7 @@ test_function_with_boundary_input {
   ```markdown
   ## test-plan | [slug] | [日期]
   - 操作者: tester
-  - 影响文件: {docs_root}/testing/plans/[slug].md + 测试代码文件列表
+  - 影响文件: {docs_root}/testing/[slug].md + 测试代码文件列表
   - 说明: [一句话，含"发现 N 个潜在问题"若有]
   ```
 - 代码层面的测试新增不写 log.md（归 git log）
