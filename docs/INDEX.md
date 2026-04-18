@@ -1,6 +1,8 @@
 # roundtable 文档索引
 
 > 按产出类型分类的文档导航。**决策权威性**：`decision-log.md` > `design-docs/` > `exec-plans/`。
+>
+> **维护契约**：新落盘的 design-docs / analyze / testing / reviews / exec-plans 条目必须同步追加到「当前文档清单」section；根级别文档（CHANGELOG / CONTRIBUTING / LICENSE 等）变动在「决策与索引」table 维护。
 
 ## 👤 用户向（装 plugin 的人看）
 
@@ -22,6 +24,8 @@
 |------|-----|
 | [decision-log.md](decision-log.md) | **项目决策权威注册表**（DEC-xxx），append-only |
 | [log.md](log.md) | 设计层文档时间索引（"何时、谁、动了哪份文档"） |
+| [../CHANGELOG.md](../CHANGELOG.md) | 发布面 changelog（Keep a Changelog 格式 + SemVer） |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) | 贡献指南 + 本地测试清单 |
 
 ### 按工作流阶段分类
 
@@ -44,6 +48,10 @@
 
 - active/
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable 实施计划（P0-P6，6 天）
+
+### testing
+
+- [p4-self-consumption.md](testing/p4-self-consumption.md) — P4 自消耗闭环观察报告（gleanforge dogfood 实录：9 subagent 派发 / 3 次并行 / 242 tests / 3 条 top 改进 + 9 摩擦点 + 6 条工作良好设计）
 
 ## 主题 slug 约定
 
