@@ -9,7 +9,7 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## 开工第一步：项目上下文识别
 
-**复用 `skills/architect.md` 的"开工第一步：项目上下文识别"**，拿到 `target_project` + `docs_root` + 加载 CLAUDE.md 的业务规则。若 session 已由其他 skill 识别过，直接复用记忆。
+激活 **`_detect-project-context` skill**（`Skill` 工具），参数：**跳过工具链检测**（analyst 不跑 lint/test）；完成 D9 识别 + docs_root + CLAUDE.md 加载。返回结果存入 session 记忆，后续调研流程直接引用 `target_project` / `docs_root` / CLAUDE.md 中的业务规则。
 
 ---
 
@@ -52,11 +52,9 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## 命名约定
 
-**文件名使用统一的"主题 slug"**（kebab-case 英文），贯穿整个工作流便于关联：
+本 skill 输出：`target_project/{docs_root}/analyze/[slug].md`
 
-- 本 agent 输出：`target_project/{docs_root}/analyze/[slug].md`
-- 对应 architect 设计文档：`target_project/{docs_root}/design-docs/[slug].md`
-- 对应执行计划：`target_project/{docs_root}/exec-plans/active/[slug]-plan.md`
+主题 slug 使用 kebab-case 英文（如 `db-split`、`payment-idempotency`），用户未指定时自己命名并在报告顶部声明；下游 architect / developer 按同一 slug 找到关联产出。
 
 接到任务时：
 1. 先确认主题 slug（若用户未明确，自己命名并在报告中声明）
@@ -113,21 +111,13 @@ created: YYYY-MM-DD
 
 ---
 
-## 追问框架详解（必答 2 + 按需 4）
+## 追问框架使用规则
 
-在给出结论前，**必答 2 问**（analyst 视角独有的价值）：
+**必答 2 问**（任何任务都要答）：对应模板里的"失败模式" / "6 个月后评价"。这两问任何调研必须输出有效回答。
 
-1. **失败模式是什么？** 这个方案最可能在哪里失败？（性能瓶颈 / 数据一致性 / 安全漏洞 / 可维护性 / 运维复杂度）
-2. **这个决策在 6 个月后会怎么被评价？** 如果回头看，现在的选择会变成债务吗？有哪些"早知道就……"的风险？
+**按需 4 问**（绿地功能 / 需求定位不清时强制）：对应模板里的"痛点 / 使用者 / 最简方案 / 竞品对比"。明确需求类任务可标注"本调研不适用：原因"后跳过，避免凑字数。
 
-**按需 4 问**（绿地功能 / 需求定位不清时强制；明确需求类任务可标注"本调研不适用：原因"后跳过，避免凑字数）：
-
-3. **真正的痛点是什么？** 用户 / 业务解决的是什么问题？是新痛点还是已有方案的优化？
-4. **谁会用？用户故事是什么？** 列出主要使用者和他们的核心 journey
-5. **最简单能解决问题的方案是什么？** 如果只做最小可行实现，最少需要哪些组件？什么可以不做？
-6. **竞品怎么做？为什么这么做？** 至少对比 2 个参考方案，说明它们的设计理由（不只是"它们这么做"）
-
-**判断规则**：任务范围由用户给出明确约束、或仅涉及内部架构重构时，3-6 通常不适用。但 1、2 任何任务都要答。
+**判断"按需"是否适用**：任务范围由用户给出明确约束、或仅涉及内部架构重构时，按需 4 问通常不适用；必答 2 问依然必答。
 
 ---
 

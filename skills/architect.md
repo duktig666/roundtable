@@ -7,62 +7,11 @@ description: Architect role for system design, interface definition, technology 
 
 ---
 
-## 开工第一步：项目上下文识别（每次任务开始时执行一次）
+## 开工第一步：项目上下文识别
 
-在做任何设计工作之前，先识别以下上下文：
+激活 **`_detect-project-context` skill**（`Skill` 工具），完成全部 4 步（D9 识别 + 工具链检测 + docs_root 检测 + CLAUDE.md 加载）。返回结果存入 session 记忆，后续设计流程直接引用 `target_project` / `docs_root` / `critical_modules` / 设计参考等变量，不要重复检测。
 
-### 1. 目标项目识别（D9）
-
-按优先级依次尝试，一旦确定就记下来 `target_project`，后续所有文档路径都以它为根：
-
-1. **session 记忆**：如果本 session 已经识别过 `target_project`，且用户没有显式要求切换，直接复用
-2. **`git rev-parse --show-toplevel`**（在当前工作目录执行）：
-   - 成功 → 取输出作为 `target_project`
-   - 失败（当前在非 git 目录，如 workspace 根）→ 继续下一步
-3. **扫描 CWD 下含 `.git/` 的一级子目录**，得到候选池 `candidates`：
-   ```bash
-   find . -maxdepth 2 -type d -name ".git" 2>/dev/null | sed 's|/.git$||' | sed 's|^\./||'
-   ```
-4. **从用户任务描述里正则匹配候选池里的项目名**（例如任务里提到 "<project-name> 的 XXX"）：
-   - 唯一命中 → 用它；但仍用 AskUserQuestion 弹窗二次确认（避免歧义）
-   - 多命中 / 零命中 → AskUserQuestion 弹窗从候选池选
-5. **用户显式切换**（任务中提到"切到 <other>"、"改做 <other> 的 xxx"）→ 清空 session 记忆重跑识别
-6. **跨项目任务**（"A 项目的 X 和 B 项目的 Y 都改"）→ 告知用户分拆成两个独立任务，不要在一次 /workflow 里处理两个目标
-
-### 2. 工具链检测（基于 target_project 根）
-
-扫 target_project 根目录的标识文件：
-
-| 命中文件 | 推定 | 默认 lint_cmd | 默认 test_cmd |
-|---------|------|---------------|---------------|
-| `Cargo.toml` | Rust 项目 | `cargo clippy --all-targets -- -D warnings` | `cargo test` 或 `cargo nextest run`（若 nextest 已装） |
-| `package.json` | JS/TS 项目 | 读 scripts.lint；否则 `pnpm lint` / `npm run lint` | 读 scripts.test；否则 `pnpm test` / `npm test` |
-| `pyproject.toml` | Python 项目 | `ruff check` | `pytest` |
-| `go.mod` | Go 项目 | `go vet ./...` | `go test ./...` |
-| `Move.toml` | Move 项目 | `sui move build`（含静态检查） | `sui move test` |
-| 多文件并存 | 混合项目 | 按用户任务涉及的文件判断 | 同上 |
-
-### 3. 文档根目录检测
-
-| 情况 | 行动 |
-|------|------|
-| `target_project/docs/` 存在 | `docs_root = "docs"` |
-| `target_project/documentation/` 存在 | `docs_root = "documentation"` |
-| 都不存在 | AskUserQuestion 问"我要创建 `target_project/docs/` 作为文档根，确认吗？" |
-
-### 4. CLAUDE.md 最高优先级覆盖
-
-读取 `target_project/CLAUDE.md` 的「# 多角色工作流配置」section（若存在）：
-
-- **critical_modules**：影响本次设计是否涉及"关键模块"判断，决定后续是否要派发 tester
-- **设计参考**：项目对标的产品 / 框架，直接作为架构决策的参考上限
-- **工具链覆盖**：若声明了 lint / test 命令，**覆盖**上面第 2 步的检测结果
-- **条件触发规则**：业务特定的硬性约束（如"禁止浮点"、"必须用幂等键"等），设计时遵守
-- **文档约定**：decision-log / log.md 格式要求
-
-**若没有「# 多角色工作流配置」section**：提醒用户"该项目 CLAUDE.md 未包含多角色工作流配置 section，本次设计将只依赖自动检测 + 通用默认值。建议在本次任务后补充（可参考 plugin 仓库的 `docs/claude-md-template.md`）。"
-
-### 5. decision-log 扫描
+**额外一步：扫描 decision-log**
 
 若 `target_project/{docs_root}/decision-log.md` 存在，读取全部 DEC 条目。**新设计不得与已有 Accepted 状态决策矛盾；若矛盾必须显式引用旧 DEC 编号走 Superseded 流程**。
 

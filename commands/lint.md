@@ -1,20 +1,33 @@
 ---
 description: Documentation health check. Scans project docs for decision drift, obsolescence, orphans, broken links, fact/inference confusion, stale exec-plans. Outputs a report; does NOT modify files (conflicts are flagged with diffs for user adjudication).
+argument-hint: [target project name or path, optional]
 ---
 
 # 文档健康检查
 
 对目标项目的 docs 目录进行健康检查，输出报告。**不直接修改任何文件**。矛盾和冲突列出 diff 等用户裁决。
 
+**参数**：`$ARGUMENTS`（可选，用空格分隔的参数）
+- 留空 → 走 D9 自动识别 target_project
+- 子项目名（如 `my-project`）→ 在 CWD 下找同名含 `.git/` 的子目录作为 target_project；无匹配则 AskUserQuestion
+- 绝对路径（以 `/` 开头）→ 直接用这个路径作为 target_project
+- `.` → 当前工作目录作为 target_project
+
 ---
 
-## 步骤 0：项目上下文识别
+## 步骤 0：确定 target_project + docs_root
 
-按 architect skill 的"开工第一步"识别：
-- `target_project`
-- `docs_root`
+### 有参数时（快捷路径）
 
-本命令不需要工具链检测（纯文档检查）。
+- **`$ARGUMENTS` 是绝对路径** → `target_project = $ARGUMENTS`，跳过 D9
+- **`$ARGUMENTS` 是 `.`** → `target_project = pwd`，跳过 D9
+- **`$ARGUMENTS` 是子项目名** → 扫 CWD 找同名含 `.git/` 的子目录，命中即用；零命中提示用户；多命中走 AskUserQuestion
+
+确定 `target_project` 后，仅检测 `docs_root`（`docs/` 存在 → 用；否则 `documentation/`；都没有告知用户"该项目无文档目录"并中止）。
+
+### 无参数时（完整 D9）
+
+激活 **`_detect-project-context` skill**（通过 `Skill` 工具），参数：**只需 D9 识别 + docs_root 检测，跳过工具链检测、跳过 CLAUDE.md 加载**（lint 纯文档检查，不依赖业务规则或工具链）。
 
 ---
 

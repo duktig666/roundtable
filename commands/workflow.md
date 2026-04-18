@@ -17,15 +17,11 @@ argument-hint: <任务描述>
 
 ---
 
-## 步骤 0：目标项目识别
+## 步骤 0：项目上下文识别
 
-在分派任何角色之前，先激活 `architect` skill 的"开工第一步：项目上下文识别"来确定：
-- `target_project`（通过 D9 机制 —— session 记忆 / git rev-parse / 子目录扫描 / AskUserQuestion）
-- 工具链（读 Cargo.toml / package.json / pyproject.toml / go.mod / Move.toml）
-- `docs_root`（`docs/` 或 `documentation/` 或 AskUserQuestion 建立）
-- 加载 `target_project/CLAUDE.md` 的「# 多角色工作流配置」section
+激活 **`_detect-project-context` skill**（通过 `Skill` 工具），完成全部 4 步：D9 识别 + 工具链检测 + docs_root + CLAUDE.md 业务规则加载。
 
-**后续所有角色派发都必须在 prompt 里注入这些已识别的上下文变量**，不要让每个角色各自重新识别。
+**后续所有角色派发都必须在 prompt 里注入这些已识别的上下文变量**（`target_project` / `docs_root` / `lint_cmd` / `test_cmd` / `critical_modules` / 设计参考等），不要让每个角色各自重新识别。
 
 ---
 

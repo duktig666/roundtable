@@ -38,6 +38,11 @@
 
 ---
 
+## refactor | 抽取共享 skill `_detect-project-context` + lint 参数支持 | 2026-04-17
+- 操作者: Claude + 用户
+- 影响文件: skills/_detect-project-context.md（新建 114 行）, skills/architect.md（-51 行）, skills/analyst.md（-10 行；删除越权路径 + 合并重复追问框架）, commands/workflow.md, commands/bugfix.md, commands/lint.md（+13 行，加 argument-hint `$ARGUMENTS`，支持子项目名 / 绝对路径 / `.`）
+- 说明: 用户指出 analyst "复用 architect 开工第一步" 是伪依赖、架构师列分析师路径越权、追问框架重复、lint 过度挂 architect。抽出 `_detect-project-context` shared skill 作为 D9 + 工具链 + docs_root + CLAUDE.md 加载的单一权威源，其他 skill / command 都 thin delegate；analyst 合并追问框架 + 删越权；lint 增加参数支持。硬编码扫描仍 0 命中
+
 ## docs | P3 用户文档 + 模板 + onboarding | 2026-04-17
 - 操作者: Claude + 用户
 - 影响文件: docs/claude-md-template.md (139 行), docs/onboarding.md (125 行), docs/migration-from-local.md (139 行), examples/rust-backend-snippet.md (80 行), examples/ts-frontend-snippet.md (89 行), examples/python-datapipeline-snippet.md (93 行), docs/INDEX.md（更新链接）

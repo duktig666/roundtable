@@ -19,11 +19,9 @@ argument-hint: <bug 描述 或 issue 编号>
 
 ## 步骤 0：项目上下文识别
 
-复用 architect skill 的"开工第一步：项目上下文识别"逻辑：
-- D9 识别 `target_project`
-- 工具链自动检测 `lint_cmd` / `test_cmd`
-- `docs_root` 检测
-- 加载 `target_project/CLAUDE.md` 的「# 多角色工作流配置」section
+激活 **`_detect-project-context` skill**（通过 `Skill` 工具），完成全部 4 步：D9 识别 + 工具链检测 + docs_root + CLAUDE.md 业务规则加载。
+
+后续派发 developer / tester / reviewer / dba 等 agent 时，必须在 prompt 里注入识别结果。
 
 ---
 
