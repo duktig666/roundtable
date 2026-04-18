@@ -27,7 +27,9 @@ argument-hint: [target project name or path, optional]
 
 ### 无参数时（完整 D9）
 
-激活 **`_detect-project-context` skill**（通过 `Skill` 工具），参数：**只需 D9 识别 + docs_root 检测，跳过工具链检测、跳过 CLAUDE.md 加载**（lint 纯文档检查，不依赖业务规则或工具链）。
+**Execute the detection inline** — `Read` `skills/_detect-project-context.md` and run steps 1 (D9 identification) and 3 (`docs_root` detection) only. Skip step 2 (toolchain) and step 4 (`CLAUDE.md` loading) — `lint` is pure documentation check and needs neither business rules nor toolchain.
+
+Do NOT use the `Skill` tool to activate the underscore-prefixed helper.
 
 ---
 

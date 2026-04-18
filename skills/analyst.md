@@ -9,7 +9,7 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## 开工第一步：项目上下文识别
 
-激活 **`_detect-project-context` skill**（`Skill` 工具），参数：**跳过工具链检测**（analyst 不跑 lint/test）；完成 D9 识别 + docs_root + CLAUDE.md 加载。返回结果存入 session 记忆，后续调研流程直接引用 `target_project` / `docs_root` / CLAUDE.md 中的业务规则。
+**Execute the detection inline** — `Read` `skills/_detect-project-context.md` and run steps 1 (D9 identification), 3 (`docs_root` detection), and 4 (`CLAUDE.md` loading). Skip step 2 (toolchain) — analyst does not run `lint` / `test`. Do NOT use the `Skill` tool. Store the result in session memory; subsequent research references `target_project` / `docs_root` / CLAUDE.md rules from memory.
 
 ---
 

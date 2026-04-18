@@ -1,133 +1,198 @@
 ---
-description: 多角色 AI 工作流编排命令。根据任务规模自动选择 analyst / architect / developer / tester / reviewer / dba 的协作路径。
-argument-hint: <任务描述>
+description: Multi-role AI workflow orchestrator. Selects a path among analyst / architect / developer / tester / reviewer / dba based on task size.
+argument-hint: <task description>
 ---
 
-# 多角色工作流
+# Multi-Role Workflow
 
-你即将为以下任务编排多角色协作：
+You are orchestrating multi-role collaboration for:
 
-**任务**：$ARGUMENTS
-
----
-
-## 执行前提
-
-本命令要求项目已按 roundtable 约定组织 docs 目录（`design-docs/`、`exec-plans/active/`、`analyze/`、`testing/plans/`、`reviews/`、`decision-log.md`、`log.md`）。若目标项目目录结构不完整，在首次落盘时由 architect 创建缺失子目录并向用户说明。
+**Task**: $ARGUMENTS
 
 ---
 
-## 步骤 0：项目上下文识别
+## Prerequisite
 
-激活 **`_detect-project-context` skill**（通过 `Skill` 工具），完成全部 4 步：D9 识别 + 工具链检测 + docs_root + CLAUDE.md 业务规则加载。
-
-**后续所有角色派发都必须在 prompt 里注入这些已识别的上下文变量**（`target_project` / `docs_root` / `lint_cmd` / `test_cmd` / `critical_modules` / 设计参考等），不要让每个角色各自重新识别。
+The target project must follow roundtable's docs layout (`design-docs/`, `exec-plans/active/`, `analyze/`, `testing/plans/`, `reviews/`, `decision-log.md`, `log.md`). Missing subdirectories are created on first write by the role that needs them; the orchestrator reports the creation to the user.
 
 ---
 
-## 步骤 1：判断任务规模
+## Phase Matrix
 
-分三档，由当前 Claude（在读完任务描述 + target_project CLAUDE.md 后）决定：
+Maintain this matrix across the dispatch lifecycle. Report it back to the user on every phase transition and at any user request for progress.
 
-| 规模 | 特征 | 推荐流程 |
-|------|------|---------|
-| **小改动** | bug fix / 简单修改 / UI 样式调整 / 文档修正 | 建议用户改用 `/roundtable:bugfix` 或直接 `@roundtable:developer` |
-| **中等改动** | 新功能、模块修改、有一定业务逻辑 | analyst（可选）→ architect → 确认设计 → developer → **tester（关键模块必触发）** → reviewer（可选） |
-| **大改动** | 新模块、架构变更、跨多组件 | analyst → architect → 确认设计 → developer → **tester** → reviewer |
+| Stage | Role | Status | Artifacts |
+|-------|------|--------|-----------|
+| 1. Context detection | (inline, this command) | ⏳ / 🔄 / ✅ | `target_project`, `docs_root`, `lint_cmd`, `test_cmd`, `critical_modules`, `design_ref` |
+| 2. Research (optional) | analyst skill | ⏳ / 🔄 / ✅ / ⏩ skipped | `{docs_root}/analyze/[slug].md` |
+| 3. Design | architect skill | ⏳ / 🔄 / ✅ | `{docs_root}/design-docs/[slug].md`, `decision-log.md` DEC entries, optional `{docs_root}/exec-plans/active/[slug]-plan.md`, optional `{docs_root}/api-docs/[slug].md` |
+| 4. Design confirmation | (user) | ⏳ / 🔄 / ✅ | user acknowledgement |
+| 5. Implementation | developer agent(s) | ⏳ / 🔄 / ✅ | code in `src/`, tests in `tests/`, exec-plan checkboxes (orchestrator writes from dev report) |
+| 6. Adversarial testing | tester agent | ⏳ / 🔄 / ✅ / ⏩ skipped | tests, `{docs_root}/testing/plans/[slug].md`, bug findings via escalation |
+| 7. Review | reviewer agent | ⏳ / 🔄 / ✅ / ⏩ skipped | findings in conversation or `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` |
+| 8. DB review (if DB involved) | dba agent | ⏳ / 🔄 / ✅ / ⏩ N/A | findings in conversation or `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` |
 
-涉及数据库 schema / migration 变更：额外调用 `@roundtable:dba` 审查。
-
-**判定不清时**：用 AskUserQuestion 问用户"按中 / 大规模走？"
-
----
-
-## 步骤 2：tester 触发条件
-
-是否必须调用 tester，从 `target_project/CLAUDE.md` 的 `## critical_modules` section 读取关键模块清单。当前任务涉及的文件或业务域命中清单中任一项时，**必须**派发 tester。
-
-**通用兜底规则**（若项目 CLAUDE.md 未声明 critical_modules）：
-- 涉及金额 / 账户 / 权限判断的代码
-- 性能敏感热路径（需要 benchmark 验证的）
-- 并发 / 锁 / 事务边界
-- 安全相关（签名验证 / 输入校验 / 权限检查）
-
-**可选调用**：中大型功能的 E2E 场景规划、前端关键交互流程
-**跳过**：Bug fix、UI 样式、文档更新、非关键工具类代码
+Legend: ⏳ pending · 🔄 in-progress · ✅ complete · ⏩ skipped (with reason) · — inapplicable
 
 ---
 
-## 步骤 3：成果传递约定
+## Step 0: Project Context Detection
 
-**使用统一的"主题 slug"**（kebab-case 英文）串联所有阶段：
+**Execute the 4-step detection inline** — do NOT use the `Skill` tool to activate `_detect-project-context`. That file is a markdown helper containing the detection procedure; `Read` it at turn start and follow the 4 steps directly, storing the result in session memory.
+
+The 4 steps (see `skills/_detect-project-context.md` for details):
+
+1. **Target-project identification (D9)**: session memory → `git rev-parse --show-toplevel` → CWD `.git/` subdirectory scan → regex match against task description → `AskUserQuestion` fallback.
+2. **Toolchain detection**: scan the target-project root for `Cargo.toml` / `package.json` / `pyproject.toml` / `go.mod` / `Move.toml`; derive default `lint_cmd` and `test_cmd`.
+3. **docs_root detection**: `docs/` → `documentation/` → `AskUserQuestion` with default "create `docs/`".
+4. **CLAUDE.md loading**: read the `# 多角色工作流配置` section for `critical_modules`, `设计参考`, `工具链覆盖`, `条件触发规则`. CLAUDE.md values override automatic detection.
+
+Any role dispatched later MUST have the detection output injected in its prompt:
+- `target_project` (absolute path)
+- `docs_root`
+- `primary_lang`, `lint_cmd`, `test_cmd`
+- `critical_modules` (array)
+- `design_ref` (array, for architect / analyst)
+- `slug` (once assigned)
+
+Never let subagents re-run detection.
+
+---
+
+## Step 1: Size the Task
+
+Decide after reading the task description plus target-project `CLAUDE.md`.
+
+| Size | Signal | Pipeline |
+|------|--------|----------|
+| **Small** | Bug fix, single-file tweak, UI styling, doc edit | Suggest `/roundtable:bugfix` or direct `@roundtable:developer` |
+| **Medium** | New feature, module change, contained business logic | analyst (optional) → architect → design-confirm → developer → tester (if critical) → reviewer (optional) |
+| **Large** | New module, cross-component, architectural shift | analyst → architect → design-confirm → developer → tester → reviewer |
+
+DB-involved changes (schema / migration / SQL): also dispatch `@roundtable:dba` after developer.
+
+If the size is ambiguous, invoke `AskUserQuestion` with two options (medium / large) carrying `rationale` + `tradeoff` each per the architect's Option Schema.
+
+---
+
+## Step 2: Tester Trigger Rules
+
+Read `critical_modules` from the injected CLAUDE.md summary. When the task touches any listed module or keyword, **tester MUST be dispatched** after developer.
+
+Generic fallback (if CLAUDE.md does not declare `critical_modules`):
+- Money / account / permission decisions
+- Performance-critical hot paths (benchmark-gated)
+- Concurrency / lock / transaction boundaries
+- Security (signature verification / input sanitization / permission check)
+- External-system integration (DB / message queue / payment / identity)
+
+Optional tester: medium+ features' E2E scenarios; front-end critical interaction flows.
+
+Skip tester: bug fix (developer already adds regression), UI styling, doc update, non-critical utility.
+
+---
+
+## Step 3: Slug + Artifact Handoff
+
+Pick ONE kebab-case slug and use it across all phases. If the user does not specify, the first dispatched role names it and declares it in the output header.
+
+Artifact chain:
 
 ```
-analyst   → target_project/{docs_root}/analyze/[slug].md
-architect → 读 analyze/[slug].md
-            写 design-docs/[slug].md
-            按需写 exec-plans/active/[slug]-plan.md
-            按需写 api-docs/[slug].md
-developer → 读 design-docs/[slug].md + exec-plans/active/[slug]-plan.md
-            写代码 + 基础测试（单元 + TDD 验收）
-            完成后将 exec-plan 移到 completed/
-            不写 log.md（代码变更归 git log；仅在 exec-plan 归档时 append 一条 `exec-plan | [slug] completed`）
-tester    → 读代码 + design-docs/[slug].md
-            写对抗性测试 / E2E / benchmark（路径按项目实际，不硬编码）
-            中大型功能输出测试计划到 testing/plans/[slug].md
-reviewer  → 读代码 + design-docs/[slug].md
-            默认对话输出，关键审查落盘到 reviews/[YYYY-MM-DD]-[slug].md
-dba       → 读 migrations / schema / 代码
-            默认对话输出，关键审查落盘到 reviews/[YYYY-MM-DD]-db-[slug].md
+analyst   → {docs_root}/analyze/[slug].md
+architect → reads analyze/[slug].md
+            writes design-docs/[slug].md
+            optional: exec-plans/active/[slug]-plan.md
+            optional: api-docs/[slug].md
+            appends decision-log.md DEC entries
+developer → reads design-docs/[slug].md + exec-plans/active/[slug]-plan.md
+            writes src/ and tests/
+            reports exec-plan checkbox updates; orchestrator writes them
+            when feature fully done: requests orchestrator to move
+            exec-plan from active/ to completed/
+tester    → reads src/ and design-docs/[slug].md
+            writes tests/ (adversarial / E2E / benchmark)
+            medium+ tasks: writes testing/plans/[slug].md
+            business bugs: escalate (never fixes src/*)
+reviewer  → reads src / design-docs / decision-log
+            default: conversation-only findings
+            writes reviews/[YYYY-MM-DD]-[slug].md when critical_modules
+            triggered or Critical findings emerge
+dba       → reads migrations / schema / src
+            default: conversation-only findings
+            writes reviews/[YYYY-MM-DD]-db-[slug].md when change is
+            large or Critical emerges
 ```
 
-**主题 slug 规则**：
-- 使用 kebab-case 英文
-- 一个功能从头到尾使用同一个 slug
-- 用户未指定时，由首个触发的角色命名并在输出中声明
+---
+
+## Step 4: Parallel Dispatch Decision Tree
+
+The orchestrator MAY dispatch multiple subagents in parallel when ALL of the following hold. When any fails, dispatch sequentially.
+
+1. **PREREQ MET** — Both candidates have their `前置` from the exec-plan already satisfied (prior phases complete or artifacts in place).
+2. **PATH DISJOINT** — The candidates write to disjoint file sets (e.g., P0.2 writes `vault/`, P0.3 writes `llm/` — no path overlap).
+3. **SUCCESS-SIGNAL INDEPENDENT** — Each candidate has its own success signals (lint / test checkpoint) that do not depend on the other candidate's output.
+4. **RESOURCE SAFE** — Combined parallel work does not trip rate limits, lockfiles, or shared tool single-writer constraints (e.g., only one process may hold the test DB).
+
+Default: sequential. Escalate to parallel only when all four rules hold AND the speedup is material (> 30% expected time reduction).
+
+When dispatching in parallel: issue the Task calls in ONE assistant message so they run concurrently.
+
+**Exec-plan checkbox writes are serialized.** Even in parallel dispatches, the orchestrator writes checkboxes back to the plan file. Developers report completed items in their final message; the orchestrator updates the file. This prevents races on the shared exec-plan markdown.
 
 ---
 
-## 步骤 4：执行规则
+## Step 5: Subagent Escalation Handling
 
-1. **阶段之间**：每个阶段完成后向用户汇报成果（简短 + 文件路径），**等用户确认再进入下一阶段**（用户的把关点，不自动推进）
-2. **阶段之内**的决策点：遇到需要用户选择的决策，**立即用 `AskUserQuestion` 弹窗**让用户点选。不要攒到阶段末尾用文字列"N 项待确认"。典型场景：
-   - analyst 在研究中遇到范围 / 优先级分歧
-   - architect 在探索中识别出架构决策点
-3. **plan-then-execute 模式**（强制）：
-   - **architect**：三阶段工作流（探索 → 落盘 design-docs → 按需 exec-plan），见 `skills/architect.md`
-   - **developer**：中大型任务先输出实现计划等用户确认，再写代码（小任务可跳过）
-   - **tester**：中大型任务先输出测试计划等用户确认，再写测试（小任务可跳过）
-4. **角色形态**：
-   - `architect` / `analyst` 是 **skill**（在主会话上下文运行，AskUserQuestion 可用）—— 用 Skill 工具激活
-   - `developer` / `tester` / `reviewer` / `dba` 是 **agent**（subagent 隔离上下文）—— 用 Task 工具派发，派发时在 prompt 里显式注入 target_project / docs_root / lint_cmd / test_cmd / critical_modules 等上下文变量
-5. **developer 完成后**：必须跑目标项目的 lint 和 test（使用步骤 0 识别出的命令）；失败则反馈用户处理
-6. **tester 发现业务 bug 时**：反馈给用户由 developer 修复，tester 不自行修业务代码
+Agents cannot invoke `AskUserQuestion` inside the Task sandbox. When an `<escalation>` block appears in the agent's final report, the orchestrator MUST:
 
----
+1. **Parse** the JSON block (`type` / `question` / `context` / `options` / `remaining_work`).
+2. **Invoke `AskUserQuestion`** with the options. Each option's description carries `rationale` + `tradeoff`. Flag the `recommended: true` option with a `★` marker and its `why_recommended` reason.
+3. **On user answer**: re-dispatch the SAME agent with the decision fact injected into the prompt, scoped to the `remaining_work` listed in the escalation.
+4. **Never decide on behalf of the user.** If the agent did not recommend an option, pick nothing — pass the decision through.
 
-## 步骤 5：Subagent Escalation Handling
-
-Agents (developer / tester / reviewer / dba) cannot use `AskUserQuestion` inside the Task sandbox. When they surface an `<escalation>` block in their final report, the orchestrator MUST:
-
-1. **Parse** the JSON block (type / question / context / options / remaining_work).
-2. **Invoke** `AskUserQuestion` passing the options (carry `rationale` + `tradeoff` into each option's description; flag the `recommended` option with a `★` marker and the `why_recommended` reason).
-3. **On user answer**: re-dispatch the SAME agent (new Task call) with the decision fact injected into the prompt, scoped to the `remaining_work` listed in the escalation.
-4. **Do not decide on behalf of the user.** If unsure which option to recommend, pass through the agent's `recommended` field as guidance — never silently pick.
-
-Escalation block parsing rules:
-- One `<escalation>` block per agent dispatch. Multiple would indicate a poorly-scoped dispatch; consider splitting the task.
-- If the block is malformed (missing required fields), echo the error back to the agent and ask for a corrected block; do not forward to user.
-- If the agent hit an **Abort** (not Escalation) — missing context variable or infeasible — read the abort cause and fix the dispatch rather than re-dispatching unchanged.
+Parsing rules:
+- One `<escalation>` block per dispatch. Multiple suggests the dispatch was poorly scoped; split the task.
+- If the block is malformed (missing required fields), echo the error back to the agent and ask for a corrected block; do not forward to the user yet.
+- Distinguish **escalation** (expected user input; continue unblocked work) from **abort** (missing prerequisite; stop and fix the dispatch).
 
 See each agent's `## Escalation Protocol` section for the block format.
 
 ---
 
-## 当前任务开始
+## Step 6: Execution Rules
 
-1. 按"步骤 0"识别 `target_project` 和上下文
-2. 按"步骤 1"判断任务规模
-3. 按相应流程激活/派发第一个角色（通常是 analyst skill 或 architect skill）
-4. 严格遵守"阶段之间用户确认 + 阶段之内立即 AskUserQuestion"的纪律
-5. 接收 subagent 报告时，检查是否含 `<escalation>` 块并按"步骤 5"处理
+1. **Phase gates**: after each phase completes, report outcome + artifacts + updated Phase Matrix to the user, then **wait for user confirmation** before advancing to the next phase. Exception: routine transitions within the same role (e.g., `P0.4 → P0.5` in an exec-plan) MAY auto-advance when the exec-plan's prerequisites are met, no Critical findings surfaced, and the user has not requested finer granularity. Cross-role transitions (developer → tester, tester → reviewer, etc.) always require confirmation unless CLAUDE.md `critical_modules` rule dictates the trigger (e.g., tester is mechanically dispatched after developer for `critical_modules`-tagged work; the user still sees the handoff report).
 
-**注意**：本命令只做编排，不自己做设计 / 编码。把具体工作交给对应角色。
+2. **In-phase decisions**: when an active skill encounters a user-decision point, invoke `AskUserQuestion` IMMEDIATELY following the skill's `## AskUserQuestion Option Schema`. Do not accumulate decisions for a batch ask.
+
+3. **plan-then-execute**:
+   - **architect**: three-phase flow (explore → land design-docs → optional exec-plan). See `skills/architect.md`.
+   - **developer**: medium / large tasks output an implementation plan for user confirmation BEFORE coding (small tasks may skip).
+   - **tester**: medium / large tasks output a test plan for user confirmation BEFORE coding (small tasks may skip).
+
+4. **Role forms**:
+   - `architect` / `analyst` are **skills** (main session; `AskUserQuestion` available) — activate via the `Skill` tool.
+   - `developer` / `tester` / `reviewer` / `dba` are **agents** (subagent isolation; `AskUserQuestion` disabled) — dispatch via the `Task` tool; inject `target_project` / `docs_root` / `lint_cmd` / `test_cmd` / `critical_modules` / `slug` / `primary_lang` into every dispatch prompt.
+
+5. **After developer**: run `lint_cmd` and `test_cmd` against target-project. Failures are reported to the user; the orchestrator does not silently re-dispatch to fix.
+
+6. **Tester finds business bugs**: tester writes a reproduction test, reports via `<escalation>`, and does NOT fix business code. Orchestrator surfaces the bug to the user, who decides whether to dispatch a bug-fix sub-dispatch (typically via `/roundtable:bugfix`).
+
+7. **Handling escalations**: see Step 5.
+
+8. **No autonomous git operations**: `git commit` / `push` / `branch` / `tag` / `reset` / `stash` only when the user explicitly asks. Default: leave everything in the working tree. Staging (`git add`) for committing is likewise user-triggered.
+
+---
+
+## Starting Point
+
+1. Run Step 0 inline (context detection).
+2. Run Step 1 (task sizing). If ambiguous, `AskUserQuestion`.
+3. Initialize the Phase Matrix (all ⏳).
+4. Activate / dispatch the first role per the size pipeline.
+5. Update the matrix at every phase transition and report it.
+6. Obey the rules in Step 6.
+
+**This command orchestrates only — it does not design, code, or review itself. Delegate all substantive work to the appropriate role.**

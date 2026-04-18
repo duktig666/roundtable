@@ -5,9 +5,11 @@ description: Internal helper skill. Detects target_project (via D9 algorithm), t
 
 # 项目上下文识别（shared helper）
 
-本 skill 是被其他 skill / command 激活的**内部共享逻辑**。执行完毕后把结果输出到主会话 context（及 session 记忆），调用方继续自己的任务。
+本 skill 是被其他 skill / command 引用的**内部共享逻辑**。执行完毕后把结果输出到主会话 context（及 session 记忆），调用方继续自己的任务。
 
 不要在响应用户普通任务时直接激活本 skill。
+
+> **Activation note**: Callers (commands `workflow` / `bugfix` / `lint`, and skills `architect` / `analyst`) should **`Read` this file and execute the 4 steps inline** in the main session, not activate via the `Skill` tool. The underscore prefix signals "internal helper, not an end-user skill" — during P4 dogfooding, `Skill` activation of underscore-prefixed skills was observed to fail in some Claude Code releases. Inline execution is safe, deterministic, and keeps the detected context in the active session memory where subsequent dispatches can reuse it.
 
 ---
 

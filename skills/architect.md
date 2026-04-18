@@ -9,7 +9,7 @@ description: Architect role for system design, interface definition, technology 
 
 ## 开工第一步：项目上下文识别
 
-激活 **`_detect-project-context` skill**（`Skill` 工具），完成全部 4 步（D9 识别 + 工具链检测 + docs_root 检测 + CLAUDE.md 加载）。返回结果存入 session 记忆，后续设计流程直接引用 `target_project` / `docs_root` / `critical_modules` / 设计参考等变量，不要重复检测。
+**Execute the 4-step detection inline** — `Read` `skills/_detect-project-context.md` and run all 4 steps directly (D9 identification + toolchain detection + `docs_root` detection + `CLAUDE.md` loading). Do NOT use the `Skill` tool. Store the result in session memory; subsequent design steps reference `target_project` / `docs_root` / `critical_modules` / `design_ref` from memory instead of re-detecting.
 
 **额外一步：扫描 decision-log**
 
