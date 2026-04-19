@@ -58,6 +58,36 @@ Git operations are forbidden unless the user explicitly authorizes them in the c
 1. 执行"项目上下文识别"（见上）
 2. 读取 analyst 报告、现有 design-docs、decision-log
 3. 识别所有**关键决策点**（存储方案、API 协议、模块边界、并发模型、一致性取向等）
+
+   **3.5 Research Fan-out**（optional, trigger when needed）：
+
+   When any identified decision point has **2-4 candidate options** AND each candidate requires non-trivial external research (≥ 1 `WebFetch` / `WebSearch` per option), **dispatch parallel `research` subagents** instead of serially fetching from the main session. See `agents/research.md` and DEC-003.
+
+   Trigger rules:
+   - Candidate count: `2 ≤ N ≤ 4` (hard cap 4; if 5+ candidates surface, first ask the user via `AskUserQuestion` to pre-filter the 4 most promising)
+   - Per-candidate research depth: ≥ 1 WebFetch / WebSearch / non-trivial Read
+   - Total research work estimated > single-turn main-session budget
+
+   Dispatch procedure:
+   1. For each candidate `opt_i`, prepare a `Task` call dispatching the `research` agent with **required injection**: `target_project`, `docs_root`, `option_label`, `scope` (the specific fact-level question), `related_facts` (known facts to avoid duplicate research), `critical_modules`, `design_ref` (both from target CLAUDE.md session memory).
+   2. Issue all `N` Task calls **in a single assistant message** so they run in parallel.
+   3. Wait for all `N` returns (each a `<research-result>` JSON block, or a `<research-abort>` feedback).
+
+   Synthesis procedure:
+   4. Parse each `<research-result>` JSON. Extract `key_facts` (→ becomes `rationale` in AskUserQuestion option) and `tradeoffs` (→ becomes `tradeoff` field).
+   5. Architect **independently** decides which option (if any) carries `recommended: true` — research workers are barred from recommending (`recommend_for` is hard-wired `null`).
+   6. Construct the `AskUserQuestion` call per the `## AskUserQuestion Option Schema` section, one option per candidate.
+
+   Failure handling:
+   - **Abort** (scope too vague / sources unreachable): re-dispatch ONCE with a narrower `scope`. If second attempt also aborts, mark that option with `☠️ research failed: <reason>` in its AskUserQuestion description and drop `recommended` consideration for it.
+   - **Timeout / exception**: partial success is acceptable. Proceed to `AskUserQuestion` with `N-1` fully-researched options and one `☠️` option; let the user decide whether to vote it out or accept incomplete information.
+
+   Parallel safety (maps to `commands/workflow.md` §4 four-condition tree):
+   - PREREQ MET ✅ (decision point identified)
+   - PATH DISJOINT ✅ (research writes no files)
+   - SUCCESS-SIGNAL INDEPENDENT ✅ (each `<research-result>` stands alone)
+   - RESOURCE SAFE ✅ (≤ 4 fan-out cap + short lifetime)
+
 4. 对每个决策点**立即用 `AskUserQuestion` 弹出**：
    - question：简明决策描述
    - options：A/B/C 每项含 1-2 句话说明

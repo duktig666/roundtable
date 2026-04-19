@@ -35,6 +35,31 @@
 
 ---
 
+### DEC-003 architect skill → parallel research subagent dispatch 能力
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: P4 自消耗（gleanforge dogfood，2026-04-18）§3 friction #8 —— architect 决策 3+ 备选方案时 `WebFetch` 串行，慢 + 主会话 context 被累积 fetch 撑爆 + 或被迫 truncate 研究广度。DEC-002 将此列为 deferred，留 [issue #2](https://github.com/duktig666/roundtable/issues/2) 追踪。本轮（2026-04-19）完成调研（`docs/analyze/parallel-research.md` 对标 CrewAI / LangGraph / Claude Code sub-agents）+ architect 决策 7 条。
+- **决定**:
+  1. **新增 `agents/research.md`**（独立 role）—— 短生命周期 research worker，architect dispatches via `Task`，**不由用户触发**（description 明写 "NOT user-triggered")
+  2. **正交补充 DEC-001 D8**（不 Superseded D8）—— D8 的 role→form 单射继续有效；DEC-003 新增规则："skill（限 architect）可向特定 agent（限 research）派 `Task`，仅限短生命周期 fact-level 调研"
+  3. **Tool set**：`Read`, `Grep`, `Glob`, `WebFetch`, `WebSearch`（**禁** `Bash` / `Write` / `Edit` / git / `AskUserQuestion`）
+  4. **扇出硬上限**：每次 architect 决策 ≤ 4 个并行 research subagent；5+ 候选先用 `AskUserQuestion` 粗筛
+  5. **返回 schema**：结构化 `<research-result>` JSON block，字段 `option_label` / `scope` / `key_facts[{fact, source}]` / `tradeoffs[]` / `unknowns[]` / `recommend_for: null` —— `recommend_for` 硬导 `null`，执行"research 不做推荐"纪律
+  6. **Scope 模糊处理**：`<research-abort>` feedback，architect 修正 scope 重派最多 1 轮；不新增 escalation type，避免 reentrant（research → orchestrator → architect skill 是 orchestrator 的 skill）
+  7. **1/N 失败处理**：partial success 可接受；失败 option 在 architect 合成后的 `AskUserQuestion` 里标 ☠️，用户可选排除或接受不完整信息拍板
+- **备选**:
+  - **analyst dual-mode（skill + subagent）**：破坏 D8 的 role→form 单射；一个 role 文件两套 Resource Access 难维护；auto-delegation description 歧义
+  - **架构师 inline Task 模板（零新文件）**：每次派发 architect 要重述 tool set + schema；prompt 模板复制易漂移；无独立 role 审计
+  - **新增 `scope-clarification` escalation type**：增加路由复杂度；scope 决策本属 architect，不应经用户；与 abort-re-dispatch 比无实质收益
+  - **Strict all-or-nothing 失败处理**：token 浪费 4×（全重派）；上游持续故障（如某源 persistent down）导致雪球阻塞
+  - **扇出上限 ≤ 6 或无上限**：5+ 候选往往是决策粒度过粗的信号；与 `AskUserQuestion` 的 `maxItems: 4` 不对齐
+  - **返回 prose 而非 JSON**：N 份 prose 合成需 architect 文本解析，易丢事实；与 DEC-002 已确立的 `<escalation>` JSON 范式不一致
+- **理由**: (1) 独立 agent 保持 D8 的 role→form 单射；(2) 结构化 JSON schema 让 N 份调研合成可确定性映射到 AskUserQuestion 字段（复用 DEC-002 的 agent→orchestrator JSON 交互范式）；(3) 扇出 ≤ 4 与 AskUserQuestion maxItems 对齐，逼迫 architect 先粗筛而非粗放扇出；(4) partial success 务实 —— 用户最终拍板能力 > 完整性要求；(5) abort 而非 escalation 避免 "research → orchestrator → architect skill" 的 reentrant；(6) `recommend_for: null` 硬导执行 "research 事实层、architect 决策层" 的纪律分离
+- **相关文档**: [docs/analyze/parallel-research.md](analyze/parallel-research.md)（对标调研 + 12 事实层开放问题）、[docs/design-docs/parallel-research.md](design-docs/parallel-research.md)（完整设计含流程 / schema / 并行安全论证）、`skills/architect.md` §阶段 1.5 "Research Fan-out"（触发 / 派发 / 合成 / 失败处理规则）、`agents/research.md`（新 role 完整定义 + Return Schema + Abort Criteria）、[issue #2](https://github.com/duktig666/roundtable/issues/2)
+- **影响范围**: 新增 `agents/research.md` 文件；`skills/architect.md` §阶段 1 加入 3.5 子步骤；`docs/decision-log.md` 本条目；`docs/INDEX.md` 新增 `### agents` subsection + 引用 research.md；`docs/log.md` 新增 `design | parallel-research` 条目。运行时行为变化：architect 在决策候选 ≥ 2 且需外部研究时可选择并行 research，显著减少主会话 token 占用和决策时间。与 DEC-001 D8 正交；与 DEC-002 共享 JSON 交互范式（`<escalation>` ↔ `<research-result>` / `<research-abort>`）无冲突。
+
+---
+
 ### DEC-002 基于 P4 自消耗反馈的三项增量改进（shared resource protocol / escalation / workflow matrix）
 - **日期**: 2026-04-19
 - **状态**: Accepted

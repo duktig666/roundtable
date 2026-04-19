@@ -38,6 +38,16 @@
 
 ---
 
+## design | parallel-research | 2026-04-19
+- 操作者: architect (inline, 本会话) + Claude (orchestrator)
+- 影响文件: docs/design-docs/parallel-research.md（新建）, docs/decision-log.md（+DEC-003）, skills/architect.md（§阶段 1 插入 3.5 Research Fan-out 子步骤）, agents/research.md（新建）
+- 说明: 7 条决策落定 —— 独立 research agent / DEC-003 正交补充 D8 / Tool set (Read+Grep+Glob+WebFetch+WebSearch) / 扇出 ≤4 / 结构化 `<research-result>` JSON / abort-on-vague-scope / partial success；解 issue #2
+
+## analyze | parallel-research | 2026-04-19
+- 操作者: analyst (inline, 本会话执行)
+- 影响文件: docs/analyze/parallel-research.md
+- 说明: 对标 CrewAI / LangGraph / Claude Code sub-agents；12 事实层开放问题交 architect；解 issue #2 parallel research subagent dispatch
+
 ## test-plan | p4-self-consumption | 2026-04-18
 - 操作者: Claude (observer) + 用户（gleanforge P4 session）
 - 影响文件: docs/testing/p4-self-consumption.md（新建）, docs/exec-plans/active/roundtable-plan.md（勾 P4 checkbox + 更新进度 + 追加变更记录）
