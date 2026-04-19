@@ -45,6 +45,7 @@
 - [parallel-research.md](analyze/parallel-research.md) — architect 派发 parallel research subagent 能力的对标调研（CrewAI / LangGraph / Claude Code sub-agents，12 事实层开放问题交 architect）
 - [subagent-progress-and-execution-model.md](analyze/subagent-progress-and-execution-model.md) — subagent 进度可见性 + 执行模型选择 5 路径对比（Claude Code/SDK/Monitor + CrewAI/AutoGen/LangGraph；8 事实层开放问题交 architect，解 issue #7）
 - [phase-transition-rhythm.md](analyze/phase-transition-rhythm.md) — issue #10 workflow phase transition 节奏对标研究（git/terraform/apt/kubectl/Make/CrewAI/AutoGen/LangGraph/Claude Code 9 种 CLI/orchestrator UX；6 事实层开放问题交 architect）
+- [lightweight-review.md](analyze/lightweight-review.md) — issue #9 轻量化审计（archive 826 vs 现状 2708 行 = 3.16× / 8 个 DEC 增量分类 / 3 大抽取热区 DEC-002/004/007 / 7 事实层开放问题）
 
 ### design-docs
 
@@ -53,8 +54,12 @@
 - [subagent-progress-and-execution-model.md](design-docs/subagent-progress-and-execution-model.md) — subagent progress 透传（P1 push）+ developer 双形态（inline \| subagent）设计，解 issue #7；DEC-004 + DEC-005 落定
 - [phase-transition-rhythm.md](design-docs/phase-transition-rhythm.md) — issue #10 workflow phase gating 三段式分类设计（producer-pause / approval-gate / verification-chain + Stage 9 Closeout），DEC-006 落定
 - [progress-content-policy.md](design-docs/progress-content-policy.md) — issue #14 subagent progress 内容策略（代理节拍 / 去重 / 差异化 / 终止-失败分离），DEC-007 落定；补丁 DEC-004
+- [lightweight-review.md](design-docs/lightweight-review.md) — issue #9 轻量化重构（DEC-009 Proposed；4 shared helper 抽取 + log.md closeout batching + README/CLAUDE.md 结构重塑；预估省 22-25%）
 
-注：`skills/_progress-content-policy.md`（DEC-007 的共享 helper）属 plugin 内部 include-only 文件（下划线前缀约定），由 4 agent + workflow 引用；非独立可激活 skill，不在用户向 skill 清单中露出。
+**Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
+
+- `skills/_detect-project-context.md` — 4 步 target-project 识别 + toolchain + docs_root + CLAUDE.md 加载（被 workflow / bugfix / lint / architect / analyst 5 方引用）
+- `skills/_progress-content-policy.md` — DEC-007 subagent progress 内容策略（被 developer / tester / reviewer / dba 引用）
 
 ### exec-plans
 
@@ -62,6 +67,8 @@
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable 实施计划（P0-P6，6 天）
   - [subagent-progress-and-execution-model-plan.md](exec-plans/active/subagent-progress-and-execution-model-plan.md) — issue #7 实施计划（10 phase：5 agent + 2 command + 1 template + 1 critical_modules 同步 + 1 lint & smoke；P0.1-P0.8 可两批并行）
   - [progress-content-policy-plan.md](exec-plans/active/progress-content-policy-plan.md) — issue #14 实施计划（P0.1-P0.4：shared helper + 4 agent 引用 + workflow awk collapse + lint/dogfood）
+- completed/
+  - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构实施（P0.1-P0.7 全部完成；DEC-009 Accepted；净省 ~590 行 21-22%；lint 0 命中）
 
 ### testing
 
@@ -70,6 +77,7 @@
 - [phase-transition-rhythm.md](testing/phase-transition-rhythm.md) — issue #10 DEC-006 三段式对抗测试（2 Critical / 9 Warning / 5 Suggestion；C-01 悬空指针 + C-02 Step 7 与 C 自动前进语义冲突）
 - [progress-content-policy.md](testing/progress-content-policy.md) — issue #14 DEC-007 对抗测试（25 cases：0 Critical / 3 Warning / 4 Suggestion；D1 原 dogfood 刷屏回归修复确认 `(x5)`）
 - [step35-foreground-skip-monitor.md](testing/step35-foreground-skip-monitor.md) — issue #15 DEC-008（workflow §3.5.0 前台派发免 Monitor gate）对抗测试（18 cases：2 Critical / 3 Warning / 1 Suggestion → post-fix 全绿）
+- [lightweight-review.md](testing/lightweight-review.md) — issue #9 DEC-009 轻量化重构对抗测试（19 cases：1 Critical 升级为 Warning / 5 Warning；W-01 design-doc §5 决定编号漂移 7/8/9→8/9/10 已 post-fix；A6 helper role-specific 泄漏已清；D1/E2/B2/F2 post-fix 全绿）
 
 ### reviews
 
@@ -77,6 +85,7 @@
 - [2026-04-19-subagent-progress-and-execution-model.md](reviews/2026-04-19-subagent-progress-and-execution-model.md) — issue #7 终审（Approved with caveats：0 Critical / 3 Warning / 4 Suggestion，5 DEC 对齐 + user north-star 满足度 85%）
 - [2026-04-19-phase-transition-rhythm.md](reviews/2026-04-19-phase-transition-rhythm.md) — issue #10 DEC-006 终审（Approved-with-caveats：0 Critical / 3 Warning / 5 Suggestion；DEC-001~DEC-005 全对齐；2C+W-08 已根因修复）
 - [2026-04-19-progress-content-policy.md](reviews/2026-04-19-progress-content-policy.md) — issue #14 DEC-007 终审（Approve-with-caveats：0 Critical / 2 Warning / 3 Suggestion / 5 Positive；4 agent 逐字对称；推荐 back-feed fflush 到 design-doc §3.4）
+- [2026-04-19-lightweight-review.md](reviews/2026-04-19-lightweight-review.md) — issue #9 DEC-009 终审（Approve-with-caveats：0 Critical / 3 Warning / 4 Suggestion / 5 Positive；DEC-001 D1-D9 + DEC-002~008 全保；decision-log 3 铁律遵守；DEC-004 schema 零改；lint 0 命中；W-01 已 post-fix）
 
 ## 主题 slug 约定
 

@@ -92,6 +92,8 @@ fi
 
 **Case 3.6 建议**：bugfix.md 规则 2 改为对称写法：`if target_project CLAUDE.md declares developer_form_default (either inline or subagent), honor the declaration—this overrides the bugfix inline-bias default.`
 
+**Resolved by DEC-009 决定 9**（2026-04-19 bugfix.md 规则 2 改对称 honor；落地点 `commands/bugfix.md` Step 3 Developer Form Selection 规则 2）
+
 **Case 3.4 建议**：example block 改为两套不同场景的 "if small task → [inline=recommended, subagent=notRecommended]；else → 反之"，避免单 block 内两 `recommended: true`。
 
 ### 1.4 正交性（progress vs escalation vs research-result）
@@ -167,6 +169,7 @@ fi
 
 - **影响**：bugfix.md rule 2 仅描述 `developer_form_default: subagent` 的 respect 路径；`inline` 声明落空规则 2 进入规则 3（AskUserQuestion）。用户会困惑"我都声明 inline 了为什么还问我"。运行结果碰巧正确（规则 3 + inline-bias 大概率选 inline），但**语义不规整**。
 - **推荐修法**：rule 2 改为 `if target_project CLAUDE.md declares developer_form_default (either inline or subagent), honor the declaration — this overrides the bugfix inline-bias default.`
+- **Resolved by DEC-009 决定 9**（2026-04-19 bugfix.md 改对称 honor）
 
 ---
 
