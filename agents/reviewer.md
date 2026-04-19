@@ -138,6 +138,21 @@ Ordering matters: `phase_blocked` is the real-time signal; the review report and
 
 This ordering discipline does NOT change the Critical / Warning / Suggestion severity criteria defined in the section above — it only governs when each signal is emitted.
 
+### Content Policy
+
+All progress emits MUST conform to the shared content policy in `skills/_progress-content-policy.md`:
+- Substantive-progress gate between emits (file write / sub-milestone / ≥50% new context).
+- Never repeat the previous emit's `summary` verbatim — if nothing new, do not emit.
+- Every `summary` carries at least one of: sub-step name / progress score / milestone tag.
+- DONE: the final `phase_complete` uses a `✅` summary prefix (no new event type).
+- ERROR: `phase_blocked` + `<escalation>` block; both channels remain orthogonal.
+
+Role-specific example summaries (compliant):
+- `reviewing auth-module 2/5 files`
+- `critical finding drafted — RW-01`
+
+See the shared helper for full rules, anti-patterns, and edge cases. Refs: DEC-007, DEC-004 §3.1–3.2, DEC-002.
+
 ### Fallback on miss
 
 A skipped emit degrades silently (= current state, user sees nothing) — it is never an error. Prefer emitting slightly too few, high-signal events over emitting many noisy ones.

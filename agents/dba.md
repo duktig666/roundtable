@@ -109,6 +109,21 @@ Target 3-10 events per dispatch (DEC-004 §3.1). Pick phase tags at the granular
 
 If the dispatch follows an exec-plan with explicit `P0.n` labels, prefer the plan label over the tags above. If neither applies, pick a concise custom tag.
 
+### Content Policy
+
+All progress emits MUST conform to the shared content policy in `skills/_progress-content-policy.md`:
+- Substantive-progress gate between emits (file write / sub-milestone / ≥50% new context).
+- Never repeat the previous emit's `summary` verbatim — if nothing new, do not emit.
+- Every `summary` carries at least one of: sub-step name / progress score / milestone tag.
+- DONE: the final `phase_complete` uses a `✅` summary prefix (no new event type).
+- ERROR: `phase_blocked` + `<escalation>` block; both channels remain orthogonal.
+
+Role-specific example summaries (compliant):
+- `analyzing migration 0042 locking behavior`
+- `schema diff captured for user_events`
+
+See the shared helper for full rules, anti-patterns, and edge cases. Refs: DEC-007, DEC-004 §3.1–3.2, DEC-002.
+
 ### Fallback behaviour
 
 If `{{progress_path}}` is absent or empty in the injected context (e.g. orchestrator set `ROUNDTABLE_PROGRESS_DISABLE=1`), silently skip emission and proceed with the review. Emission failure never blocks dba work; missing events degrade to the pre-DEC-004 silent baseline.

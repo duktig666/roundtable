@@ -166,6 +166,21 @@ echo '{"ts":"2026-04-19T12:34:56Z","role":"developer","dispatch_id":"a1b2c3d4","
 - **NOT per tool call** — do not echo after every `Read` / `Edit` / `Bash`. Wait for a phase boundary.
 - **One event per line. Never batch. Never suppress.**
 
+### Content Policy
+
+All progress emits MUST conform to the shared content policy in `skills/_progress-content-policy.md`:
+- Substantive-progress gate between emits (file write / sub-milestone / ≥50% new context).
+- Never repeat the previous emit's `summary` verbatim — if nothing new, do not emit.
+- Every `summary` carries at least one of: sub-step name / progress score / milestone tag.
+- DONE: the final `phase_complete` uses a `✅` summary prefix (no new event type).
+- ERROR: `phase_blocked` + `<escalation>` block; both channels remain orthogonal.
+
+Role-specific example summaries (compliant):
+- `editing agents/developer.md — Content Policy subsection`
+- `P0.2 milestone: 4 agents synced`
+
+See the shared helper for full rules, anti-patterns, and edge cases. Refs: DEC-007, DEC-004 §3.1–3.2, DEC-002.
+
 ### Fallback
 
 If `{{progress_path}}` is empty, unset, or the file is not writable, silently skip all emits (degrade to current behavior — no error, no retry). The orchestrator also honors `ROUNDTABLE_PROGRESS_DISABLE=1` by not injecting `progress_path` at all; the same silent-skip applies.

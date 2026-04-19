@@ -52,23 +52,29 @@
 - [parallel-research.md](design-docs/parallel-research.md) — architect skill 派发 parallel research subagent 的完整设计（7 条决策，DEC-003 锁定；触发条件 / 派发协议 / 返回 schema / 失败处理 / 并行安全论证）
 - [subagent-progress-and-execution-model.md](design-docs/subagent-progress-and-execution-model.md) — subagent progress 透传（P1 push）+ developer 双形态（inline \| subagent）设计，解 issue #7；DEC-004 + DEC-005 落定
 - [phase-transition-rhythm.md](design-docs/phase-transition-rhythm.md) — issue #10 workflow phase gating 三段式分类设计（producer-pause / approval-gate / verification-chain + Stage 9 Closeout），DEC-006 落定
+- [progress-content-policy.md](design-docs/progress-content-policy.md) — issue #14 subagent progress 内容策略（代理节拍 / 去重 / 差异化 / 终止-失败分离），DEC-007 落定；补丁 DEC-004
+
+注：`skills/_progress-content-policy.md`（DEC-007 的共享 helper）属 plugin 内部 include-only 文件（下划线前缀约定），由 4 agent + workflow 引用；非独立可激活 skill，不在用户向 skill 清单中露出。
 
 ### exec-plans
 
 - active/
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable 实施计划（P0-P6，6 天）
   - [subagent-progress-and-execution-model-plan.md](exec-plans/active/subagent-progress-and-execution-model-plan.md) — issue #7 实施计划（10 phase：5 agent + 2 command + 1 template + 1 critical_modules 同步 + 1 lint & smoke；P0.1-P0.8 可两批并行）
+  - [progress-content-policy-plan.md](exec-plans/active/progress-content-policy-plan.md) — issue #14 实施计划（P0.1-P0.4：shared helper + 4 agent 引用 + workflow awk collapse + lint/dogfood）
 
 ### testing
 
 - [p4-self-consumption.md](testing/p4-self-consumption.md) — P4 自消耗闭环观察报告（gleanforge dogfood 实录：9 subagent 派发 / 3 次并行 / 242 tests / 3 条 top 改进 + 9 摩擦点 + 6 条工作良好设计）
 - [subagent-progress-and-execution-model.md](testing/subagent-progress-and-execution-model.md) — issue #7 P0.1-P0.10 对抗性测试（30+ case / 34 PASS + 4 FAIL + 18 WARN / 1 Critical escalation：Monitor jq pipe 被单行非 JSON 击穿）
 - [phase-transition-rhythm.md](testing/phase-transition-rhythm.md) — issue #10 DEC-006 三段式对抗测试（2 Critical / 9 Warning / 5 Suggestion；C-01 悬空指针 + C-02 Step 7 与 C 自动前进语义冲突）
+- [progress-content-policy.md](testing/progress-content-policy.md) — issue #14 DEC-007 对抗测试（25 cases：0 Critical / 3 Warning / 4 Suggestion；D1 原 dogfood 刷屏回归修复确认 `(x5)`）
 
 ### reviews
 
 - [2026-04-19-subagent-progress-and-execution-model.md](reviews/2026-04-19-subagent-progress-and-execution-model.md) — issue #7 终审（Approved with caveats：0 Critical / 3 Warning / 4 Suggestion，5 DEC 对齐 + user north-star 满足度 85%）
 - [2026-04-19-phase-transition-rhythm.md](reviews/2026-04-19-phase-transition-rhythm.md) — issue #10 DEC-006 终审（Approved-with-caveats：0 Critical / 3 Warning / 5 Suggestion；DEC-001~DEC-005 全对齐；2C+W-08 已根因修复）
+- [2026-04-19-progress-content-policy.md](reviews/2026-04-19-progress-content-policy.md) — issue #14 DEC-007 终审（Approve-with-caveats：0 Critical / 2 Warning / 3 Suggestion / 5 Positive；4 agent 逐字对称；推荐 back-feed fflush 到 design-doc §3.4）
 
 ## 主题 slug 约定
 

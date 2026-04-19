@@ -35,6 +35,31 @@
 
 ---
 
+### DEC-007 subagent progress content policy（#7 dogfood 刷屏 follow-up）
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: issue #14 —— DEC-004 落地后 2026-04-19 roundtable 自消耗 dogfood 观察到 developer agent 在同一 phase 内持续 emit 相同 summary（"dev round2 progress" x5+），Monitor 每行触发通知导致主会话刷屏。根因：DEC-004 只规定 event schema / phase 颗粒度，未规定 summary 内容质量。Monitor 本身事件驱动无去重；源端 4 个 subagent prompt（developer / tester / reviewer / dba）的 Progress Reporting section 缺失节拍 / 去重 / 差异化内容 / 终止-失败语义分离的约束
+- **决定**:
+  1. **共享 policy helper**：新建 `skills/_progress-content-policy.md`（下划线前缀 = plugin 内部 include-only 文件，非独立可激活 skill，对齐 `skills/_detect-project-context.md` 范式）；4 个 subagent 的 Progress Reporting section 加 `### Content Policy` 子节，一行引用 + 本角色特化示例
+  2. **代理节拍（substantive-progress gate）**：两次 emit 之间 agent 必须完成以下之一——(a) 一次实质文件写/编辑、(b) 一个已完成子里程碑、(c) ≥50% 新 token context。替代不可执行的"最小 30s 间隔"
+  3. **连续 summary 去重**：相邻两次 emit 的 `summary` 字段禁止完全相同；若无新信息宁可不发
+  4. **差异化内容**：每条 emit summary 必含以下至少一项——具体子步骤名 / 进度分数（`2/5`）/ 里程碑标签
+  5. **终止-失败信号复用**：DONE = 本 dispatch 最后一次 `phase_complete`（建议 summary 前缀 `✅`）；ERROR = `phase_blocked` + `<escalation>`（沿用 DEC-002）。**不扩 DEC-004 event 枚举**，orchestrator 凭 Task 返回即判定 dispatch 结束
+  6. **orchestrator 端兼底 dedup**：`commands/workflow.md` Step 3.5.3 jq pipeline 追加 awk 的连续相同行折叠（`... x3`），非全局 uniq—仅在 agent 源端失守时提供保护
+- **备选**:
+  - **内联 4 份拷贝到各 agent**：否决，critical_modules 命中 prompt 本体，4 份拷贝未来改一条规则需改 4 处，漂移风险放大
+  - **追加 DEC-004 §3.8**：否决，DEC 记决策不记规范；policy 是操作性规则，放 DEC 违背 DEC-001 定位边界
+  - **新增 done / error event type**：否决，DEC-004 event 枚举 3 种正为稳定性设；扩枚举需改 Accepted DEC 走 Superseded 流程，成本高；Task 返回+phase_blocked 组合已充分覆盖语义
+  - **硬编码 event 计数上限（max 10/dispatch）**：否决，长任务 exec-plan 多阶段可能自然超限，硬上限反而压制有效信号
+  - **仅源端规范不加 Monitor 兼底**：否决，agent prompt 漂移不可避免，一层 awk collapse 代价低收益高
+  - **jq stateful foreach dedup**：否决，jq 内 stateful filter 调试冗长，已有 DEC-004 jq `fromjson?` 容错一次踩坑（见 testing/subagent-progress-and-execution-model.md case 1.2b），不再加复杂度
+  - **awk 全局 uniq（`!seen[$0]++`）**：否决，非连续重复（相同 case 被其他事件打断后再现）通常有效，不应过滤
+- **理由**: (1) 共享 helper 对齐 `_detect-project-context.md` 范式，critical_modules 单源；(2) 代理门阁替时间间隔让 LLM 可自查，确定性条件；(3) 复用 DEC-004 event 枚举避免 Superseded 连锁；(4) 源端规范 + 一层 awk 兼底双保险，匹配 roundtable "显式决策点 + 纪律性兜底" 心智
+- **相关文档**: docs/design-docs/progress-content-policy.md（主设计文档）、docs/exec-plans/active/progress-content-policy-plan.md（执行计划）、DEC-004（被补丁的上游事件协议）、DEC-002（Escalation 协议，ERROR 信号复用）、DEC-005（developer 双形态，inline 仍不 emit）
+- **影响范围**: 新建 `skills/_progress-content-policy.md`；编辑 `agents/developer.md` / `agents/tester.md` / `agents/reviewer.md` / `agents/dba.md` 的 Progress Reporting section（追加 Content Policy 子节）；编辑 `commands/workflow.md` Step 3.5.3（jq pipeline 加 awk collapse）；新增 DEC-007 本条；`docs/log.md` 新增一条 `design | progress-content-policy` + `decide | DEC-007` + `plan | progress-content-policy` 合并条目；`docs/INDEX.md` 追加 design-docs / exec-plans 引用。**不改** DEC-004 event schema；**不改** Monitor 工具；**不改** target CLAUDE.md
+
+---
+
 ### DEC-006 workflow phase gating taxonomy（producer-pause / approval-gate / verification-chain 三段式）
 - **日期**: 2026-04-19
 - **状态**: Accepted

@@ -38,6 +38,21 @@
 
 ---
 
+## review | progress-content-policy | 2026-04-19
+- 操作者: reviewer subagent (critical_modules hit → 必落盘)
+- 影响文件: docs/reviews/2026-04-19-progress-content-policy.md（新建）
+- 说明: DEC-007 终审 Approve-with-caveats；0 Critical / 2 Warning / 3 Suggestion / 5 Positive；4 agent 正文逐字对称、DEC-004 schema 未动、DEC-002/005/006 正交；RW-01 推荐 closeout 前 back-feed `fflush()` 到 design-doc §3.4；RW-02 awk 末行延迟关联 issue #15
+
+## test-plan | progress-content-policy | 2026-04-19
+- 操作者: tester subagent (critical_modules hit → 必落盘)
+- 影响文件: docs/testing/progress-content-policy.md（新建）
+- 说明: DEC-007 对抗测试 25 cases；0 Critical / 3 Warning / 4 Suggestion；D1 原 issue #14 刷屏回归修复确认（5 identical → `(x5)`）；W-01 awk last-line hold 建议 orchestrator MonitorStop 缓解
+
+## design | progress-content-policy + decide DEC-007 + plan progress-content-policy | 2026-04-19
+- 操作者: architect skill (inline)
+- 影响文件: docs/design-docs/progress-content-policy.md（新建）, docs/decision-log.md（新增 DEC-007）, docs/exec-plans/active/progress-content-policy-plan.md（新建）
+- 说明: issue #14 follow-up of DEC-004 dogfood 刷屏；4 决策点 AskUserQuestion 确认完毕：共享 helper 文件 / 代理节拍门阁 / 复用 DEC-004 event 枚举 / 源端规范+awk 连续 dedup 兼底；不改 Monitor/DEC-004 schema/CLAUDE.md；待 design-confirm 后派 developer
+
 ## review | phase-transition-rhythm | 2026-04-19
 - 操作者: reviewer subagent (critical_modules hit → 必落盘)
 - 影响文件: docs/reviews/2026-04-19-phase-transition-rhythm.md（新建）

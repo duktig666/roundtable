@@ -171,7 +171,7 @@ Capture `DISPATCH_ID` and `PROGRESS_PATH` from Bash output; both are needed for 
 Immediately after the Bash preparation, launch `Monitor` with:
 
 ```
-Monitor script: "tail -F ${PROGRESS_PATH} 2>/dev/null | jq -R --unbuffered -c 'fromjson? | select(.event) | \"[\" + .phase + \"] \" + .role + \" \" + .event + \" — \" + .summary'"
+Monitor script: "tail -F ${PROGRESS_PATH} 2>/dev/null | jq -R --unbuffered -c 'fromjson? | select(.event) | \"[\" + .phase + \"] \" + .role + \" \" + .event + \" — \" + .summary' | awk 'BEGIN{last=\"\";n=0} {if($0==last){n++} else {if(n>1) print last\" (x\"n\")\"; else if(last!=\"\") print last; last=$0; n=1} fflush()} END{if(n>1) print last\" (x\"n\")\"; else if(last!=\"\") print last}'"
 ```
 
 Notes:
@@ -179,6 +179,7 @@ Notes:
 - `jq --unbuffered` defeats pipe buffering so each JSONL line is flushed as a separate notification. Without `--unbuffered`, jq may batch lines and delay the user-visible relay by several seconds.
 - **`-R` + `fromjson?` (required fault tolerance)**: `-R` reads each line as a raw string and `fromjson?` attempts to parse it — the `?` swallows parse errors per line so unparseable input (garbled debug prints, truncated writes under disk pressure, concurrent interleaving) is silently skipped instead of aborting the whole pipe. Without this, a single malformed line makes jq exit 4 and silently kills the Monitor; all subsequent events are lost. See `docs/testing/subagent-progress-and-execution-model.md` Case 1.2 / 1.2b for the failure mode this guards against.
 - `select(.event)` further filters out parsed-but-incomplete rows (valid JSON but missing `event` field).
+- **awk consecutive-collapse filter (DEC-007 §3.4 bottom-layer guard)**: the trailing `awk` folds CONSECUTIVE identical lines only (not global uniq); guards against source-side drift without suppressing valid repeated phase tags separated by other events. Emits `<line> (xN)` when a run of ≥2 identical lines ends; `fflush()` after each print preserves per-line delivery to Claude Code's Monitor (matches the `--unbuffered` intent upstream). DEC-007 source-side content policy (in each agent's `## Progress Reporting → Content Policy`) is the primary defence; the awk layer is a cheap safety net.
 - The formatted output becomes the "Real-time progress stream" line documented below the Phase Matrix.
 
 ### 3.5.4 Inject 4 variables into the Task prompt

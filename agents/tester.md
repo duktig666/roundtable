@@ -131,6 +131,21 @@ This ordering guarantees the orchestrator-side Monitor sees the blocker BEFORE t
 
 Phase-level, NOT tool-level. Do not emit after every `Write` of a test file or every `Bash` run. A single phase may span multiple Write / Bash / Read calls. Expected density: 3-8 events per dispatch.
 
+### Content Policy
+
+All progress emits MUST conform to the shared content policy in `skills/_progress-content-policy.md`:
+- Substantive-progress gate between emits (file write / sub-milestone / ≥50% new context).
+- Never repeat the previous emit's `summary` verbatim — if nothing new, do not emit.
+- Every `summary` carries at least one of: sub-step name / progress score / milestone tag.
+- DONE: the final `phase_complete` uses a `✅` summary prefix (no new event type).
+- ERROR: `phase_blocked` + `<escalation>` block; both channels remain orthogonal.
+
+Role-specific example summaries (compliant):
+- `running case-fuzz 3/12 — boundary overflow`
+- `benchmark baseline captured`
+
+See the shared helper for full rules, anti-patterns, and edge cases. Refs: DEC-007, DEC-004 §3.1–3.2, DEC-002.
+
 ### Fallback
 
 If `{{progress_path}}` is empty, unset, or the injection is missing entirely, silently skip all emit calls — continue the task normally. Missing progress is a degraded (not failed) state.
