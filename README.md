@@ -10,6 +10,13 @@
 # 零弹窗，秒装完
 ```
 
+或者本地 clone 直接用（改代码即刻生效，适合跟进未发版改动或自行魔改）：
+
+```bash
+git clone git@github.com:duktig666/roundtable.git
+claude --plugin-dir /absolute/path/to/roundtable   # 在你的项目目录下执行
+```
+
 装完即可在任意项目里用：
 
 ```bash
