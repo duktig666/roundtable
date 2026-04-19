@@ -45,7 +45,14 @@ Do NOT use the `Skill` tool to activate the underscore-prefixed helper.
 - 没有 frontmatter 的文档列为"缺少元数据"
 
 ### 3. 孤儿检测
-- 找出没有被 `INDEX.md`、`decision-log.md` 或其他文档引用的 design-docs / analyze
+- 找出没有被 `INDEX.md` / `decision-log.md` 或其他文档引用的文件，覆盖 `commands/workflow.md` §Step 7 索引的全部类别：
+  - `analyze/[slug].md`
+  - `design-docs/[slug].md`
+  - `exec-plans/active/[slug]-plan.md`
+  - `exec-plans/completed/[slug]-plan.md`
+  - `testing/[slug].md` / `testing/[slug]-<type>.md`
+  - `reviews/[YYYY-MM-DD]-[slug].md` / `reviews/[YYYY-MM-DD]-db-[slug].md`
+  - `api-docs/[slug].md`
 - 找出 `INDEX.md` 中列出但文件已不存在的条目（断链）
 
 ### 4. 断链检查
