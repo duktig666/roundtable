@@ -35,6 +35,31 @@
 
 ---
 
+### DEC-006 workflow phase gating taxonomy（producer-pause / approval-gate / verification-chain 三段式）
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: issue #10 —— P4 自消耗后重跑观察到 `commands/workflow.md` 现行 Step 6 规则 1 "每次 cross-role transition 停下 confirmation" 产生选项疲劳、产出文档未读完即决策、FAQ 空间被弹窗切断；与 `feedback_no_auto_push` / `feedback_no_auto_pr` 的"不可逆动作等用户主动"心智不一致；对标 CrewAI / AutoGen / LangGraph 等 AI agent 框架主流"默认自动 + 显式 gate 声明"反向
+- **决定**:
+  1. **显式三段式分类**：每个 phase transition 归入 A producer-pause / B approval-gate / C verification-chain 之一；gating 行为由类别决定
+     - A producer-pause：phase 产出 user-consumable artifact，orchestrator 停下等用户文本输入（`go` / `问:` / `调:` / `停`），不调用任何工具
+     - B approval-gate：硬方向性锁定，MUST `AskUserQuestion`，按 `feedback_askuserquestion_options` Option Schema
+     - C verification-chain：机器/AI 内部纪律衔接，orchestrator 自动前进，1 行 handoff 通知；Critical finding / escalation / lint+test 失败仍中断
+  2. **分类映射**：analyst / architect Draft / Stage 9 Closeout → A；design-confirm → B（唯一硬 gate）；context-detect / developer / tester / reviewer / dba 以及之间的 handoff → C
+  3. **新增 Stage 9 Closeout**：reviewer/dba 完成后汇总 findings 等用户决定 commit/PR/amend，保持与 `feedback_no_auto_push` / `feedback_no_auto_pr` 同构
+  4. **critical_modules 机械触发归 C**：CLAUDE.md 事先声明即运行期授权，handoff 1 行通知 `(critical_modules hit: [...])` 即透明
+  5. **reviewer 完成归 C**：reviewer 是 verification，不是 producer（产出 artifact 仅 Critical 时落盘）；用户"是否 commit"决策放到 Stage 9 Closeout 一次停
+  6. **design-confirm 保 AskUserQuestion 弹窗**：directional lock + Accept/Modify/Reject 结构化选项天然 option 化，对标 terraform apply / apt install
+- **备选**:
+  - 合入 DEC-001 D5：D5 现为 Scope=user，与 gating 无关；合入会模糊 D5 语义
+  - 合入 DEC-002 Escalation Protocol：DEC-002 是 subagent → orchestrator 的 escalation，本 DEC 是 orchestrator → user 的 gating，主体不同
+  - 仅扩展现行 Step 6 规则 1 的 Exception 条款：条款嵌套变深、阅读性差、与 AI agent 框架主流反向（评分 29 vs 三段式 40）
+  - 完全翻转默认为全自动 + 只保留 design-confirm：失去 producer-pause 的 FAQ/调范围自然 pause 点，与 issue #10 原意不完全一致
+- **理由**: (1) 显式三段式与 AI agent 框架主流心智对齐，用户心智一致性最高；(2) producer-pause 的"自由文本驱动 go/问/调/停"复用现有对话机制，零新 UI；(3) B 类只在真正 directional lock 处保留弹窗，避免选项疲劳；(4) C 类自动前进 + Critical 中断 + handoff 通知三件套保证"自动不静默"；(5) Stage 9 Closeout 与 feedback_no_auto_push/pr 同构，复用已有用户心智；(6) 新增 DEC 而非 Supersede 任何既有 DEC，append-only 纪律得以保持；(7) 不改 AskUserQuestion Option Schema、不改 Phase Matrix 状态机、不改 subagent 执行模型，变更面最小
+- **相关文档**: docs/design-docs/phase-transition-rhythm.md（完整设计）、docs/analyze/phase-transition-rhythm.md（对标研究 + 6 事实层开放问题 + Path A/B/C/D 对比）、issue #10
+- **影响范围**: `commands/workflow.md` §Step 6 规则 1 重写 + Phase Matrix 新增 Stage 9；`CLAUDE.md` §critical_modules 条目 6 描述扩展；`docs/claude-md-template.md` 同步；可选 README.md 一句话提及。不影响 `commands/bugfix.md`、`agents/*`、`skills/*`、DEC-001 ~ DEC-005
+
+---
+
 ### DEC-005 developer 双形态（inline | subagent）正交补强 DEC-001 D8
 - **日期**: 2026-04-19
 - **状态**: Accepted

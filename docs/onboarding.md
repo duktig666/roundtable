@@ -72,7 +72,7 @@ claude
 5. **落盘文档** —— 设计确认后写到 `<project>/docs/design-docs/<slug>.md`
 6. **编排后续角色** —— 按任务规模调用 developer / tester / reviewer / dba
 
-**每个阶段之间都会等你确认**，不自动推进到下一步。
+**产出阶段（analyst / architect / Closeout）结束后等你回话**（`go` / 提问 / `调范围`），**design-confirm 走弹窗**（唯一硬 gate），**developer → tester → reviewer 内部校验链自动衔接**并在遇到 Critical / escalation / lint+test 失败时立即中断。详见 DEC-006。
 
 ---
 
