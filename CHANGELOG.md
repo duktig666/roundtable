@@ -6,6 +6,15 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-04-20
+
+首个公开 release —— 完整多角色工作流编排可用（analyst / architect / developer / tester / reviewer / dba），Phase Matrix + A/B/C gate 分类 + Escalation Protocol + Monitor 实时进度全部就绪。
+
+### Added (README documentation, 2026-04-20)
+
+- README 新增 **Phase Matrix 机制** 节：9 阶段状态表 + ⏳🔄✅⏩ 图例 + DEC-006 A/B/C gate 分类说明
+- README 新增 **workflow 流程图** 节：mermaid 流程图覆盖 Step 0→9 全链路（skill / agent / gate 配色），附 Step 3.5/4/5/6b/7-8 跨阶段编排要点
+
 ### Added (P4 dogfood improvements, 2026-04-19)
 
 - **Resource Access matrix** in every role file (3 skills + 4 agents): explicit Read / Write / Report-to-orchestrator / Forbidden columns; no-autonomous-git rule baked in

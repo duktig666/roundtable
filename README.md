@@ -123,5 +123,76 @@ claude
 
 ---
 
+## Phase Matrix 机制
+
+`/roundtable:workflow` 全程维护一张 **9 阶段状态表**，每次 phase 切换或用户问进度时即时报告，让编排状态始终可视。
+
+| 阶段 | 主角 | 产出 | Gate |
+|-----|------|------|------|
+| 1. Context detection | inline | `target_project` / `docs_root` / 工具链 / `critical_modules` | C |
+| 2. Research（可选） | analyst | `analyze/[slug].md` | A |
+| 3. Design | architect | `design-docs/[slug].md` + `decision-log.md` DEC | A |
+| 4. Design confirmation | 用户 | Accept / Modify / Reject | B |
+| 5. Implementation | developer | `src/` + `tests/`、exec-plan checkbox | C |
+| 6. Adversarial testing | tester | 测试代码 + `testing/[slug].md` | C |
+| 7. Review | reviewer | 对话 或 `reviews/[date]-[slug].md` | C |
+| 8. DB review | dba | 对话 或 `reviews/[date]-db-[slug].md` | C |
+| 9. Closeout | 用户 | 汇总 findings；用户驱动 commit / PR | A |
+
+**状态图例**：⏳ 待办 · 🔄 进行中 · ✅ 完成 · ⏩ skipped
+
+**Gate 分类（DEC-006）决定 phase transition 节奏**：
+
+- **A producer-pause** —— 阶段以用户可消费产物结尾；orchestrator 给 3 行 summary 后**停手不调工具**，等用户 `go` / `调范围: ...` / 问题
+- **B approval-gate** —— 方向性锁（仅 Stage 4）；按 Option Schema 调 `AskUserQuestion`，每选项含 `rationale` + `tradeoff` + 可选 `★recommended`
+- **C verification-chain** —— 内部交接自动推进，emit 一行 `🔄 X 完成 → dispatching Y`；`critical_modules` 命中 / `<escalation>` / lint+test 失败立即打断走 escalation
+
+产出类（Step 7 INDEX / Step 8 log.md）由 orchestrator 在 **A 转场 + C 过桥 + Stage 9 终点**批量 flush，角色绝不自写共享索引。
+
+---
+
+## workflow 流程图
+
+```mermaid
+flowchart TD
+    Start([/roundtable:workflow &lt;task&gt;]) --> S0[Step 0<br/>Context Detection<br/>inline]
+    S0 --> S1{Step 1<br/>任务规模}
+    S1 -->|小| Bugfix[/roundtable:bugfix<br/>或 @developer 直派]
+    S1 -->|中| Analyst2[analyst 可选]
+    S1 -->|大| Analyst[analyst]
+    Analyst --> Arch
+    Analyst2 --> Arch[architect<br/>决策逐点 AskUserQuestion<br/>落 design-doc + DEC]
+    Arch --> Confirm{Stage 4<br/>Design Confirm<br/>B gate}
+    Confirm -->|Reject| Arch
+    Confirm -->|Modify| Arch
+    Confirm -->|Accept| Dev
+    Bugfix --> Dev[developer<br/>plan-then-code<br/>lint + test]
+    Dev --> CritCheck{命中<br/>critical_modules?}
+    CritCheck -->|是| Tester[tester<br/>对抗性 + benchmark<br/>bug 走 escalation]
+    CritCheck -->|否| DBCheck
+    Tester --> DBCheck{涉 DB<br/>变更?}
+    DBCheck -->|是| DBA[dba<br/>schema / 迁移 / 索引]
+    DBCheck -->|否| Reviewer
+    DBA --> Reviewer[reviewer<br/>命中 critical 写 reviews/]
+    Reviewer --> Closeout([Stage 9 Closeout<br/>A gate<br/>用户 commit / PR / amend])
+
+    classDef skill fill:#e3f2fd,stroke:#1976d2
+    classDef agent fill:#fff3e0,stroke:#f57c00
+    classDef gate fill:#fce4ec,stroke:#c2185b
+    class Analyst,Analyst2,Arch skill
+    class Dev,Tester,Reviewer,DBA agent
+    class Confirm,CritCheck,DBCheck gate
+```
+
+**跨阶段关键编排**：
+
+- **Step 3.5 Progress Monitor**（DEC-004 / DEC-008）—— 每个 `run_in_background: true` 的 `Task` 配独立 Monitor 流，前台派发跳过（子 agent 输出已实时缩进回显）
+- **Step 4 并行判定** —— PREREQ MET / PATH DISJOINT / SUCCESS-SIGNAL INDEPENDENT / RESOURCE SAFE **四条全中**且加速 >30% 才并行，否则串行
+- **Step 5 Escalation** —— agent final report 的 `<escalation>` JSON block → orchestrator 调 `AskUserQuestion` 给用户 → 决策注入 prompt 重派同一 agent（scope 限 `remaining_work`）
+- **Step 6b Developer 形态**（DEC-005）—— per-session `@...inline` > per-project `developer_form_default` > per-dispatch 弹窗；tester / reviewer / dba 永远 subagent
+- **Step 7 / 8 批量 flush** —— `INDEX.md` 与 `log.md` 由 orchestrator 聚合 flush，触发点：A 转场 / C 过桥 / Stage 9 终点
+
+---
+
 贡献指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。许可证见 [LICENSE](LICENSE)（Apache-2.0）。
 
