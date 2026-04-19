@@ -9,20 +9,20 @@ description: Internal helper skill. Detects target_project (via D9 algorithm), t
 
 不要在响应用户普通任务时直接激活本 skill。
 
-> **Activation note**: Callers (commands `workflow` / `bugfix` / `lint`, and skills `architect` / `analyst`) should **`Read` this file and execute the 4 steps inline** in the main session, not activate via the `Skill` tool. The underscore prefix signals "internal helper, not an end-user skill" — during P4 dogfooding, `Skill` activation of underscore-prefixed skills was observed to fail in some Claude Code releases. Inline execution is safe, deterministic, and keeps the detected context in the active session memory where subsequent dispatches can reuse it.
+> **Activation note**：调用方（commands `workflow` / `bugfix` / `lint`，skills `architect` / `analyst`）应在主会话中 **`Read` 本文件并 inline 执行 4 步**，不要通过 `Skill` 工具激活。下划线前缀表示"内部 helper，不是终端用户 skill" —— P4 dogfooding 期间观察到，某些 Claude Code 版本对下划线前缀 skill 的 `Skill` 激活会失败。Inline 执行安全、确定性强，且把检测结果保留在活跃 session 记忆中供后续派发复用。
 
 ---
 
 ## Resource Access
 
-| Operation | Scope |
-|-----------|-------|
-| Read | `target_project/CLAUDE.md`, project-root identifier files (`Cargo.toml` / `package.json` / `pyproject.toml` / `go.mod` / `Move.toml`), `{docs_root}/` candidate directories |
+| 操作 | 范围 |
+|------|------|
+| Read | `target_project/CLAUDE.md`、项目根标识文件（`Cargo.toml` / `package.json` / `pyproject.toml` / `go.mod` / `Move.toml`）、候选 `{docs_root}/` 目录 |
 | Write | — |
-| Report to caller | structured context summary (`target_project`, `primary_lang`, `lint_cmd`, `test_cmd`, `docs_root`, `claude_md` metadata including `critical_modules` / `design_ref` / `toolchain_override`) |
-| Forbidden | all writes, git operations, design / code modifications |
+| Report to caller | 结构化 context 摘要（`target_project`、`primary_lang`、`lint_cmd`、`test_cmd`、`docs_root`、`claude_md` 元数据包含 `critical_modules` / `design_ref` / `toolchain_override`） |
+| Forbidden | 一切写入、git 操作、设计 / 代码修改 |
 
-Pure detection helper. Never modifies files.
+纯检测 helper。从不修改文件。
 
 ---
 

@@ -4,7 +4,7 @@ source: analyze/subagent-progress-and-execution-model.md
 created: 2026-04-19
 updated: 2026-04-19
 status: Accepted
-decisions: [DEC-004, DEC-005]
+decisions: [DEC-004, DEC-005, DEC-008]
 supersedes: []
 orthogonal_to: [DEC-001 D8, DEC-002, DEC-003]
 issue: https://github.com/duktig666/roundtable/issues/7
@@ -261,6 +261,29 @@ progress 机制**不破坏**并行派发四条件：
 3. SUCCESS-SIGNAL INDEPENDENT — Monitor notification 按 dispatch_id 路由
 4. RESOURCE SAFE — `/tmp/roundtable-progress/` 无锁文件；多 Monitor 并发 tail 不同文件 OS 级支持
 
+### 3.8 Foreground vs background dispatch gate（DEC-008 patch）
+
+DEC-004 决定第 6 项「触发规则」原文 "所有 subagent dispatch 默认开启" 隐含一个未言明的 assumption：所有 `Task` 派发都是后台派发（`run_in_background: true`），主会话对 subagent 内部不可见。issue #15 dogfood 实录证明该 assumption 不成立：
+
+| 派发形态 | 主会话观测能力 | Monitor 必要性 |
+|---------|---------------|---------------|
+| **前台 Task**（currently the Claude Code default；`run_in_background` 缺省 / `false`） | 主会话阻塞等结果；子 agent 的 Bash/Read/Edit/Write 工具调用以**缩进形式实时显示**在主会话输出里 | ❌ 冗余 — Monitor 通知 + 缩进工具流，主会话收两份信号 |
+| **后台 Task**（`run_in_background: true`） | 主会话不阻塞，**完全看不到** subagent 内部工具调用 | ✅ 必须 — 唯一的 phase 级进度通道 |
+
+DEC-004 §3.1 motivation —— "orchestrator LLM 对 subagent 内部**系统性**不可见" —— 仅对后台派发严格成立；前台派发的不可见是 LLM 注意力问题（缩进流过长易失焦），不是 systemic blindness。
+
+**DEC-008 决定**：Step 3.5（progress monitor 启动 + 4 变量注入）的触发条件从"所有 Task 派发"收紧为"`run_in_background: true` 的 Task 派发"。前台派发完全 skip 该 Step（无 `progress_path`、无 Monitor、无 4 变量注入）。subagent 收到空 `progress_path` 时按 §3.2 末句 "漏 echo 时降级为静默" 条款（结构化骨架 + FAQ Q2）静默 — 该 fallback 在 DEC-004 落地时已就位，本 DEC 不需要改 5 份 agent prompt 本体。
+
+**并行派发语义**：`run_in_background` 是 per-`Task`-call 参数。orchestrator 在同一 assistant message 中 issue 多个 `Task` 调用时（DEC-002 §4 并行派发），**逐个 Task 调用独立评估 §3.5.0 gate**。混合批（如 1 前台 + 2 后台）产生 2 个 Monitor / 2 个 `progress_path`，不是 3 个。
+
+**实现位置**：
+- `commands/workflow.md` Step 3.5 顶部新增 §3.5.0 "Foreground vs background gate"，先于 §3.5.1 env opt-out 检查（gate 失败直接 skip 整段；§3.5.1 仅在 gate 通过后运行）
+- `commands/bugfix.md` Step 0.5 同步加 delta 0（显式枚举 skip 的 4 件事：不生成 progress_path / 不启动 Monitor / 不注入 4 变量 / subagent Fallback 静默）
+
+**与 DEC-007 的正交性**：DEC-007 修源端 summary 内容质量（agent prompt §Content Policy）+ orchestrator awk 折叠；DEC-008 修触发条件（commands 层）。两个补丁不重叠、不互依、可分别合并；它们是从两个层次（content vs gate）补 DEC-004 的不同 assumption 漏洞。
+
+**与 DEC-005 的关系**：DEC-005 §6b.3 已声明 inline developer 不跑 Step 3.5（"主会话直接观察 developer 流程；progress 中继冗余"）。DEC-008 把这条 inline-only 的逻辑推广到所有"主会话可观察"的派发 — inline developer（不走 `Task`）和前台 `Task` 是两条独立 skip 路径，互不重叠：inline 完全不派发 Task，§3.5.0 甚至不会被评估到。两条 skip 的理由同源："主会话已能观察 → Monitor 冗余"。
+
 ---
 
 ## 4. 关键决策与权衡
@@ -333,6 +356,7 @@ plugin 元协议（Accepted）与 CLAUDE.md 声明的关键差别：
 ## 6. 变更记录
 
 - 2026-04-19 创建 — 解 issue #7；落 DEC-004（progress event protocol）+ DEC-005（developer 双形态正交补强 D8）
+- 2026-04-19 新增 §3.8 Foreground vs background gate — 解 issue #15；落 DEC-008（Supersedes DEC-004 决定第 6 项「触发规则」）。前台派发（`run_in_background` 缺省 / `false`）skip Step 3.5 整段，避免主会话同时收 Monitor 通知 + 子 agent 缩进工具流的双份信号。同步补丁 commands/workflow.md §3.5 + commands/bugfix.md §Step 0.5；不改 5 份 agent prompt 本体（§3.2 末句漏发降级条款已兼容）
 - 2026-04-19 §3.3 Monitor 模板鲁棒性修正 — tester 发现单行非 JSON 击穿 jq pipe 导致后续 event 全丢（docs/testing/subagent-progress-and-execution-model.md Case 1.2/1.2b Critical）。把 `jq --unbuffered -c 'select(.event) | ...'` 改为 `jq -R --unbuffered -c 'fromjson? | select(.event) | ...'`：`-R` 读 raw string，`fromjson?` 带问号的 try-parse 在遇到坏行时 silently no-op。同步更新 commands/workflow.md §3.5.3 + commands/bugfix.md §Step 0.5。Smoke 复验：3 合规 + 2 坏行输入 → 3 合规全过，exit 0
 
 ## 7. 待确认项

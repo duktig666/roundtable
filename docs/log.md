@@ -38,6 +38,21 @@
 
 ---
 
+## review | step35-foreground-skip-monitor | 2026-04-19
+- 操作者: reviewer subagent (critical_modules hit → 必落盘)
+- 影响文件: docs/reviews/2026-04-19-step35-foreground-skip-monitor.md（新建）
+- 说明: issue #15 DEC-008 终审 Approve；tester 2 Critical + 3 Warning + 1 Suggestion 全修复复验通过；0 new finding；5 agent prompt Fallback 未动兼容 / lint 0 命中 / DEC-004 append-only + DEC-007 正交性双向自证
+
+## test-plan | step35-foreground-skip-monitor | 2026-04-19
+- 操作者: tester subagent (critical_modules hit → 必落盘)
+- 影响文件: docs/testing/step35-foreground-skip-monitor.md（新建）
+- 说明: issue #15 DEC-008 对抗测试 18 cases；2 Critical + 3 Warning + 1 Suggestion；T12 §3.2 vs §3.6 引用错位 + T13 §3.7 heading 丢失悬空指针 — 全部 post-fix 落地
+
+## decide | DEC-008 + design patch §3.8 | 2026-04-19
+- 操作者: architect skill (inline)
+- 影响文件: docs/decision-log.md（DEC-008 新增 + DEC-004 状态行追加 §3.6 Superseded 注记）, docs/design-docs/subagent-progress-and-execution-model.md（frontmatter decisions 增列 DEC-008 + 新增 §3.8 Foreground vs background gate + §6 变更记录条目）
+- 说明: 解 issue #15；Step 3.5 触发条件从"所有 Task 派发"收紧为"`run_in_background: true` 派发"；与 DEC-007 正交可分别合并；不改 5 份 agent prompt 本体；待 design-confirm 后派 developer 改 commands/workflow.md + commands/bugfix.md
+
 ## review | progress-content-policy | 2026-04-19
 - 操作者: reviewer subagent (critical_modules hit → 必落盘)
 - 影响文件: docs/reviews/2026-04-19-progress-content-policy.md（新建）

@@ -5,7 +5,7 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 ## 通用规则
 
 - **语言**：代码英文、注释中文、文档中文、回答中文
-- **Plugin prompt 文件本体**（`skills/*.md` / `agents/*.md` / `commands/*.md`）全英文，关键 domain 注释可中文 —— 见 `feedback_roundtable_prompt_language` 约定
+- **Plugin prompt 文件本体**（`skills/*.md` / `agents/*.md` / `commands/*.md`）**以中文为主，关键专有名词保留英文**（工具名、字段名、DEC-xxx、env var、`Task` / `Monitor` / `AskUserQuestion` 等 Claude Code / plugin 术语不翻译）—— 约定 2026-04-19 更新，见 `feedback_roundtable_prompt_language`
 - **用户产出文档**（`docs/design-docs/` / `docs/decision-log.md` / `docs/log.md`）保持**中文**
 - **架构决策需确认**：任何影响 DEC-001（D1-D9）的改动必须走 DEC-xxx Superseded 流程
 - **对标参考**：CrewAI / AutoGen / Anthropic Agent SDK / LangGraph —— 多 agent 编排生态；但 roundtable 的特色是"显式决策点 + AskUserQuestion 人工审批"

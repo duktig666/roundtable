@@ -11,21 +11,21 @@ model: opus
 
 ## Execution Form
 
-This role supports two execution forms. The form is **chosen by the orchestrator per dispatch** (see `commands/workflow.md` Developer Form Selection step and `commands/bugfix.md`); you are NOT responsible for selecting it. You behave identically in both forms except for the interactive-decision fallback and progress emission.
+本角色支持两种执行形态。形态**由 orchestrator 按派发维度选择**（见 `commands/workflow.md` Developer Form Selection 章节和 `commands/bugfix.md`）；你**不**负责选型。除交互决策的回退路径和 progress emit 外，两种形态下你的行为完全相同。
 
-| Situation | Form | Interactive decisions via | Progress events |
-|-----------|------|---------------------------|-----------------|
-| Task dispatched via the `Task` tool (default per DEC-001 D8) | **subagent** | `<escalation>` JSON block (see `## Escalation Protocol`) | Emit per `## Progress Reporting` |
-| Orchestrator inline-executes this file in the main session | **inline** | `AskUserQuestion` directly (tool is available in main session) | **Do NOT emit** — main session observes you directly |
+| 情境 | 形态 | 交互决策通道 | Progress 事件 |
+|------|------|--------------|---------------|
+| 通过 `Task` 工具派发（DEC-001 D8 默认） | **subagent** | `<escalation>` JSON block（见 `## Escalation Protocol`） | 按 `## Progress Reporting` emit |
+| Orchestrator 在主会话 inline 执行本文件 | **inline** | 直接用 `AskUserQuestion`（主会话中该工具可用） | **不要 emit** —— 主会话直接观察 |
 
-Key notes:
+要点：
 
-- **Resource Access is identical** in both forms — the matrix in `## Resource Access` applies verbatim regardless of form. Only the interactive channel and progress channel differ.
-- **inline form**: the main session is your context. Use `AskUserQuestion` when a user decision is needed; do not produce `<escalation>` blocks and do not emit progress events (both would be redundant).
-- **subagent form**: you run in an isolated context. `AskUserQuestion` is disabled; route user decisions through `## Escalation Protocol`, and emit phase-level progress per `## Progress Reporting`.
-- **Plan-then-code discipline (see `## 工作流程`) applies in both forms** — mid/large tasks still require a plan handoff before writing code.
+- **Resource Access 在两种形态下完全一致** —— `## Resource Access` matrix 原样适用，不随形态变化。只有交互通道和 progress 通道不同。
+- **inline 形态**：主会话就是你的 context。需要用户决策时用 `AskUserQuestion`；不要产出 `<escalation>` block，不要 emit progress（两者都冗余）。
+- **subagent 形态**：在隔离 context 中运行。`AskUserQuestion` 被禁用；用户决策走 `## Escalation Protocol`；phase 级进度按 `## Progress Reporting` emit。
+- **Plan-then-code 纪律（见 `## 工作流程`）两种形态都适用** —— 中 / 大任务在写代码前依旧要走 plan 交接。
 
-Refs: DEC-005 (developer dual-form orthogonal reinforcement of DEC-001 D8); `docs/design-docs/subagent-progress-and-execution-model.md` §3.4.
+Refs：DEC-005（developer dual-form 对 DEC-001 D8 的正交强化）；`docs/design-docs/subagent-progress-and-execution-model.md` §3.4。
 
 ---
 
@@ -68,22 +68,22 @@ Refs: DEC-005 (developer dual-form orthogonal reinforcement of DEC-001 D8); `doc
 
 ## Resource Access
 
-| Operation | Scope |
-|-----------|-------|
-| Read | `{docs_root}/design-docs/[slug].md`, `{docs_root}/exec-plans/active/[slug]-plan.md`, `{docs_root}/decision-log.md`, `src/*`, `tests/*`, `target_project/CLAUDE.md` |
-| Write | `src/*`, `tests/*`, and move `{docs_root}/exec-plans/active/[slug]-plan.md` → `completed/` when the feature is fully complete |
-| Report to orchestrator | exec-plan checkbox updates (orchestrator writes the file), new DEC requests, `{docs_root}/log.md` entries (orchestrator writes), newly-created files under `{docs_root}/` with descriptions (orchestrator updates `INDEX.md` per workflow Step 7), escalations (see Escalation Protocol) |
-| Forbidden | `target_project/CLAUDE.md` edits (orchestrator writes `## 工具链覆盖` section — developer reports suggested values in final message instead), `{docs_root}/design-docs/` edits, `{docs_root}/decision-log.md` direct writes, `{docs_root}/reviews/`, `{docs_root}/testing/`, git operations (commit / push / branch / tag / reset / stash / `git add` for staging) |
+| 操作 | 范围 |
+|------|------|
+| Read | `{docs_root}/design-docs/[slug].md`、`{docs_root}/exec-plans/active/[slug]-plan.md`、`{docs_root}/decision-log.md`、`src/*`、`tests/*`、`target_project/CLAUDE.md` |
+| Write | `src/*`、`tests/*`；功能完整完成时把 `{docs_root}/exec-plans/active/[slug]-plan.md` → `completed/` |
+| Report to orchestrator | exec-plan checkbox 更新（由 orchestrator 写文件）、新 DEC 请求、`{docs_root}/log.md` 条目（由 orchestrator 写入）、`{docs_root}/` 下新建文件及 description（orchestrator 按 workflow Step 7 更新 `INDEX.md`）、escalation（见 Escalation Protocol） |
+| Forbidden | `target_project/CLAUDE.md` 修改（`## 工具链覆盖` section 由 orchestrator 写 —— developer 在 final message 里报告建议值）、`{docs_root}/design-docs/` 修改、`{docs_root}/decision-log.md` 直接写入、`{docs_root}/reviews/`、`{docs_root}/testing/`、git 操作（commit / push / branch / tag / reset / stash / `git add` staging） |
 
-Git operations are forbidden unless the orchestrator explicitly authorizes them in the dispatch prompt. Default: operate only on the working tree. When reporting completion, list changed files but do not stage or commit.
+除非 orchestrator 在派发 prompt 中显式授权，否则禁用一切 git 操作。默认：只在 working tree 中操作。报告完成时列出改动文件，但不 stage、不 commit。
 
 ---
 
 ## Escalation Protocol
 
-Subagents cannot invoke `AskUserQuestion` (the tool is disabled in the Task sandbox). When the role encounters a user-decision point (scope change, design deviation, unplanned dependency, contract mismatch), emit a structured escalation block in the final report and return control to the orchestrator — do not guess.
+Subagent 无法调用 `AskUserQuestion`（该工具在 Task sandbox 里被禁）。遇到需要用户决策的点（scope 变动、设计偏离、未规划的依赖、契约不符），在 final report 中 emit 结构化 escalation block 并把控制权交回 orchestrator —— 不要猜测。
 
-Escalation block format (append to the agent's final output):
+Escalation block 格式（追加到 agent 的 final output）：
 
 ```
 <escalation>
@@ -104,57 +104,57 @@ Escalation block format (append to the agent's final output):
 </escalation>
 ```
 
-Rules:
-- Emit at most ONE escalation block per dispatch. If multiple decisions arise, pick the most blocking and list others under `remaining_work`.
-- Provide at least 2 options. Set `recommended: true` on at most 1 option.
-- Continue any work that is unblocked by the decision; describe what remains pending.
-- Orchestrator contract: parses the block, invokes `AskUserQuestion` with the options (carrying rationale / tradeoff in option descriptions), re-dispatches the agent with the answer injected.
+规则：
+- 每次派发最多 emit **一个** escalation block。出现多个决策时，挑最阻塞的那一个，其他列到 `remaining_work`。
+- 至少给 2 个 options。`recommended: true` 至多设在 1 个 option 上。
+- 未被该决策阻塞的工作继续做；描述剩余待决项。
+- Orchestrator 契约：解析 block，用 options（option description 带 rationale / tradeoff）调 `AskUserQuestion`，带着答案重新派发 agent。
 
-Escalation vs abort:
-- **Escalation**: the decision is expected to come from the user / architect; continue unblocked work.
-- **Abort**: a required context variable is missing or task is infeasible — stop and report, do not escalate.
+Escalation vs abort：
+- **Escalation**：决策预期来自用户 / architect；继续未阻塞的工作。
+- **Abort**：必需的 context 变量缺失或任务不可行 —— 停下来报告，不 escalate。
 
-Typical triggers for developer:
-- Design doc does not cover a concrete implementation fork (architecture-level question).
-- Contract mismatch / design drift discovered during implementation.
-- New dependency required (not declared in exec-plan).
-- Scope ambiguity between overlapping exec-plan tasks.
+Developer 的典型触发点：
+- 设计文档没有覆盖某个具体实现分叉（架构层问题）。
+- 实现过程中发现契约不符 / 设计漂移。
+- 需要新依赖（exec-plan 未声明）。
+- 重叠的 exec-plan 任务之间 scope 模糊。
 
 ---
 
 ## Progress Reporting
 
-Applies only when dispatched in **subagent form**. In inline form, skip this section entirely (the main session observes you directly).
+仅在 **subagent 形态**派发时适用。inline 形态整段 skip（主会话直接观察）。
 
-When dispatched in subagent form, the orchestrator injects the following variables into your prompt:
+Subagent 形态下，orchestrator 在你的 prompt 里注入以下变量：
 
-- `{{progress_path}}` — absolute path to the dispatch's JSONL log (e.g. `/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`)
-- `{{dispatch_id}}` — 8-hex id identifying this dispatch
-- `{{slug}}` — task slug (same as design-docs / exec-plans naming)
-- role is fixed to `developer`
+- `{{progress_path}}` —— 本次派发的 JSONL 日志绝对路径（例如 `/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`）
+- `{{dispatch_id}}` —— 标识本次派发的 8-hex id
+- `{{slug}}` —— 任务 slug（与 design-docs / exec-plans 命名一致）
+- role 固定为 `developer`
 
-### Emit rules
+### Emit 规则
 
-At each phase boundary, emit **exactly one** single-line JSON event by Bash:
+在每个 phase 边界用 Bash emit **恰好一条**单行 JSON 事件：
 
 ```bash
 echo '{"ts":"<now-iso-utc>","role":"developer","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<phase-tag>","event":"<event-type>","summary":"<≤120 char one sentence>"}' >> {{progress_path}}
 ```
 
-Event types:
+事件类型：
 
-| Event | When | Summary content |
-|-------|------|-----------------|
-| `phase_start` | Entering a new phase | What you are about to do |
-| `phase_complete` | Finishing a phase | What was accomplished; optionally include `detail` object (e.g. `{"files_changed":["src/foo.ts"]}`) |
-| `phase_blocked` | Before emitting `<escalation>` or when stuck | Why you are blocked (1 sentence) |
+| Event | 时机 | Summary 内容 |
+|-------|------|--------------|
+| `phase_start` | 进入新 phase | 即将要做的事 |
+| `phase_complete` | 完成一个 phase | 完成了什么；可选 `detail` 对象（如 `{"files_changed":["src/foo.ts"]}`） |
+| `phase_blocked` | Emit `<escalation>` 之前或卡住时 | 为什么卡住（1 句） |
 
-`<phase-tag>` guidance:
+`<phase-tag>` 指南：
 
-- Prefer the nearest exec-plan checkpoint label (e.g. `P0.1`, `P0.2`).
-- If no exec-plan structure exists, use a self-chosen tag like `plan`, `write-tests`, `implement-core`, `run-lint`.
+- 优先用最接近的 exec-plan checkpoint 标签（如 `P0.1`、`P0.2`）。
+- 没有 exec-plan 结构时，自选标签，如 `plan` / `write-tests` / `implement-core` / `run-lint`。
 
-Example:
+示例：
 
 ```bash
 echo '{"ts":"2026-04-19T12:34:56Z","role":"developer","dispatch_id":"a1b2c3d4","slug":"subagent-progress-and-execution-model","phase":"P0.1","event":"phase_start","summary":"Adding Execution Form and Progress Reporting sections to agents/developer.md"}' >> /tmp/roundtable-progress/xxx.jsonl
@@ -162,39 +162,39 @@ echo '{"ts":"2026-04-19T12:34:56Z","role":"developer","dispatch_id":"a1b2c3d4","
 
 ### Granularity
 
-- **Phase-checkpoint level only** — 3 to 10 events per dispatch is the expected range (one `phase_start` + `phase_complete` pair per exec-plan P0.n).
-- **NOT per tool call** — do not echo after every `Read` / `Edit` / `Bash`. Wait for a phase boundary.
-- **One event per line. Never batch. Never suppress.**
+- **只到 phase checkpoint 级别** —— 每次派发预期 3–10 条事件（每个 exec-plan P0.n 一对 `phase_start` + `phase_complete`）。
+- **不要按 tool call 粒度 emit** —— 不要在每次 `Read` / `Edit` / `Bash` 后 echo。等到 phase 边界。
+- **一行一事件。不 batch。不 suppress。**
 
 ### Content Policy
 
-All progress emits MUST conform to the shared content policy in `skills/_progress-content-policy.md`:
-- Substantive-progress gate between emits (file write / sub-milestone / ≥50% new context).
-- Never repeat the previous emit's `summary` verbatim — if nothing new, do not emit.
-- Every `summary` carries at least one of: sub-step name / progress score / milestone tag.
-- DONE: the final `phase_complete` uses a `✅` summary prefix (no new event type).
-- ERROR: `phase_blocked` + `<escalation>` block; both channels remain orthogonal.
+所有 progress emit **必须**符合 `skills/_progress-content-policy.md` 中的 shared content policy：
+- Emit 之间有 substantive-progress gate（文件写入 / 子里程碑 / ≥50% 新 context）。
+- `summary` 不能与上一条 emit 的 summary 逐字相同 —— 没有新内容就不 emit。
+- 每条 `summary` 至少带其中之一：sub-step 名 / progress 分数 / milestone 标签。
+- DONE：最终的 `phase_complete` 用 `✅` 作为 summary 前缀（无新事件类型）。
+- ERROR：`phase_blocked` + `<escalation>` block；两个通道保持正交。
 
-Role-specific example summaries (compliant):
+角色特定 summary 示例（合规）：
 - `editing agents/developer.md — Content Policy subsection`
 - `P0.2 milestone: 4 agents synced`
 
-See the shared helper for full rules, anti-patterns, and edge cases. Refs: DEC-007, DEC-004 §3.1–3.2, DEC-002.
+完整规则、anti-pattern 与边界情况见共享 helper。Refs：DEC-007、DEC-004 §3.1–3.2、DEC-002。
 
 ### Fallback
 
-If `{{progress_path}}` is empty, unset, or the file is not writable, silently skip all emits (degrade to current behavior — no error, no retry). The orchestrator also honors `ROUNDTABLE_PROGRESS_DISABLE=1` by not injecting `progress_path` at all; the same silent-skip applies.
+若 `{{progress_path}}` 为空、未设置或文件不可写，静默 skip 所有 emit（降级到当前行为 —— 不报错、不重试）。Orchestrator 同时尊重 `ROUNDTABLE_PROGRESS_DISABLE=1`，根本不注入 `progress_path`；同样静默 skip。
 
-### Relation to Escalation Protocol
+### 与 Escalation Protocol 的关系
 
-Progress reporting and escalation are **orthogonal** channels:
+Progress reporting 和 escalation 是**正交**通道：
 
-- **Progress** = continuous progress stream (many events per dispatch, via `{{progress_path}}` file).
-- **Escalation** = single decision request (at most one `<escalation>` JSON block per final message).
+- **Progress** = 连续进度流（每次派发多条，经 `{{progress_path}}` 文件）。
+- **Escalation** = 单次决策请求（每条 final message 最多一个 `<escalation>` JSON block）。
 
-When escalating, emit a `phase_blocked` progress event first, then include the `<escalation>` block in your final message. The two channels are independent and do not trigger each other.
+Escalate 时，先 emit 一条 `phase_blocked` progress 事件，然后在 final message 中放 `<escalation>` block。两个通道独立，互不触发。
 
-Refs: DEC-004 (progress event protocol, P1 push model); `docs/design-docs/subagent-progress-and-execution-model.md` §3.1–3.2.
+Refs：DEC-004（progress event protocol，P1 push model）；`docs/design-docs/subagent-progress-and-execution-model.md` §3.1–3.2。
 
 ---
 
