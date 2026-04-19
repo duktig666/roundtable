@@ -35,6 +35,70 @@
 
 ---
 
+### DEC-009 轻量化重构：4 shared helper + log.md closeout batching + README/CLAUDE.md 结构重塑
+- **日期**: 2026-04-19
+- **状态**: 部分 Superseded by DEC-010（决定 1 "4 shared helper 抽取" Superseded —— 运行期 token 账误判；决定 2 log.md batching / 决定 3-6 结构性规则 / 决定 8-10 DEC 修正条款仍 Accepted）
+- **上下文**: issue #9 —— P0-P4 + 7 个增量 DEC（DEC-002 ~ DEC-008）累积使 `skills/ + agents/ + commands/` 行数从 archive 雏形 826 → 2708（3.16×）。analyst 量化识别 3 大重复热区：`## Resource Access` 7×、`## Escalation Protocol` JSON schema 4×、`## Progress Reporting` 5×（含 workflow.md Step 3.5 的 120 行本体）。每次 `/roundtable:workflow` 都消费这些重复 prompt，token 成本高且维护一处规则需改 N 处。log.md 每 agent 自带 append 模板又进一步推高 agent 体量；README 的 §致谢 藏着"对标/借鉴"信息未结构化。
+- **决定**:
+  1. **4 个新 shared helper**（`_` 前缀沿用 `_detect-project-context.md` / `_progress-content-policy.md` 的 plugin-内部 include-only 范式）：
+     - `skills/_resource-access.md` —— 抽 7 角色的 RA 表头 + 末尾 git 段；role-specific rows 保留在原文件
+     - `skills/_escalation-protocol.md` —— 抽 4 agent 的 JSON schema body + 通用规则 + Escalation vs Abort 段；typical triggers 保留
+     - `skills/_progress-reporting.md` —— 抽 5 agent 的注入变量 / emit 模板 / Granularity / Fallback / Content Policy ref / 与 Escalation 正交段；role-specific phase tag 表 + Ordering discipline + Content Policy example 保留
+     - `commands/_progress-monitor-setup.md` —— 抽 workflow.md Step 3.5.2~3.5.6；workflow.md 保留 §3.5.0 gate (DEC-008) + §3.5.1 env opt-out + 1 行 ref
+  2. **log.md 改 Full closeout batching**（呼应 issue #9 §B）：
+     - 5 agent "完成后" 段删除 append 模板；改在 final message/in-session output 的 `log_entries:` YAML block 上报
+     - orchestrator 新增 Step 8（与 Step 7 INDEX Maintenance 同构，shared-resource 转发）—— Stage 9 Closeout 之前终点 flush；A 类 producer-pause 转场前 best-effort pause-point flush；C 类 verification-chain 过桥规则沿用 Step 7 同款
+     - 跨 session 中断（用户未说"停"直接退出）未落盘窗口退化被接受，缓解依靠 pause-point flush
+     - `docs/log.md` 头部"合并原则"文案同步更新反映 orchestrator 端合并
+  3. **README.md 结构**：
+     - §设计原则 5 条扩至 7 条，融入 issue #9 §D 的 5 点 a-e（去重；a+b+原 plan-then-execute 合成 #2，d 已覆盖于现 #4，c 上升为新 #5，e 上升为新 #6，多项目 #5 顺延 #7）
+     - **删除** §致谢 / §贡献 / §许可证 三章（LICENSE / CONTRIBUTING.md 独立文件即可；致谢语义吸收到设计原则）
+     - **不新增** §对标参考 / §设计思想 独立章节（用户决策比 issue #9 原方案更激进）
+  4. **CLAUDE.md §设计参考 全删**（5 URL + 引言；lineage 信息 D1-D9 评分表存档够用）
+  5. **critical_modules 扩写**：第 1 条 "Skill / agent / command prompt 文件本体" 明确含 `skills/_*.md` + `commands/_*.md` 共享 helper；`docs/claude-md-template.md` 同步
+  6. **helper 引用模式沿用既定范式**：调用方 `Read` 后 inline 执行；不引入 markdown link auto-expand / yaml include / symbol ref 新机制
+  7. **DEC-002 / DEC-004 / DEC-007 原文不打补丁**：DEC 是决策记录非索引；helper 新位置由 design-doc / INDEX.md 维护
+  8. **正式 Supersede DEC-002 决定 5**（prompt 文件本体统一英文）—— 2026-04-19 已通过 `feedback_roundtable_prompt_language` 反转为"Plugin prompt 文件本体以中文为主，关键专有名词保留英文"（CLAUDE.md §通用规则已反映），但 `decision-log.md` 未走 Superseded 流程，违反铁律 #2 "冲突报 diff"。本决定正式补记：DEC-002 决定 5 Superseded by DEC-009 决定 8；DEC-002 状态行追加 "（决定 5 Superseded by DEC-009 决定 8）"标注
+  9. **修 `commands/bugfix.md` 规则 2 对称性 bug**（DEC-005 实施 follow-through）—— bugfix.md 当前仅 honor `developer_form_default: subagent` 声明、`inline` 声明落空进入 AskUserQuestion（见 `docs/testing/subagent-progress-and-execution-model.md` case 3.6 WARN + `docs/reviews/2026-04-19-subagent-progress-and-execution-model.md` case 3.6）。本决定把规则 2 改为对称 honor：`if target_project CLAUDE.md declares developer_form_default (either inline or subagent), honor the declaration — this overrides the bugfix inline-bias default.`
+  10. **DEC 影响范围段长度纪律**（新 append-only 约束，从 DEC-010 开始适用）—— 新增 DEC 的 "影响范围" 段 ≤10 行；超过部分提取到关联 `design-docs/[slug].md ## 影响文件清单` 章节外链。rationale：architect 每轮读 decision-log，长影响范围段放大上下文消费；决策本体（决定 / 备选 / 理由）是读的高价值区，影响范围 / 文件清单是实施细节可外放。本纪律**不回溯** DEC-001 ~ DEC-008，保 append-only
+- **备选**:
+  - **Moderate 2 helper**（仅抽 escalation + progress-reporting）：评分 32 vs Aggressive 33；未来改 Resource Access 仍改 5 处
+  - **Conservative 1 helper**（仅抽 progress-reporting）：评分 30；不达 issue §A 20% 下沿
+  - **Skip helper 抽取只删冗余文本**：评分 33（并列）但 issue §A 完全不达
+  - **log.md 保留现状**：issue §B 验收不达，agent prompt 少省 ~180 行
+  - **log.md Hybrid（抽 helper 不改行为）**：保留跨 session 可靠性但不达 issue §B atomicity 诉求
+  - **README 新增 §设计思想 + §对标参考 独立章节（issue 原文）**：章节数 4→6 轻微膨胀；用户倾向压缩
+  - **CLAUDE.md 保留 5 URL + 1 行 pointer（issue §C 原文）**：比现状省 12 行但仍每轮消费；用户直接删
+  - **helper 部分纳入 critical_modules（仅 schema 类）**：分纳标准漂移风险，未来新 helper 判定要逐个审议
+  - **helper 全不纳入 critical_modules**：单 agent 触发覆盖但另 4 agent 失视检查
+- **理由**: (1) 3+1 helper 抽取直击 3 大重复热区（DEC-002/004/007 累积源），issue §A 20-25% 目标达成；(2) log.md closeout 与 Step 7 INDEX batching 同构心智统一；(3) pause-point flush 接受 97%+ 常见场景的 atomicity 收益并承认残余 abort 退化；(4) README 删 3 章节 + 合并设计思想 = 用户主张"文档不臃肿、贡献者 install 前 pin down"；(5) critical_modules 全纳入保证 helper 改动触发完整工作流验证；(6) 沿用既定 `_` 前缀 include 范式避免发明第三种引用机制；(7) 不改 DEC-004 event schema、不扩枚举、不改 Monitor 工具、不改 target CLAUDE.md 业务规则边界
+- **相关文档**: docs/analyze/lightweight-review.md（量化审计 + 7 事实层开放问题）、docs/design-docs/lightweight-review.md（完整设计 + 4 决策量化评分）、docs/exec-plans/active/lightweight-review-plan.md（P0.1-P0.6 实施路线）、DEC-002（shared resource protocol 同构来源）、DEC-004（Progress Reporting 抽取源头）、DEC-007（Content Policy helper 范式参考）、DEC-008（Step 3.5 gate 保留不动）、issue #9
+- **影响范围**: 新建 `skills/_resource-access.md` + `skills/_escalation-protocol.md` + `skills/_progress-reporting.md` + `commands/_progress-monitor-setup.md` 4 helper；改写 `agents/developer.md` / `agents/tester.md` / `agents/reviewer.md` / `agents/dba.md` / `agents/research.md` / `skills/architect.md` / `skills/analyst.md` 的 `## Resource Access` + `## Escalation Protocol` + `## Progress Reporting` + `## 完成后` 段；改写 `commands/workflow.md` §Step 3.5 + 新增 §Step 8 log batching；改写 `commands/bugfix.md` 同步 log batching；改写 `README.md` 结构（§设计原则 扩 + 删 §致谢/§贡献/§许可证）；改写 `CLAUDE.md` 删 §设计参考 + 扩 §critical_modules 首条；改写 `docs/claude-md-template.md` 同步；改写 `docs/log.md` 头部"合并原则"文案；改写 `docs/INDEX.md` 新增 skills/ + commands/ helper 清单。**不改** DEC-001 D1-D9、DEC-002/003/004/005/006/007/008 Accepted 条款。**不改** DEC-004 event schema、不扩 event 枚举、不改 Monitor 工具、不改 target 项目的 CLAUDE.md 业务规则边界。运行时行为变化：token 占用降低 ~22-25%；log.md 写入由 agent 自写转为 orchestrator 批处理；跨 session 中断时最后一段 C 类链的 log_entries 可能丢失（退化声明）
+
+---
+
+### DEC-010 矫正 DEC-009 决定 1：revert helper 抽取 + 激进 inline 精简（运行期 token 真减）
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: DEC-009 Accepted 后 closeout 阶段用户反馈"越加越多"。复盘发现 analyst/architect 估算 token 节省时只算"agent 单文件前后行数差"（-346），未算**每次 subagent 派发还要 Read N 个 helper**（~+300/派发）。真实账：单次典型 workflow（orchestrator + 3 subagent）token 负载 DEC-009 前 ~1540 行 → DEC-009 后 ~1800 行（**反增 17%**）。tree 总行 2708 → 2791（+83）。issue #9 原初目标 "Token 成本：每次会话加载长 prompt 耗 context" 未达成，反向
+- **决定**:
+  1. **Supersede DEC-009 决定 1**（4 shared helper 抽取 + 5 agent retrofit 到 ref 模式）—— 仅决定 1 被 supersede，DEC-009 其他 9 条决定保留
+  2. **删除 4 新 helper**：`skills/_resource-access.md` / `skills/_escalation-protocol.md` / `skills/_progress-reporting.md` / `commands/_progress-monitor-setup.md`（`skills/_detect-project-context.md` + `skills/_progress-content-policy.md` 保留 —— 属 DEC-002 / DEC-007 范畴且它们的 helper 化有净收益）
+  3. **激进 inline 精简**：5 agent + 2 skill + 2 command + workflow.md 全部重新 inline 但**每段压缩 40-60%**，删除：重复的"Subagent AskUserQuestion 禁用"解释 / 冗长 Fallback 散文 / Content Policy 示例多份 / DEC refs 尾引 / CLAUDE.md 通用规则的重复声明 / 冗长 AskUserQuestion / design-docs / exec-plan 模板 / 审查维度 bullets / 测试关注点 / phase tag 描述等
+  4. **目标体量**：tree 2791 → ~1900（**净省 ~900 行，32%**）；单次典型 workflow 负载 ~1800 → ~1100（**省 ~700 行，39%**）
+  5. **保留 DEC-009 其他收益**：log.md closeout batching（决定 2）/ README 合并（决定 3）/ CLAUDE.md 删 §设计参考（决定 4）/ critical_modules 扩写（决定 5 —— 含文本调整，因 _*.md helper 从 4 个减到 2 个）/ 既定 `_` 前缀范式（决定 6）/ DEC-002 决定 5 Superseded（决定 8）/ bugfix.md 规则 2 对称修（决定 9）/ 新 DEC 影响范围 ≤10 行纪律（决定 10）
+  6. **SSOT 维护性损失的 mitigation**：4 重复模式（Resource Access / Escalation JSON / Progress emit / Monitor setup）未来改动仍需改多处，但：(a) 变动频率低（近半年只有 DEC-007 / DEC-008 触及）；(b) `lint_cmd` 可扩展扫描检测模式漂移；(c) decision-log 本身就是"权威规则"单点，多处落地只是 copy
+- **备选**:
+  - **方向 A 保 helper + 激进双端精简**：helper 447→200 + agent 更薄；tree 省 ~400，workflow 负载省 ~350。保留 SSOT 但收益只有 B 的一半；拒绝
+  - **方向 C 只维护性修正不瘦身**：接受 +83 行结果，重启 issue #9 讨论；user 明确拒绝
+  - **Full Supersede DEC-009**：决定 2/3/4/5/8/9/10 都是真收益无须撤；成本大无必要；拒绝
+  - **部分保留 helper**（保 _escalation + _progress-reporting 删 _resource-access + _progress-monitor-setup）：分纳标准难定；拒绝
+- **理由**: (1) 用户 north star 是 token 成本，不是 SSOT；方向 B 直接命中；(2) 4 个重复模式本质稳定（JSON schema / emit 格式 / RA matrix）漂移风险不高；(3) 沿用 decision-log Superseded 正流程不删旧条目；(4) 决定 2/3/4/5/8/9/10 独立成立可保留；(5) critical_modules 条款微调（helper 清单从 4 个减到 2 个）为少数顺势改动
+- **相关文档**: docs/design-docs/lightweight-review.md（§9 新增反思 + §10 DEC-010 转折），docs/exec-plans/completed/lightweight-review-plan.md（P0.1-P0.7 归档保留）+ 新建 `docs/exec-plans/active/lightweight-review-revert-plan.md`（P1.1-P1.3 revert 路线），DEC-009（被部分 supersede 的上游），issue #9
+- **影响范围**: 删 4 helper 文件；重写 5 agent + 2 skill + 2 command + workflow.md 的相关 section inline；CLAUDE.md critical_modules 第 1 条 `_*.md helper` 清单调整（4 个→ 保留 2 个原有）；docs/claude-md-template.md 同步；docs/INDEX.md helper 清单从 6 → 2；docs/log.md / decision-log.md 新条目；不改 DEC-001 / DEC-002 / DEC-003 / DEC-004 event schema / DEC-005 / DEC-006 / DEC-007 / DEC-008。运行时：每次 workflow token 负载 ~39% 下降；tree 总行数 ~32% 下降
+
+---
+
 ### DEC-008 workflow Step 3.5 前台派发免 Monitor（修正 DEC-004 触发规则 assumption）
 - **日期**: 2026-04-19
 - **状态**: Accepted
@@ -188,7 +252,7 @@
 
 ### DEC-002 基于 P4 自消耗反馈的三项增量改进（shared resource protocol / escalation / workflow matrix）
 - **日期**: 2026-04-19
-- **状态**: Accepted
+- **状态**: Accepted（决定 5 "prompt 文件本体统一英文" Superseded by DEC-009 决定 8 —— 2026-04-19 通过 `feedback_roundtable_prompt_language` 反转为"中文为主"，CLAUDE.md 已同步；其余决定仍 Accepted）
 - **上下文**: P4 自消耗闭环在 gleanforge 项目完成（见 `docs/testing/p4-self-consumption.md`），识别出三类主要摩擦 —— (a) 共享资源协议隐式（exec-plan checkbox / log.md / decision-log / testing 写权限靠 orchestrator 逐次 prompt 注入，并行派发时易 race）；(b) subagent 通信封闭性（tester / developer 遇到用户决策点只能文字建议，orchestrator 手动 relay 成 AskUserQuestion）；(c) workflow command 缺少阶段可视化（orchestrator 状态靠对话追踪，用户难以判断当前位置）。同时副带两个已知 plugin 层 bug：prompt 文件中英混杂（违反自家「跨阶段约束：prompt 英文为主」）、AskUserQuestion 弹窗给裸选项（用户难决策）
 - **决定**:
   1. **每个 role 文件加 Resource Access 矩阵**（`Read` / `Write` / `Report to orchestrator` / `Forbidden`）—— 权限声明从隐式 prompt 注入升级为 role prompt 本体的一等公民 section，对 7 个 role 文件生效（3 skills + 4 agents）

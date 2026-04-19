@@ -82,6 +82,7 @@
 - 签名验证 / 输入校验 / 权限检查
 - 性能敏感热路径（需要 benchmark 才放心）
 - 外部系统集成（DB / 消息队列 / 支付 / 身份）
+- **Plugin / 工具类项目特有**：skill / agent / command prompt 文件本体（含 `skills/_detect-project-context.md` / `skills/_progress-content-policy.md` 等下划线前缀的共享 helper）—— 任何 bug 会 fan-out 到所有下游调用
 
 ### 设计参考怎么写？
 

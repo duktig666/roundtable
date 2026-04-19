@@ -12,7 +12,59 @@
 - 文档内措辞 / 排版 / 小修订 → 归文档自己的"变更记录"章节
 - 对话讨论、未落盘的审查 → 不入账
 
-**合并原则**：同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan），**合并为一条**，`影响文件` 列全部路径；不要拆成多条。
+**合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
+
+## analyze | lightweight-review | 2026-04-19
+- 操作者: analyst
+- 影响文件: docs/analyze/lightweight-review.md
+- 说明: issue #9 轻量化审计 —— archive 对比、3 大抽取热区识别（DEC-002/004/007）、4 大目标可行性 + 7 事实层开放问题交 architect
+
+## design | lightweight-review | 2026-04-19
+- 操作者: architect
+- 影响文件: docs/design-docs/lightweight-review.md, docs/decision-log.md, docs/exec-plans/active/lightweight-review-plan.md
+- 说明: DEC-009 Proposed —— 4 shared helper 抽取 + log.md closeout batching + README/CLAUDE.md 重塑；user Modify 扩 scope 加 DEC 审计 → DEC-009 增决定 8/9/10（DEC-002 决定 5 正式 Superseded / bugfix.md 规则 2 对称性修 / DEC 影响范围纪律）+ exec-plan 增 P0.7；P0.1-P0.7 执行路线
+
+## exec-plan | lightweight-review P0.1+P0.2 | 2026-04-19
+- 操作者: developer subagent
+- 影响文件: skills/_resource-access.md (new 58), skills/_escalation-protocol.md (new 108), skills/_progress-reporting.md (new 153), commands/_progress-monitor-setup.md (new 128), agents/developer.md, agents/tester.md, agents/reviewer.md, agents/dba.md, agents/research.md, skills/architect.md, skills/analyst.md
+- 说明: P0.1 新建 4 shared helper（447 行）+ P0.2 retrofit 7 文件到 ref 模式（5 agent 净省 349 行；architect/analyst 平齐）；lint 0 命中；role-specific ordering/phase tag/Content Policy 示例/模板全保留
+
+## exec-plan | lightweight-review P0.3+P0.4+P0.7 | 2026-04-19
+- 操作者: developer subagent
+- 影响文件: commands/workflow.md (437→414), commands/bugfix.md (138→144), README.md (144→123), CLAUDE.md (60→48), docs/claude-md-template.md (204→205), docs/log.md (191→191), docs/INDEX.md (100→106), docs/testing/subagent-progress-and-execution-model.md (+2 lines), docs/reviews/2026-04-19-subagent-progress-and-execution-model.md (+1 line)
+- 说明: P0.3 workflow.md Step 3.5 抽 helper + 新增 Step 8 log.md Batching + bugfix.md 同步；P0.4 README §设计原则 扩至 7 条 + 删 §致谢/§贡献/§许可证 + CLAUDE.md 删 §设计参考 + INDEX.md helper 清单；P0.7 DEC-009 决定 9 bugfix.md 规则 2 对称修 + testing/reviews 报告补 Resolved 标注；lint 0 命中
+
+## test-plan | lightweight-review | 2026-04-19
+- 操作者: tester subagent (critical_modules 多项命中 → 必落盘)
+- 影响文件: docs/testing/lightweight-review.md (new)
+- 说明: DEC-009 对抗测试 19 cases；1 Critical（G1 design-doc DEC-009 决定编号 7/8/9 vs decision-log 8/9/10 漂移）+ 5 Warning（A6 helper role-specific 泄漏 / B2 bugfix C 链说明缺 / D1 LICENSE 无 README 入口 / E2 Step 7-8 顺序未声明 / F2 bugfix abort 窗口未声明）；6 PASS 证实 helper 引用对称 + log batching 契约 + DEC 链完整
+
+## review | lightweight-review | 2026-04-19
+- 操作者: reviewer subagent (critical_modules 多项命中 → 必落盘)
+- 影响文件: docs/reviews/2026-04-19-lightweight-review.md (new)
+- 说明: DEC-009 终审 Approve-with-caveats；0 Critical / 3 Warning / 4 Suggestion / 5 Positive；DEC-001 D1-D9 + DEC-002~008 Accepted 条款全保；decision-log 3 铁律遵守（不删 / 报 diff / 编号递增）；DEC-004 event schema 零改；lint 0 命中；helper 引用 7×4 处逐字一致；判 W-01 tester 升级的 Critical 实为 Warning（design-doc 内部错位，下游已正确）
+
+## fix | lightweight-review W-01+A6+B2+D1+E2+F2 post-fix | 2026-04-19
+- 操作者: orchestrator (inline, 基于 tester + reviewer findings)
+- 影响文件: docs/design-docs/lightweight-review.md (§5.1/§5.3/§7/§8 决定编号 7/8/9 → 8/9/10), commands/bugfix.md (rule 2 "honor" 中文化 + abort 退化窗口声明), README.md (+LICENSE/CONTRIBUTING 1 行入口), skills/_escalation-protocol.md (删末尾 4 agent 典型触发点 role-specific 泄漏), commands/workflow.md (Step 8 加 Step 7/8 执行顺序声明)
+- 说明: tester W-01 Critical + reviewer W-01 Warning 裁决（reviewer 判级更准）后 6 项修复全部 post-fix；lint 0 命中；design-doc 与 decision-log 编号自洽；W-02 cosmetic 样式差异 + reviewer 4 Suggestion 延后 follow-up
+
+## exec-plan | lightweight-review completed | 2026-04-19
+- 操作者: orchestrator (Stage 9 Closeout)
+- 影响文件: docs/exec-plans/completed/lightweight-review-plan.md (从 active/ 移动), docs/decision-log.md (DEC-009 状态 Proposed → Accepted), docs/INDEX.md (exec-plans active/ → completed/ 条目更新)
+- 说明: DEC-009 归档完成；P0.1-P0.7 全部通过 tester + reviewer 终审；issue #9 轻量化重构闭环
+
+## decide | DEC-010 | 2026-04-19
+- 操作者: architect (inline)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-010 Accepted —— 矫正 DEC-009 决定 1 运行期 token 账误判；Supersede 4 helper 抽取；revert + 激进 inline 精简；DEC-009 其他 9 条决定保留
+
+## fix | lightweight-review-revert P1.1~P1.5 | 2026-04-19
+- 操作者: developer subagent (DEC-010 机械落地)
+- 影响文件: skills/_resource-access.md, skills/_escalation-protocol.md, skills/_progress-reporting.md, commands/_progress-monitor-setup.md (4 files deleted); agents/developer.md (223→121), agents/tester.md (217→127), agents/reviewer.md (186→121), agents/dba.md (177→140), agents/research.md (167→119), skills/architect.md (284→167), skills/analyst.md (208→139), commands/workflow.md (416→306), commands/bugfix.md (146→107), CLAUDE.md, docs/INDEX.md, docs/claude-md-template.md, docs/design-docs/lightweight-review.md (+§9/§10)
+- 说明: DEC-010 落地 —— 4 helper 删除 + 5 agent / 2 skill / 2 command 激进 inline 精简；tree skills+agents+commands 2791→1672（净省 1119 行 / 40%）；单次典型 workflow 负载 ~1800→~1100（省 ~39%）；role-specific 纪律全保（Execution Form / Ordering discipline / Abort Criteria / Research Fan-out / 追问框架）；DEC-004 event schema 4 agent 逐字对齐；lint 0 命中
+
+---
 
 ## 前缀规范
 

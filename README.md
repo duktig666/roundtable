@@ -46,10 +46,12 @@ claude --plugin-dir /absolute/path/to/roundtable   # 在你的项目目录下执
 ## 设计原则
 
 1. **零配置安装** —— plugin.json 没有 `userConfig` 弹窗，运行时自动检测工具链（Cargo.toml / package.json / pyproject.toml / go.mod / Move.toml），项目业务规则通过各项目自己的 `CLAUDE.md` 自描述
-2. **Plan-then-execute** —— architect 出设计要用户确认再落盘，落盘后再写 exec-plan；developer 中大任务先出实现方案再编码；tester 关键模块先出测试计划再写测试
+2. **自动组织流程 + 文档化每阶段 I/O** —— 从 analyst → architect → developer → tester → reviewer / dba 全流程由 `/roundtable:workflow` 编排（自动识别任务规模 + 派发合适角色），每阶段输入 / 产出（`analyze/` → `design-docs/` → `exec-plans/` → `src/` + `tests/` → `testing/` → `reviews/`）都落盘可追溯；plan-then-execute 纪律贯穿 —— architect 出设计要用户确认再落盘，落盘后再写 exec-plan，developer / tester 中大任务先出实现 / 测试计划再动手
 3. **决策逐点弹窗** —— architect 遇到关键决策点立即 `AskUserQuestion` 让用户点选，不堆砌成文字列表最后一次性问
-4. **交互式 role 用 skill，自主执行 role 用 agent** —— architect/analyst 是 skill（主会话运行，AskUserQuestion 可用），developer/tester/reviewer/dba 是 agent（subagent 隔离上下文，避免主会话污染）
-5. **多项目原生支持** —— 根目录启动 Claude Code 时自动识别目标项目（git repo 扫描 + 任务描述正则匹配 + AskUserQuestion 兜底）
+4. **交互式 role 用 skill，自主执行 role 用 agent** —— architect / analyst 是 skill（主会话运行，`AskUserQuestion` 可用），developer / tester / reviewer / dba 是 agent（subagent 隔离上下文，避免主会话污染）
+5. **文档三件套分层** —— 关键决策落 `decision-log.md`（append-only，Superseded 不删）、文档变更入 `log.md`（时间索引）、文件清单入 `INDEX.md`（产出分类导航）；参考 Karpathy LLM Wiki 的"Raw Source → Wiki → Schema"分层，让贡献者几分钟内 pin down 项目决策脉络
+6. **Analyst 借鉴 gstack 六问检验** —— 需求不清时先走 analyst skill 的六问框架（为什么现在、失败模式、竞品做法、6 个月后评价、事实 vs 推论、交付对象），把模糊需求变成 architect 能接手的事实清单
+7. **多项目原生支持** —— 根目录启动 Claude Code 时自动识别目标项目（git repo 扫描 + 任务描述正则匹配 + `AskUserQuestion` 兜底）
 
 ---
 
@@ -121,23 +123,5 @@ claude
 
 ---
 
-## 贡献
+贡献指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。许可证见 [LICENSE](LICENSE)（Apache-2.0）。
 
-欢迎提 Issue、PR。贡献者本地开发模式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-- 提 PR 之前读一下 [`docs/design-docs/roundtable.md`](docs/design-docs/roundtable.md)，了解 D1-D9 决策脉络，避免提出已被评估过否决的方案
-- 文档导航见 [`docs/INDEX.md`](docs/INDEX.md)
-- 涉及决策变更的 PR 请在 `docs/decision-log.md` 加 DEC-xxx 条目，列明备选和理由
-
----
-
-## 许可证
-
-Apache-2.0 — 详见 [LICENSE](LICENSE)
-
----
-
-## 致谢
-
-- 六问框架借鉴自 gstack office-hours 实践
-- 文档三件套（design-docs + decision-log + log）机制参考 Karpathy LLM Wiki 的"Raw Source → Wiki → Schema"分层

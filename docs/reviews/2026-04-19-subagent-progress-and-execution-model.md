@@ -48,6 +48,7 @@ suggestion_findings: 4
   2. 但语义上"用户声明 inline 却被弹窗再问"违反 north-star "用户掌控感" —— 用户会质疑"我声明了为什么还问"
   3. 与 DEC-005 决策 #4 的 "per-project：target CLAUDE.md ... 可选 `developer_form_default: inline`" 文本不一致（DEC-005 原文只列了 inline 作为例子，bugfix.md 实现却只 honor subagent）
 - **修法**：`commands/bugfix.md:68` 改为 `if target_project CLAUDE.md ... declares developer_form_default (either inline or subagent), honor the declaration — this overrides the bugfix inline-bias default.`
+- **Resolved by DEC-009 决定 9**（2026-04-19 bugfix.md 规则 2 落地对称 honor）
 
 ### W-R3 （承接 tester W3）各 agent Bash emit 模板缺空值守卫
 - `agents/developer.md:141` / `agents/tester.md:97,101,105` / `agents/reviewer.md:112` / `agents/dba.md:96` / `agents/research.md:125,129,133`
