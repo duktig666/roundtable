@@ -38,6 +38,41 @@
 
 ---
 
+## review | phase-transition-rhythm | 2026-04-19
+- 操作者: reviewer subagent (critical_modules hit → 必落盘)
+- 影响文件: docs/reviews/2026-04-19-phase-transition-rhythm.md（新建）
+- 说明: DEC-006 最终合并审查；0 Critical / 3 Warning / 5 Suggestion；Approved-with-caveats；DEC-001~DEC-005 全对齐无 Superseded；lint 0 命中；建议合并前最小修 RW-01 onboarding.md 措辞漂移 + RW-02 design-doc §6 措辞（orchestrator 已 inline 修复）；RW-03 + RS-01~RS-05 延后
+
+## fix | phase-transition-rhythm RW-01/RW-02 | 2026-04-19
+- 操作者: orchestrator (inline)
+- 影响文件: docs/onboarding.md (§3 第 75 行"每阶段都确认"改为 DEC-006 三段式措辞), docs/design-docs/phase-transition-rhythm.md (§6 变更记录措辞修正)
+- 说明: reviewer flag 的 2 条 non-blocking drift；README.md 无需改（其现有描述兼容 DEC-006）；claude-md-template.md 无需改（属用户自填模板）
+
+## test-plan | phase-transition-rhythm | 2026-04-19
+- 操作者: tester subagent (critical_modules 1 项触发 — workflow command Phase Matrix + phase gating taxonomy)
+- 影响文件: docs/testing/phase-transition-rhythm.md（新建）
+- 说明: DEC-006 三段式对抗测试；2 Critical / 9 Warning / 5 Suggestion；C-01 悬空指针 (Step 6.5/6.6 不存在) + C-02 Step 7 批处理与 C 自动前进语义冲突；发 `<escalation>` 要求修复
+
+## fix | phase-transition-rhythm Critical+W-08 | 2026-04-19
+- 操作者: developer (inline, 主会话修 tester flag 的 2 Critical + 1 rule-violation Warning)
+- 影响文件: commands/workflow.md (§Step 3 artifact chain +closeout row / §Step 6 规则 1 C 类 pointer 修正 + `<escalation>` scan 前置 / §Step 7 批处理加 DEC-006 C 桥接条款), docs/design-docs/phase-transition-rhythm.md (§3.1 同步 + 变更记录)
+- 说明: C-01（Step 6.5/6.6 → Step 5+Step 6 rules 5–6）/ C-02（C-chain 每次 handoff 前 Step 7 flush；closeout 最终兜底）/ W-08（Step 3 artifact chain 加 closeout 行，满足 CLAUDE.md 条件触发规则）；lint 0 命中；其余 W-01~W-07/W-09~W-11 + S-01~S-05 留作后续 issue 跟进
+
+## impl | phase-transition-rhythm | 2026-04-19
+- 操作者: developer (inline 档，主会话执行)
+- 影响文件: commands/workflow.md (§Phase Matrix +Stage 9 Closeout / §Step 6 规则 1 重写为三段式), CLAUDE.md (§critical_modules 条目 6 描述加 "+ phase gating taxonomy (DEC-006)")
+- 说明: DEC-006 落实；lint_cmd 0 命中；不改 bugfix.md / agents/* / skills/* / 其他 DEC
+
+## design | phase-transition-rhythm | 2026-04-19
+- 操作者: architect (inline skill)
+- 影响文件: docs/design-docs/phase-transition-rhythm.md（新建）, docs/decision-log.md（+DEC-006）
+- 说明: issue #10 phase gating 三段式分类设计；Path B 路径 + 新 DEC-006（producer-pause / approval-gate / verification-chain）；Stage 9 Closeout 新增；6 个 analyst 开放问题全部裁决（Q3 reviewer 归 verification / Q4 design-confirm 保 AskUserQuestion / Q5 critical_modules 归 C 子项 / Q6 Closeout 新增 / Q1 新 DEC-006 / Q2 合入 Path B）；不 Supersede 任何既有 DEC
+
+## analyze | phase-transition-rhythm | 2026-04-19
+- 操作者: analyst (inline skill, 因 roundtable:analyst 未作为 plugin skill 注册，按 workflow.md 精神 Read + 主会话执行)
+- 影响文件: docs/analyze/phase-transition-rhythm.md（新建）
+- 说明: Issue #10 phase transition 节奏重构对标研究；调研 git/terraform/apt/kubectl/Make/CrewAI/AutoGen/LangGraph/Claude Code 9 种 CLI/orchestrator 的 stage transition UX；识别"产出 vs approval vs verification"三分类在工业界有先例但命名不统一；事实层 6 个开放问题交接 architect（DEC 归属、与现行 Exception 整合、reviewer 归类歧义、design-confirm UI 形式、critical_modules 机械触发定位、closeout 阶段是否新增）
+
 ## review | subagent-progress-and-execution-model | 2026-04-19
 - 操作者: reviewer subagent (critical_modules 4+2 项全触发 → 必落盘)
 - 影响文件: docs/reviews/2026-04-19-subagent-progress-and-execution-model.md（新建）

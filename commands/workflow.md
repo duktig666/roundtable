@@ -31,6 +31,7 @@ Maintain this matrix across the dispatch lifecycle. Report it back to the user o
 | 6. Adversarial testing | tester agent | ⏳ / 🔄 / ✅ / ⏩ skipped | tests, `{docs_root}/testing/[slug].md`, bug findings via escalation |
 | 7. Review | reviewer agent | ⏳ / 🔄 / ✅ / ⏩ skipped | findings in conversation or `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` |
 | 8. DB review (if DB involved) | dba agent | ⏳ / 🔄 / ✅ / ⏩ N/A | findings in conversation or `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` |
+| 9. Closeout | (user) | ⏳ / 🔄 / ✅ | aggregate findings summary; user-driven commit / PR / amend decision (DEC-006 producer-pause, workflow terminus) |
 
 Legend: ⏳ pending · 🔄 in-progress · ✅ complete · ⏩ skipped (with reason) · — inapplicable
 
@@ -124,6 +125,9 @@ dba       → reads migrations / schema / src
             default: conversation-only findings
             writes reviews/[YYYY-MM-DD]-db-[slug].md when change is
             large or Critical emerges
+closeout  → aggregates findings across reviewer / dba output
+            produces no new files
+            user drives commit / PR / amend decision (DEC-006 A producer-pause)
 ```
 
 ---
@@ -245,7 +249,37 @@ See each agent's `## Escalation Protocol` section for the block format.
 
 ## Step 6: Execution Rules
 
-1. **Phase gates**: after each phase completes, report outcome + artifacts + updated Phase Matrix to the user, then **wait for user confirmation** before advancing to the next phase. Exception: routine transitions within the same role (e.g., sequential `P0.n → P0.n+1` sub-phases inside one exec-plan) MAY auto-advance when the exec-plan's prerequisites are met, no Critical findings surfaced, and the user has not requested finer granularity. Cross-role transitions (developer → tester, tester → reviewer, etc.) always require confirmation unless CLAUDE.md `critical_modules` rule dictates the trigger (e.g., tester is mechanically dispatched after developer for `critical_modules`-tagged work; the user still sees the handoff report).
+1. **Phase gating taxonomy (DEC-006)**: every phase transition falls into one of three categories; gating behavior is determined by category.
+
+   - **A. producer-pause** — phase ends with user-consumable artifacts. Stages: Research (analyst) / Design (architect Draft) / Closeout (Stage 9). Orchestrator emits a 3-line summary and **stops, invoking no tools**, waiting for the user's next message:
+     ```
+     ✅ <role> 完成。
+     产出：
+     - <path1> — <desc>
+     - <path2> — <desc>
+     请阅读后告诉我：`go` / `调范围: ...` / 问题
+     ```
+     User drives advancement via free-text: `go` / `继续` advances; `问: …` stays in FAQ (orchestrator answers directly or appends to the artifact's FAQ section per that role's convention); `调: …` re-dispatches the same role with expanded scope under the same slug; `停` aborts the workflow, leaving the Phase Matrix at the current stage.
+
+   - **B. approval-gate** — hard directional lock. The ONLY B-class transition is Design confirmation (Stage 4). Orchestrator MUST invoke `AskUserQuestion` with options following the Option Schema (`feedback_askuserquestion_options`): Accept / Modify <specific part> / Reject / etc. Each option carries `rationale` + `tradeoff` + optional `recommended`. User's choice determines whether to advance to Implementation, re-dispatch architect, or abort.
+
+   - **C. verification-chain** — internal machine/AI handoff with no user decision point. Stages: context-detect → analyst, design-confirm accepted → developer, developer → tester, tester → reviewer, reviewer → closeout, dba → closeout. Orchestrator **auto-advances**, emitting a single-line handoff notice (e.g., `🔄 developer 完成 → dispatching tester (critical_modules hit: [...])`). `critical_modules`-driven mandatory tester/reviewer dispatches remain in C (mechanical, CLAUDE.md pre-authorizes it; the handoff notice annotates `(critical_modules hit: ...)` for transparency). Critical findings / `<escalation>` blocks / lint+test failures still interrupt immediately per Step 5 and Step 6 rules 5–6. Before emitting the C-class handoff notice, the orchestrator MUST scan the subagent's final message for `<escalation>` tags; if present, suspend auto-advance and route through Step 5.
+
+   **Phase Matrix → category mapping**:
+
+   | Stage | Role | Category |
+   |---|---|---|
+   | 1. Context detection | inline | C |
+   | 2. Research | analyst | A |
+   | 3. Design | architect | A |
+   | 4. Design confirmation | user | **B** |
+   | 5. Implementation | developer | C |
+   | 6. Adversarial testing | tester | C |
+   | 7. Review | reviewer | C |
+   | 8. DB review | dba | C |
+   | 9. Closeout | user | A |
+
+   See `{docs_root}/design-docs/phase-transition-rhythm.md` and DEC-006 for full rationale.
 
 2. **In-phase decisions**: when an active skill encounters a user-decision point, invoke `AskUserQuestion` IMMEDIATELY following the skill's `## AskUserQuestion Option Schema`. Do not accumulate decisions for a batch ask.
 
@@ -342,6 +376,8 @@ When form resolves to `inline`, include one-line note in the phase-gate summary:
 When a role creates new artifacts under `{docs_root}/` (`analyze/` / `design-docs/` / `exec-plans/` / `api-docs/` / `testing/` / `reviews/`), the orchestrator owns the `{docs_root}/INDEX.md` update. Roles do NOT edit `INDEX.md` directly — same serialization pattern as exec-plan checkboxes (DEC-002 shared-resource protocol).
 
 **Batching rule**: Do NOT update `INDEX.md` after every subagent return. Accumulate new-file reports across the phase and update the index **once per phase gate** (before reporting phase summary to the user), or at workflow completion. This keeps token overhead to a single Read + Edit cycle per phase, not per subagent.
+
+**DEC-006 C-verification-chain bridging clause**: C-class transitions auto-advance with a 1-line handoff (no user-facing phase-gate summary). To keep `INDEX.md` fresh, the orchestrator MUST run Step 7 (single Read + Edit) **before emitting each C→C handoff notice**. At the next A-class producer-pause (including Stage 9 Closeout) the final flush covers any still-pending entries. This preserves the "single Edit per boundary" cost ceiling while preventing stale-index windows during long C chains.
 
 **Steps**:
 
