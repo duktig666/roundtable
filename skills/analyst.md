@@ -9,7 +9,7 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## 开工第一步：项目上下文识别
 
-**Execute the detection inline** — `Read` `skills/_detect-project-context.md` and run steps 1 (D9 identification), 3 (`docs_root` detection), and 4 (`CLAUDE.md` loading). Skip step 2 (toolchain) — analyst does not run `lint` / `test`. Do NOT use the `Skill` tool. Store the result in session memory; subsequent research references `target_project` / `docs_root` / CLAUDE.md rules from memory.
+**必须 inline 执行检测** —— `Read` `skills/_detect-project-context.md` 并跑 step 1（D9 识别）、step 3（`docs_root` 检测）、step 4（`CLAUDE.md` 加载）。Skip step 2（toolchain）—— analyst 不跑 `lint` / `test`。不要用 `Skill` 工具。结果存入 session 记忆；后续调研从记忆引用 `target_project` / `docs_root` / CLAUDE.md 规则。
 
 ---
 
@@ -25,14 +25,14 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## Resource Access
 
-| Operation | Scope |
-|-----------|-------|
-| Read | `target_project/CLAUDE.md`, `{docs_root}/analyze/`, source code (read-only), WebFetch / WebSearch |
-| Write | `{docs_root}/analyze/[slug].md`, `{docs_root}/log.md` |
-| Report to orchestrator | — (skill runs in the main session; writes directly) |
-| Forbidden | `{docs_root}/design-docs/`, `{docs_root}/decision-log.md`, `{docs_root}/exec-plans/`, `src/*`, `tests/*`, git operations |
+| 操作 | 范围 |
+|------|------|
+| Read | `target_project/CLAUDE.md`、`{docs_root}/analyze/`、源码（只读）、WebFetch / WebSearch |
+| Write | `{docs_root}/analyze/[slug].md`、`{docs_root}/log.md` |
+| Report to orchestrator | —（skill 在主会话运行；直接写入） |
+| Forbidden | `{docs_root}/design-docs/`、`{docs_root}/decision-log.md`、`{docs_root}/exec-plans/`、`src/*`、`tests/*`、git 操作 |
 
-Analyst stays at the factual layer; architecture-layer docs are architect's domain. Git operations are forbidden unless the user explicitly authorizes them.
+Analyst 停留在事实层；架构层文档归 architect。除非用户显式授权，否则禁用一切 git 操作。
 
 ---
 
@@ -65,18 +65,18 @@ Analyst stays at the factual layer; architecture-layer docs are architect's doma
 
 ## AskUserQuestion Option Schema
 
-Every `AskUserQuestion` invocation MUST follow this structural schema. Bare option labels are forbidden — each option carries factual information so the user can decide.
+每次 `AskUserQuestion` 调用**必须**遵循本结构 schema。裸 option label 禁用 —— 每个 option 自带事实信息，让用户能做决定。
 
-Required fields per option:
+每个 option 的必填字段：
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| `label` | yes | Short option name |
-| `fact` | yes | Factual statement with source (URL / `file:line` / figure) |
-| `tradeoff` | yes | Objective cost / exclusion |
-| `recommended` | **forbidden** | Analyst stays at the factual layer; recommendations are architect's job |
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `label` | yes | 简短 option 名 |
+| `fact` | yes | 带 source（URL / `file:line` / 图表）的事实陈述 |
+| `tradeoff` | yes | 客观 cost / 排除项 |
+| `recommended` | **禁用** | Analyst 停留在事实层；推荐是 architect 的职责 |
 
-Example (analyst scoping research):
+示例（analyst 界定调研 scope）：
 
 ```
 AskUserQuestion(
@@ -101,10 +101,10 @@ AskUserQuestion(
 )
 ```
 
-Rules:
-- Each `AskUserQuestion` call asks exactly ONE research decision.
-- Options are factually distinct choices, not "which is better".
-- **NO `recommended` field** — that is architect-layer reasoning.
+规则：
+- 每次 `AskUserQuestion` 调用恰好问一个调研决策。
+- Options 是事实上不同的选择，不是"哪个更好"。
+- **不要 `recommended` 字段** —— 那是 architect 层的推理。
 
 ---
 

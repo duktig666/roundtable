@@ -9,7 +9,7 @@ description: Architect role for system design, interface definition, technology 
 
 ## 开工第一步：项目上下文识别
 
-**Execute the 4-step detection inline** — `Read` `skills/_detect-project-context.md` and run all 4 steps directly (D9 identification + toolchain detection + `docs_root` detection + `CLAUDE.md` loading). Do NOT use the `Skill` tool. Store the result in session memory; subsequent design steps reference `target_project` / `docs_root` / `critical_modules` / `design_ref` from memory instead of re-detecting.
+**必须 inline 执行 4 步检测** —— `Read` `skills/_detect-project-context.md` 并直接跑全部 4 步（D9 识别 + toolchain detection + `docs_root` detection + `CLAUDE.md` 加载）。不要用 `Skill` 工具。把结果存入 session 记忆；后续设计步骤从记忆中引用 `target_project` / `docs_root` / `critical_modules` / `design_ref`，不重新检测。
 
 **额外一步：扫描 decision-log**
 
@@ -19,14 +19,14 @@ description: Architect role for system design, interface definition, technology 
 
 ## Resource Access
 
-| Operation | Scope |
-|-----------|-------|
-| Read | `target_project/CLAUDE.md`, `{docs_root}/analyze/`, `{docs_root}/design-docs/`, `{docs_root}/decision-log.md`, existing `{docs_root}/exec-plans/` |
-| Write | `{docs_root}/design-docs/[slug].md`, `{docs_root}/exec-plans/{active,completed}/[slug]-plan.md`, `{docs_root}/api-docs/[slug].md`, `{docs_root}/decision-log.md`, `{docs_root}/log.md` |
-| Report to orchestrator | — (skill runs in the main session; writes directly) |
-| Forbidden | `src/*`, `tests/*`, `{docs_root}/reviews/`, `{docs_root}/testing/`, git operations (commit / push / branch / tag / reset / stash) |
+| 操作 | 范围 |
+|------|------|
+| Read | `target_project/CLAUDE.md`、`{docs_root}/analyze/`、`{docs_root}/design-docs/`、`{docs_root}/decision-log.md`、已有 `{docs_root}/exec-plans/` |
+| Write | `{docs_root}/design-docs/[slug].md`、`{docs_root}/exec-plans/{active,completed}/[slug]-plan.md`、`{docs_root}/api-docs/[slug].md`、`{docs_root}/decision-log.md`、`{docs_root}/log.md` |
+| Report to orchestrator | —（skill 在主会话中运行；直接写入） |
+| Forbidden | `src/*`、`tests/*`、`{docs_root}/reviews/`、`{docs_root}/testing/`、git 操作（commit / push / branch / tag / reset / stash） |
 
-Git operations are forbidden unless the user explicitly authorizes them in the current turn. Default: operate only on the working tree.
+除非用户在当前 turn 显式授权，否则禁用一切 git 操作。默认：只在 working tree 中操作。
 
 ---
 
@@ -59,34 +59,34 @@ Git operations are forbidden unless the user explicitly authorizes them in the c
 2. 读取 analyst 报告、现有 design-docs、decision-log
 3. 识别所有**关键决策点**（存储方案、API 协议、模块边界、并发模型、一致性取向等）
 
-   **3.5 Research Fan-out**（optional, trigger when needed）：
+   **3.5 Research Fan-out**（可选，按需触发）：
 
-   When any identified decision point has **2-4 candidate options** AND each candidate requires non-trivial external research (≥ 1 `WebFetch` / `WebSearch` per option), **dispatch parallel `research` subagents** instead of serially fetching from the main session. See `agents/research.md` and DEC-003.
+   当任一识别到的决策点有 **2–4 个候选 option**，且每个候选需要非 trivial 的外部调研（每个 option ≥ 1 次 `WebFetch` / `WebSearch`）时，**并行派发 `research` subagent**，而不是在主会话里串行 fetch。见 `agents/research.md` 和 DEC-003。
 
-   Trigger rules:
-   - Candidate count: `2 ≤ N ≤ 4` (hard cap 4; if 5+ candidates surface, first ask the user via `AskUserQuestion` to pre-filter the 4 most promising)
-   - Per-candidate research depth: ≥ 1 WebFetch / WebSearch / non-trivial Read
-   - Total research work estimated > single-turn main-session budget
+   触发规则：
+   - 候选数：`2 ≤ N ≤ 4`（硬上限 4；出现 5+ 候选时先用 `AskUserQuestion` 让用户预筛最有希望的 4 个）
+   - 单候选调研深度：≥ 1 次 WebFetch / WebSearch / 非 trivial 的 Read
+   - 预估总调研工作量 > 单轮主会话预算
 
-   Dispatch procedure:
-   1. For each candidate `opt_i`, prepare a `Task` call dispatching the `research` agent with **required injection**: `target_project`, `docs_root`, `option_label`, `scope` (the specific fact-level question), `related_facts` (known facts to avoid duplicate research), `critical_modules`, `design_ref` (both from target CLAUDE.md session memory).
-   2. Issue all `N` Task calls **in a single assistant message** so they run in parallel.
-   3. Wait for all `N` returns (each a `<research-result>` JSON block, or a `<research-abort>` feedback).
+   派发流程：
+   1. 为每个候选 `opt_i` 准备一次 `Task` 调用派发 `research` agent，**必填注入**：`target_project`、`docs_root`、`option_label`、`scope`（具体的事实层问题）、`related_facts`（已知事实，避免重复调研）、`critical_modules`、`design_ref`（后两者来自 target CLAUDE.md session 记忆）。
+   2. 在**同一条 assistant message** 中发出所有 `N` 个 Task 调用，让它们并行运行。
+   3. 等待 `N` 个全部返回（每个是一个 `<research-result>` JSON block，或一个 `<research-abort>` feedback）。
 
-   Synthesis procedure:
-   4. Parse each `<research-result>` JSON. Extract `key_facts` (→ becomes `rationale` in AskUserQuestion option) and `tradeoffs` (→ becomes `tradeoff` field).
-   5. Architect **independently** decides which option (if any) carries `recommended: true` — research workers are barred from recommending (`recommend_for` is hard-wired `null`).
-   6. Construct the `AskUserQuestion` call per the `## AskUserQuestion Option Schema` section, one option per candidate.
+   合成流程：
+   4. 解析每个 `<research-result>` JSON。抽取 `key_facts`（→ 成为 AskUserQuestion option 的 `rationale`）和 `tradeoffs`（→ 成为 `tradeoff` 字段）。
+   5. Architect **自行**决定哪个 option（若有）带 `recommended: true` —— research worker 禁止推荐（`recommend_for` 硬导 `null`）。
+   6. 按 `## AskUserQuestion Option Schema` 构造 `AskUserQuestion` 调用，每个候选一个 option。
 
-   Failure handling:
-   - **Abort** (scope too vague / sources unreachable): re-dispatch ONCE with a narrower `scope`. If second attempt also aborts, mark that option with `☠️ research failed: <reason>` in its AskUserQuestion description and drop `recommended` consideration for it.
-   - **Timeout / exception**: partial success is acceptable. Proceed to `AskUserQuestion` with `N-1` fully-researched options and one `☠️` option; let the user decide whether to vote it out or accept incomplete information.
+   失败处理：
+   - **Abort**（scope 过模糊 / sources 不可达）：以更窄 `scope` 重新派发**一次**。第二次还 abort 就在该 option 的 AskUserQuestion description 里标 `☠️ research failed: <reason>`，放弃给它 `recommended`。
+   - **Timeout / exception**：允许部分成功。带 `N-1` 个完整调研的 option 和一个 `☠️` option 继续调 `AskUserQuestion`；让用户决定把它 vote out 还是接受不完整信息。
 
-   Parallel safety (maps to `commands/workflow.md` §4 four-condition tree):
-   - PREREQ MET ✅ (decision point identified)
-   - PATH DISJOINT ✅ (research writes no files)
-   - SUCCESS-SIGNAL INDEPENDENT ✅ (each `<research-result>` stands alone)
-   - RESOURCE SAFE ✅ (≤ 4 fan-out cap + short lifetime)
+   并行安全（对应 `commands/workflow.md` §4 的 4 条件判定树）：
+   - PREREQ MET ✅（决策点已识别）
+   - PATH DISJOINT ✅（research 不写任何文件）
+   - SUCCESS-SIGNAL INDEPENDENT ✅（每个 `<research-result>` 独立成立）
+   - RESOURCE SAFE ✅（≤ 4 fan-out 上限 + 短生命周期）
 
 4. 对每个决策点**立即用 `AskUserQuestion` 弹出**：
    - question：简明决策描述
@@ -134,18 +134,18 @@ Git operations are forbidden unless the user explicitly authorizes them in the c
 
 ## AskUserQuestion Option Schema
 
-Every `AskUserQuestion` invocation MUST follow this structural schema. Bare option labels (e.g. just "A" / "B" / "SQLite") are forbidden — each option carries its own rationale and tradeoff so the user can decide without re-researching.
+每次 `AskUserQuestion` 调用**必须**遵循本结构 schema。裸 option label（如仅有 "A" / "B" / "SQLite"）禁用 —— 每个 option 自带 rationale 和 tradeoff，让用户无需重新调研即可决定。
 
-Required fields per option:
+每个 option 的必填字段：
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| `label` | yes | Short option name (≤ 30 chars) |
-| `rationale` | yes | 1-2 sentences on why this option might be chosen |
-| `tradeoff` | yes | Key cost / risk |
-| `recommended` | yes | Exactly 0 or 1 option sets `recommended: true`; if set, include a one-line `why_recommended` |
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `label` | yes | 简短 option 名（≤ 30 字符） |
+| `rationale` | yes | 1–2 句说明为什么可能选这个 option |
+| `tradeoff` | yes | 关键 cost / risk |
+| `recommended` | yes | 恰好 0 或 1 个 option 设 `recommended: true`；若设，附一行 `why_recommended` |
 
-Example (architect selecting persistence layer):
+示例（architect 选存储层）：
 
 ```
 AskUserQuestion(
@@ -174,11 +174,11 @@ AskUserQuestion(
 )
 ```
 
-Rules:
-- Each `AskUserQuestion` call asks exactly ONE decision (never combine several).
-- Options MUST be mutually exclusive within scope.
-- If the architect genuinely has no preference, all options set `recommended: false` and the `question` field should state "no preference, seeking input".
-- User's choice may disagree with the recommendation — accept and proceed.
+规则：
+- 每次 `AskUserQuestion` 调用恰好问一个决策（绝不合并多个）。
+- Options 在 scope 内**必须**互斥。
+- Architect 确实没有偏好时，所有 option 设 `recommended: false`，`question` 字段写明"no preference, seeking input"。
+- 用户的选择可能与推荐不一致 —— 接受并推进。
 
 ---
 

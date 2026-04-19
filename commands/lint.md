@@ -27,9 +27,9 @@ argument-hint: [target project name or path, optional]
 
 ### 无参数时（完整 D9）
 
-**Execute the detection inline** — `Read` `skills/_detect-project-context.md` and run steps 1 (D9 identification) and 3 (`docs_root` detection) only. Skip step 2 (toolchain) and step 4 (`CLAUDE.md` loading) — `lint` is pure documentation check and needs neither business rules nor toolchain.
+**必须 inline 执行检测** —— `Read` `skills/_detect-project-context.md` 并只跑 step 1（D9 识别）和 step 3（`docs_root` 检测）。Skip step 2（toolchain）和 step 4（CLAUDE.md 加载）—— `lint` 是纯文档检查，不需要业务规则，也不需要 toolchain。
 
-Do NOT use the `Skill` tool to activate the underscore-prefixed helper.
+不要用 `Skill` 工具去激活下划线前缀的 helper。
 
 ---
 

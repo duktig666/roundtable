@@ -35,6 +35,30 @@
 
 ---
 
+### DEC-008 workflow Step 3.5 前台派发免 Monitor（修正 DEC-004 触发规则 assumption）
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: issue #15 —— DEC-007 (#14) 会话中发现 DEC-004 §3.6 触发规则 "所有 subagent dispatch 默认开启" 隐含未言明 assumption：所有 Task 派发都是后台派发。dogfood 实录证明：前台 Task（默认 `run_in_background` 缺省 / `false`）主会话阻塞等结果且**子 agent 的 Bash/Read/Edit/Write 工具调用以缩进形式实时显示**在主会话输出里，主会话已天然观察到内部进度；只有后台 Task（`run_in_background: true`）主会话不阻塞且完全看不到 subagent 内部，Monitor 才是唯一进度通道。Step 3.5 当前无差别要求所有派发启 Monitor，对前台派发等于主会话同时收两份信号（Monitor 通知 + 缩进工具流），纯开销且潜在分散注意力
+- **决定**:
+  1. **触发条件收紧**：Step 3.5（progress monitor 启动 + 4 变量注入）从"所有 Task 派发"收紧为"`run_in_background: true` 的 Task 派发"；前台派发完全 skip 整段
+  2. **gate 位置**：`commands/workflow.md` Step 3.5 顶部新增 §3.5.0 "Foreground vs background gate"，先于现有 §3.5.1 env opt-out（gate 失败即 skip 后续所有子步骤；与 env opt-out 同语义层）
+  3. **bugfix 同步**：`commands/bugfix.md` §Step 0.5 加一句 gate 说明（template 引用 workflow.md，无需复制完整模板）
+  4. **不改 5 份 agent prompt 本体**：5 个 subagent 的 §Progress Reporting Fallback 条款（"空 progress_path 静默 skip"）由 DEC-004 落地时已就位，天然兼容本变更
+  5. **DEC-004 标 Superseded by DEC-008**（仅 §3.6 触发规则维度；其余条款仍 Accepted）；保留原文不删，对齐 decision-log 铁律
+  6. **与 DEC-007 正交**：DEC-007 修源端 summary 内容质量（agent prompt §Content Policy）+ orchestrator awk 折叠；DEC-008 修触发条件（commands 层）。两个补丁不重叠、不互依、可分别合并；从两个层次（content vs gate）补 DEC-004 的不同 assumption 漏洞
+  7. **与 DEC-005 同源**：DEC-005 §6b.3 已声明 inline developer 不跑 Step 3.5（"主会话直接观察"），DEC-008 把这条 inline-only 逻辑推广到所有"主会话可观察"的派发 — inline developer 是真子集，前台 Task 是另一子集
+- **备选**:
+  - **保留无差别开启 Monitor**：DEC-004 原状；前台派发的双份信号开销持续，违背"用户掌控感"north-star 的"信号不冗余"细则
+  - **新增 env var `ROUNDTABLE_PROGRESS_FOREGROUND_DISABLE`**：与现有 `ROUNDTABLE_PROGRESS_DISABLE` 语义重复且解释成本翻倍；前台/后台是 dispatch 形态属性而非用户偏好，不该走 env
+  - **改 5 份 agent prompt 加形态自检**：agent 不知派发形态（subagent prompt 不感知 parent 调用参数），无法在源端 gate；orchestrator 层 gate 是唯一可执行点
+  - **Patch DEC-004 §3.6 in place（不开新 DEC）**：违反 decision-log 铁律 "不删除旧条目 / 编号递增"；触发规则变更属于实质性 supersede 范畴
+  - **新增 done event type 区分形态**：与本 DEC 目标无关；DEC-007 已确立 "不扩 DEC-004 event 枚举" 纪律
+- **理由**: (1) gate 在 orchestrator 层是唯一可执行点（agent 不感知 parent 派发参数）；(2) skip 前台派发完全消除双份信号开销且不损失任何观测能力（缩进工具流已经透传）；(3) 不改 agent prompt 本体减少 critical_modules（5 份 agent prompt）改动面，复用 DEC-004 已就位的 fallback 条款；(4) 与 DEC-005 inline developer 的 skip 逻辑同源，心智一致；(5) 与 DEC-007 正交可分别合并，降低集成风险；(6) 走 Superseded 流程而非 in-place patch 保持 decision-log append-only 纪律
+- **相关文档**: docs/design-docs/subagent-progress-and-execution-model.md §3.8（patch 章节）+ §6 变更记录条目、DEC-004（被本 DEC 部分 supersede 的上游协议）、DEC-007（同期 DEC-004 follow-up，正交合并）、DEC-005（inline developer 同源 skip 逻辑）
+- **影响范围**: `commands/workflow.md` §Step 3.5 新增 §3.5.0 gate；`commands/bugfix.md` §Step 0.5 加 gate 说明；`docs/design-docs/subagent-progress-and-execution-model.md` 新增 §3.8 + frontmatter `decisions` 加 DEC-008 + 变更记录条目；`docs/decision-log.md` 本条 + DEC-004 状态行追加 "（§3.6 触发规则 Superseded by DEC-008）"；`docs/log.md` 新增合并条目。**不改** 5 份 agent prompt 本体；**不改** DEC-004 event schema；**不改** Monitor 工具；**不改** target CLAUDE.md
+
+---
+
 ### DEC-007 subagent progress content policy（#7 dogfood 刷屏 follow-up）
 - **日期**: 2026-04-19
 - **状态**: Accepted
@@ -111,7 +135,7 @@
 
 ### DEC-004 subagent progress event protocol（P1 push 模型）
 - **日期**: 2026-04-19
-- **状态**: Accepted
+- **状态**: Accepted（决定第 6 项「触发规则」Superseded by DEC-008 — 改为 `run_in_background: true` 派发才开启；其余条款仍 Accepted）
 - **上下文**: issue #7 问题 A —— P4 dogfood 实录证实 subagent 长任务（3-10+ 分钟）期间主会话无反馈，用户失去对流程的掌控感。Claude Code 原生 `/agents` Running tab、transcript JSONL、Ctrl+B 提供**用户侧**观察通道，但 orchestrator LLM 对 subagent 内部**系统性**不可见（官方 "intermediate tool calls … only its final message returns to the parent"）
 - **决定**:
   1. **push 模型**（非 pull）：subagent 在 phase 边界主动 append JSON event 到共享文件；orchestrator `Monitor` tail。对比 pull 模型（周期 Read transcript）的关键收益：事件驱动（无空 poll）、官方架构对齐（Claude Code Agent 工具 description 明确建议"do NOT poll"）、与 DEC-002 Escalation JSON 同一范式

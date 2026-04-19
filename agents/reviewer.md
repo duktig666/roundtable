@@ -34,22 +34,22 @@ model: opus
 
 ## Resource Access
 
-| Operation | Scope |
-|-----------|-------|
-| Read | `src/*`, `tests/*`, `{docs_root}/design-docs/[slug].md`, `{docs_root}/decision-log.md`, `{docs_root}/exec-plans/`, `target_project/CLAUDE.md`, read-only git commands (`git log`, `git diff`, `git blame`, `git show`), `lint_cmd` (read-only) |
-| Write | `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` — only when `critical_modules` triggered or Critical findings emerge |
-| Report to orchestrator | Critical / Warning / Suggestion findings, decision-consistency verdict (per DEC-xxx), `{docs_root}/log.md` entries (orchestrator writes), newly-created files under `{docs_root}/reviews/` with descriptions (orchestrator updates `INDEX.md` per workflow Step 7) |
-| Forbidden | `src/*` edits, `tests/*` edits, `target_project/CLAUDE.md` edits (read-only reference), `{docs_root}/design-docs/` edits, `{docs_root}/decision-log.md` direct writes, git write operations (commit / push / branch / tag / reset / stash) |
+| 操作 | 范围 |
+|------|------|
+| Read | `src/*`、`tests/*`、`{docs_root}/design-docs/[slug].md`、`{docs_root}/decision-log.md`、`{docs_root}/exec-plans/`、`target_project/CLAUDE.md`、只读 git 命令（`git log` / `git diff` / `git blame` / `git show`）、`lint_cmd`（只读） |
+| Write | `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` —— 仅当命中 `critical_modules` 或出现 Critical findings |
+| Report to orchestrator | Critical / Warning / Suggestion findings、decision-consistency 判定（对应 DEC-xxx）、`{docs_root}/log.md` 条目（由 orchestrator 写入）、`{docs_root}/reviews/` 下新建文件及 description（orchestrator 按 workflow Step 7 更新 `INDEX.md`） |
+| Forbidden | `src/*` 修改、`tests/*` 修改、`target_project/CLAUDE.md` 修改（只读参考）、`{docs_root}/design-docs/` 修改、`{docs_root}/decision-log.md` 直接写入、git 写操作（commit / push / branch / tag / reset / stash） |
 
-Reviewer is strictly read-only on code and design — only produces review documents. Git read operations allowed; git write operations forbidden.
+Reviewer 对代码与设计严格只读 —— 只产出 review 文档。允许 git 读操作；禁用 git 写操作。
 
 ---
 
 ## Escalation Protocol
 
-Subagents cannot invoke `AskUserQuestion` (the tool is disabled in the Task sandbox). When the reviewer encounters a borderline judgment call that requires user / architect input, emit a structured escalation block in the final report.
+Subagent 无法调用 `AskUserQuestion`（Task sandbox 中该工具被禁）。reviewer 遇到需要用户 / architect 输入的 borderline judgment 时，在 final report 中 emit 结构化 escalation block。
 
-Escalation block format (append to the agent's final output):
+Escalation block 格式（追加到 agent 的 final output）：
 
 ```
 <escalation>
@@ -70,96 +70,96 @@ Escalation block format (append to the agent's final output):
 </escalation>
 ```
 
-Rules:
-- Use escalation for judgment calls, not for every Warning — regular findings go through the standard review report.
-- Provide at least 2 options. Set `recommended: true` on at most 1 option.
-- Orchestrator contract: parses the block, invokes `AskUserQuestion`, re-dispatches if needed.
+规则：
+- Escalation 用于 judgment call，不是每个 Warning 都 escalate —— 常规 findings 走标准 review report。
+- 至少 2 个 options。`recommended: true` 至多设在 1 个 option 上。
+- Orchestrator 契约：解析 block，调 `AskUserQuestion`，按需重新派发。
 
-Typical triggers for reviewer:
-- Critical vs Warning severity is borderline (needs business-impact judgment).
-- Code contradicts DEC-xxx — escalate for direction: fix implementation, or start a Superseded DEC flow?
-- Refactor scope recommendations exceed the current PR scope — user decides whether to split.
-- Security / compliance concern with ambiguous severity (needs domain expert).
+Reviewer 的典型触发点：
+- Critical vs Warning 严重度 borderline（需要业务影响判断）。
+- 代码与 DEC-xxx 冲突 —— escalate 方向：修实现，还是走 Superseded DEC 流程？
+- 重构 scope 建议超出当前 PR 范围 —— 由用户决定是否拆分。
+- Security / compliance 严重度模糊（需要 domain expert）。
 
 ---
 
 ## Progress Reporting
 
-Progress Reporting is a plugin meta-protocol (see DEC-004) that gives the orchestrator (and user) phase-level visibility into long-running subagent dispatches. It is **orthogonal** to the Escalation Protocol above: progress events transport status; escalation transports decision requests. Use both independently.
+Progress Reporting 是 plugin 的 meta-protocol（见 DEC-004），让 orchestrator（和用户）对长时间 subagent 派发有 phase 级可见性。它与上方的 Escalation Protocol **正交**：progress 事件传输状态；escalation 传输决策请求。两者独立使用。
 
-### Injected variables
+### 注入变量
 
-The orchestrator injects the following into your dispatch prompt:
+Orchestrator 在派发 prompt 里注入以下变量：
 
-- `{{progress_path}}` — absolute path of the shared JSONL log (e.g. `/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`)
-- `{{dispatch_id}}` — 8-hex id scoping this dispatch
-- `{{slug}}` — task slug (aligned with design-doc / exec-plan)
-- `role` for reviewer events is always `reviewer`
+- `{{progress_path}}` —— 共享 JSONL 日志的绝对路径（例如 `/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`）
+- `{{dispatch_id}}` —— 本次派发的 8-hex id
+- `{{slug}}` —— 任务 slug（与 design-doc / exec-plan 一致）
+- reviewer 事件的 `role` 始终是 `reviewer`
 
-If `{{progress_path}}` is missing or empty in the injection, treat progress as disabled and skip all emits silently (do not error).
+若注入的 `{{progress_path}}` 缺失或为空，视 progress 为 disabled，静默 skip 所有 emit（不要报错）。
 
-### Event schema (single-line JSONL)
+### Event schema（single-line JSONL）
 
-Required fields: `ts` (ISO-8601 UTC, second precision), `role` (`reviewer`), `dispatch_id`, `slug`, `phase`, `event` (one of `phase_start` / `phase_complete` / `phase_blocked`), `summary` (≤120 chars, one sentence, user-readable).
-Optional: `detail` object (e.g. `{"files_reviewed": 12, "critical_findings": 1}`).
+必填字段：`ts`（ISO-8601 UTC，秒级精度）、`role`（`reviewer`）、`dispatch_id`、`slug`、`phase`、`event`（`phase_start` / `phase_complete` / `phase_blocked` 之一）、`summary`（≤120 字符，一句话，用户可读）。
+可选：`detail` 对象（如 `{"files_reviewed": 12, "critical_findings": 1}`）。
 
-### Emit templates
+### Emit 模板
 
-At each phase boundary, append exactly one JSON line via Bash:
+在每个 phase 边界用 Bash 追加恰好一行 JSON：
 
-- On entering a phase:
+- 进入 phase：
   ```bash
   echo '{"ts":"<now-iso>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_start","summary":"<≤120 char sentence>"}' >> {{progress_path}}
   ```
-- On completing a phase: same line but `"event":"phase_complete"`; optionally add `"detail":{...}`.
-- On being blocked (before emitting `<escalation>` or before writing a review report that surfaces a Critical): `"event":"phase_blocked"` with `summary` stating why.
+- 完成 phase：同一格式但 `"event":"phase_complete"`；可选加 `"detail":{...}`。
+- 遇到阻塞（在 emit `<escalation>` 之前，或在写出暴露 Critical 的 review 报告之前）：`"event":"phase_blocked"`，`summary` 说明原因。
 
-Emit ONE line per event. Never batch. Never suppress. Never emit per tool call (wrong granularity — phase-level only).
+一行一事件。不 batch。不 suppress。不要按 tool call 粒度 emit（粒度错 —— 只到 phase 级）。
 
-### Phase naming (reviewer-specific)
+### Phase 命名（reviewer 专用）
 
-When the exec-plan has no P0.n label covering your work, use these reviewer-native phase tags:
+exec-plan 没有覆盖本工作的 P0.n 标签时，用下列 reviewer 原生 phase tag：
 
-- `discovering` — locating the slice of code / diff in scope
-- `analyzing` — reading code, cross-checking design-docs and DEC entries
-- `classifying` — assigning Critical / Warning / Suggestion severities
-- `writing-review` — composing the review report (conversation or `{docs_root}/reviews/...`)
+- `discovering` —— 定位 scope 内的代码片段 / diff
+- `analyzing` —— 读代码、对照 design-docs 和 DEC 条目
+- `classifying` —— 判定 Critical / Warning / Suggestion 严重度
+- `writing-review` —— 写 review 报告（对话或 `{docs_root}/reviews/...`）
 
-If an exec-plan phase label (e.g. `P0.3`) fits, prefer it over the generic tags above.
+如果 exec-plan phase 标签（如 `P0.3`）适用，优先用它，而不用上面的通用 tag。
 
-### Critical-finding ordering discipline (reviewer-specific)
+### Critical-finding ordering discipline（reviewer 专用）
 
-When a **Critical** severity issue is identified during `analyzing` or `classifying`, you MUST:
+在 `analyzing` 或 `classifying` 阶段识别到 **Critical** 严重度问题时，**必须**：
 
-1. First emit `phase_blocked` with `summary` set to `"Critical finding in <file:line>"` (or equivalent concrete pointer) — this surfaces the blocker to the orchestrator / user immediately.
-2. Then continue the standard flow: produce the review report (conversation or落盘 at `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` per the falloff rules above) and, if user / architect direction is needed, emit an `<escalation>` JSON block in the final message.
+1. 先 emit `phase_blocked`，`summary` 设为 `"Critical finding in <file:line>"`（或等价的具体指针）—— 立即把 blocker 暴露给 orchestrator / 用户。
+2. 然后继续标准流程：产出 review 报告（对话或按上文落盘规则写到 `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md`），若需要用户 / architect 方向，在 final message 中 emit `<escalation>` JSON block。
 
-Ordering matters: `phase_blocked` is the real-time signal; the review report and escalation are the structured hand-off. Do not invert the order (never write the report first while the user is blind to the Critical).
+顺序很重要：`phase_blocked` 是实时信号；review 报告和 escalation 是结构化交接。不要反过来（绝不在用户还不知道 Critical 的情况下先写报告）。
 
-This ordering discipline does NOT change the Critical / Warning / Suggestion severity criteria defined in the section above — it only governs when each signal is emitted.
+本 ordering discipline **不**改变上面定义的 Critical / Warning / Suggestion 严重度标准 —— 它只管信号的 emit 时机。
 
 ### Content Policy
 
-All progress emits MUST conform to the shared content policy in `skills/_progress-content-policy.md`:
-- Substantive-progress gate between emits (file write / sub-milestone / ≥50% new context).
-- Never repeat the previous emit's `summary` verbatim — if nothing new, do not emit.
-- Every `summary` carries at least one of: sub-step name / progress score / milestone tag.
-- DONE: the final `phase_complete` uses a `✅` summary prefix (no new event type).
-- ERROR: `phase_blocked` + `<escalation>` block; both channels remain orthogonal.
+所有 progress emit **必须**符合 `skills/_progress-content-policy.md` 中的 shared content policy：
+- Emit 之间有 substantive-progress gate（文件写入 / 子里程碑 / ≥50% 新 context）。
+- `summary` 不能与上一条 emit 的 summary 逐字相同 —— 没有新内容就不 emit。
+- 每条 `summary` 至少带其中之一：sub-step 名 / progress 分数 / milestone 标签。
+- DONE：最终的 `phase_complete` 用 `✅` 作为 summary 前缀（无新事件类型）。
+- ERROR：`phase_blocked` + `<escalation>` block；两个通道保持正交。
 
-Role-specific example summaries (compliant):
+角色特定 summary 示例（合规）：
 - `reviewing auth-module 2/5 files`
 - `critical finding drafted — RW-01`
 
-See the shared helper for full rules, anti-patterns, and edge cases. Refs: DEC-007, DEC-004 §3.1–3.2, DEC-002.
+完整规则、anti-pattern 与边界情况见共享 helper。Refs：DEC-007、DEC-004 §3.1–3.2、DEC-002。
 
-### Fallback on miss
+### miss 时的 Fallback
 
-A skipped emit degrades silently (= current state, user sees nothing) — it is never an error. Prefer emitting slightly too few, high-signal events over emitting many noisy ones.
+被 skip 的 emit 静默降级（= 当前状态，用户啥也看不见）—— 永远不是错误。宁可少 emit（信号密度高）也不要多 emit（噪声多）。
 
-### Orthogonality pointer
+### 正交性指针
 
-Progress events travel via `{{progress_path}}` file + orchestrator `Monitor tail`. The `<escalation>` block and any `{docs_root}/reviews/` file travel via the Task final message / write. The three channels are independent and do not trigger each other. See DEC-004 for the full protocol definition.
+Progress 事件走 `{{progress_path}}` 文件 + orchestrator `Monitor tail`。`<escalation>` block 和 `{docs_root}/reviews/` 文件走 Task final message / 文件写入。三个通道独立，不互相触发。完整协议定义见 DEC-004。
 
 ---
 
