@@ -40,9 +40,14 @@
 
 ## 当前文档清单
 
+### analyze
+
+- [parallel-research.md](analyze/parallel-research.md) — architect 派发 parallel research subagent 能力的对标调研（CrewAI / LangGraph / Claude Code sub-agents，12 事实层开放问题交 architect）
+
 ### design-docs
 
 - [roundtable.md](design-docs/roundtable.md) — roundtable plugin 本身的完整设计（D1-D9 决策 + 量化评分 + §12 FAQ）
+- [parallel-research.md](design-docs/parallel-research.md) — architect skill 派发 parallel research subagent 的完整设计（7 条决策，DEC-003 锁定；触发条件 / 派发协议 / 返回 schema / 失败处理 / 并行安全论证）
 
 ### exec-plans
 
