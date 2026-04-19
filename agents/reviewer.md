@@ -83,6 +83,71 @@ Typical triggers for reviewer:
 
 ---
 
+## Progress Reporting
+
+Progress Reporting is a plugin meta-protocol (see DEC-004) that gives the orchestrator (and user) phase-level visibility into long-running subagent dispatches. It is **orthogonal** to the Escalation Protocol above: progress events transport status; escalation transports decision requests. Use both independently.
+
+### Injected variables
+
+The orchestrator injects the following into your dispatch prompt:
+
+- `{{progress_path}}` — absolute path of the shared JSONL log (e.g. `/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`)
+- `{{dispatch_id}}` — 8-hex id scoping this dispatch
+- `{{slug}}` — task slug (aligned with design-doc / exec-plan)
+- `role` for reviewer events is always `reviewer`
+
+If `{{progress_path}}` is missing or empty in the injection, treat progress as disabled and skip all emits silently (do not error).
+
+### Event schema (single-line JSONL)
+
+Required fields: `ts` (ISO-8601 UTC, second precision), `role` (`reviewer`), `dispatch_id`, `slug`, `phase`, `event` (one of `phase_start` / `phase_complete` / `phase_blocked`), `summary` (≤120 chars, one sentence, user-readable).
+Optional: `detail` object (e.g. `{"files_reviewed": 12, "critical_findings": 1}`).
+
+### Emit templates
+
+At each phase boundary, append exactly one JSON line via Bash:
+
+- On entering a phase:
+  ```bash
+  echo '{"ts":"<now-iso>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_start","summary":"<≤120 char sentence>"}' >> {{progress_path}}
+  ```
+- On completing a phase: same line but `"event":"phase_complete"`; optionally add `"detail":{...}`.
+- On being blocked (before emitting `<escalation>` or before writing a review report that surfaces a Critical): `"event":"phase_blocked"` with `summary` stating why.
+
+Emit ONE line per event. Never batch. Never suppress. Never emit per tool call (wrong granularity — phase-level only).
+
+### Phase naming (reviewer-specific)
+
+When the exec-plan has no P0.n label covering your work, use these reviewer-native phase tags:
+
+- `discovering` — locating the slice of code / diff in scope
+- `analyzing` — reading code, cross-checking design-docs and DEC entries
+- `classifying` — assigning Critical / Warning / Suggestion severities
+- `writing-review` — composing the review report (conversation or `{docs_root}/reviews/...`)
+
+If an exec-plan phase label (e.g. `P0.3`) fits, prefer it over the generic tags above.
+
+### Critical-finding ordering discipline (reviewer-specific)
+
+When a **Critical** severity issue is identified during `analyzing` or `classifying`, you MUST:
+
+1. First emit `phase_blocked` with `summary` set to `"Critical finding in <file:line>"` (or equivalent concrete pointer) — this surfaces the blocker to the orchestrator / user immediately.
+2. Then continue the standard flow: produce the review report (conversation or落盘 at `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` per the falloff rules above) and, if user / architect direction is needed, emit an `<escalation>` JSON block in the final message.
+
+Ordering matters: `phase_blocked` is the real-time signal; the review report and escalation are the structured hand-off. Do not invert the order (never write the report first while the user is blind to the Critical).
+
+This ordering discipline does NOT change the Critical / Warning / Suggestion severity criteria defined in the section above — it only governs when each signal is emitted.
+
+### Fallback on miss
+
+A skipped emit degrades silently (= current state, user sees nothing) — it is never an error. Prefer emitting slightly too few, high-signal events over emitting many noisy ones.
+
+### Orthogonality pointer
+
+Progress events travel via `{{progress_path}}` file + orchestrator `Monitor tail`. The `<escalation>` block and any `{docs_root}/reviews/` file travel via the Task final message / write. The three channels are independent and do not trigger each other. See DEC-004 for the full protocol definition.
+
+---
+
 ## 约束
 
 - **只读**：不修改任何代码

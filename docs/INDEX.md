@@ -43,20 +43,28 @@
 ### analyze
 
 - [parallel-research.md](analyze/parallel-research.md) — architect 派发 parallel research subagent 能力的对标调研（CrewAI / LangGraph / Claude Code sub-agents，12 事实层开放问题交 architect）
+- [subagent-progress-and-execution-model.md](analyze/subagent-progress-and-execution-model.md) — subagent 进度可见性 + 执行模型选择 5 路径对比（Claude Code/SDK/Monitor + CrewAI/AutoGen/LangGraph；8 事实层开放问题交 architect，解 issue #7）
 
 ### design-docs
 
 - [roundtable.md](design-docs/roundtable.md) — roundtable plugin 本身的完整设计（D1-D9 决策 + 量化评分 + §12 FAQ）
 - [parallel-research.md](design-docs/parallel-research.md) — architect skill 派发 parallel research subagent 的完整设计（7 条决策，DEC-003 锁定；触发条件 / 派发协议 / 返回 schema / 失败处理 / 并行安全论证）
+- [subagent-progress-and-execution-model.md](design-docs/subagent-progress-and-execution-model.md) — subagent progress 透传（P1 push）+ developer 双形态（inline \| subagent）设计，解 issue #7；DEC-004 + DEC-005 落定
 
 ### exec-plans
 
 - active/
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable 实施计划（P0-P6，6 天）
+  - [subagent-progress-and-execution-model-plan.md](exec-plans/active/subagent-progress-and-execution-model-plan.md) — issue #7 实施计划（10 phase：5 agent + 2 command + 1 template + 1 critical_modules 同步 + 1 lint & smoke；P0.1-P0.8 可两批并行）
 
 ### testing
 
 - [p4-self-consumption.md](testing/p4-self-consumption.md) — P4 自消耗闭环观察报告（gleanforge dogfood 实录：9 subagent 派发 / 3 次并行 / 242 tests / 3 条 top 改进 + 9 摩擦点 + 6 条工作良好设计）
+- [subagent-progress-and-execution-model.md](testing/subagent-progress-and-execution-model.md) — issue #7 P0.1-P0.10 对抗性测试（30+ case / 34 PASS + 4 FAIL + 18 WARN / 1 Critical escalation：Monitor jq pipe 被单行非 JSON 击穿）
+
+### reviews
+
+- [2026-04-19-subagent-progress-and-execution-model.md](reviews/2026-04-19-subagent-progress-and-execution-model.md) — issue #7 终审（Approved with caveats：0 Critical / 3 Warning / 4 Suggestion，5 DEC 对齐 + user north-star 满足度 85%）
 
 ## 主题 slug 约定
 

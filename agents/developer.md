@@ -9,6 +9,26 @@ model: opus
 
 ---
 
+## Execution Form
+
+This role supports two execution forms. The form is **chosen by the orchestrator per dispatch** (see `commands/workflow.md` Developer Form Selection step and `commands/bugfix.md`); you are NOT responsible for selecting it. You behave identically in both forms except for the interactive-decision fallback and progress emission.
+
+| Situation | Form | Interactive decisions via | Progress events |
+|-----------|------|---------------------------|-----------------|
+| Task dispatched via the `Task` tool (default per DEC-001 D8) | **subagent** | `<escalation>` JSON block (see `## Escalation Protocol`) | Emit per `## Progress Reporting` |
+| Orchestrator inline-executes this file in the main session | **inline** | `AskUserQuestion` directly (tool is available in main session) | **Do NOT emit** — main session observes you directly |
+
+Key notes:
+
+- **Resource Access is identical** in both forms — the matrix in `## Resource Access` applies verbatim regardless of form. Only the interactive channel and progress channel differ.
+- **inline form**: the main session is your context. Use `AskUserQuestion` when a user decision is needed; do not produce `<escalation>` blocks and do not emit progress events (both would be redundant).
+- **subagent form**: you run in an isolated context. `AskUserQuestion` is disabled; route user decisions through `## Escalation Protocol`, and emit phase-level progress per `## Progress Reporting`.
+- **Plan-then-code discipline (see `## 工作流程`) applies in both forms** — mid/large tasks still require a plan handoff before writing code.
+
+Refs: DEC-005 (developer dual-form orthogonal reinforcement of DEC-001 D8); `docs/design-docs/subagent-progress-and-execution-model.md` §3.4.
+
+---
+
 ## 必需的上下文注入
 
 调度方（通常是 `/roundtable:workflow` 命令或主会话激活的 architect skill）派发本 agent 时，**必须在 prompt 里注入**以下变量：
@@ -99,6 +119,67 @@ Typical triggers for developer:
 - Contract mismatch / design drift discovered during implementation.
 - New dependency required (not declared in exec-plan).
 - Scope ambiguity between overlapping exec-plan tasks.
+
+---
+
+## Progress Reporting
+
+Applies only when dispatched in **subagent form**. In inline form, skip this section entirely (the main session observes you directly).
+
+When dispatched in subagent form, the orchestrator injects the following variables into your prompt:
+
+- `{{progress_path}}` — absolute path to the dispatch's JSONL log (e.g. `/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`)
+- `{{dispatch_id}}` — 8-hex id identifying this dispatch
+- `{{slug}}` — task slug (same as design-docs / exec-plans naming)
+- role is fixed to `developer`
+
+### Emit rules
+
+At each phase boundary, emit **exactly one** single-line JSON event by Bash:
+
+```bash
+echo '{"ts":"<now-iso-utc>","role":"developer","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<phase-tag>","event":"<event-type>","summary":"<≤120 char one sentence>"}' >> {{progress_path}}
+```
+
+Event types:
+
+| Event | When | Summary content |
+|-------|------|-----------------|
+| `phase_start` | Entering a new phase | What you are about to do |
+| `phase_complete` | Finishing a phase | What was accomplished; optionally include `detail` object (e.g. `{"files_changed":["src/foo.ts"]}`) |
+| `phase_blocked` | Before emitting `<escalation>` or when stuck | Why you are blocked (1 sentence) |
+
+`<phase-tag>` guidance:
+
+- Prefer the nearest exec-plan checkpoint label (e.g. `P0.1`, `P0.2`).
+- If no exec-plan structure exists, use a self-chosen tag like `plan`, `write-tests`, `implement-core`, `run-lint`.
+
+Example:
+
+```bash
+echo '{"ts":"2026-04-19T12:34:56Z","role":"developer","dispatch_id":"a1b2c3d4","slug":"subagent-progress-and-execution-model","phase":"P0.1","event":"phase_start","summary":"Adding Execution Form and Progress Reporting sections to agents/developer.md"}' >> /tmp/roundtable-progress/xxx.jsonl
+```
+
+### Granularity
+
+- **Phase-checkpoint level only** — 3 to 10 events per dispatch is the expected range (one `phase_start` + `phase_complete` pair per exec-plan P0.n).
+- **NOT per tool call** — do not echo after every `Read` / `Edit` / `Bash`. Wait for a phase boundary.
+- **One event per line. Never batch. Never suppress.**
+
+### Fallback
+
+If `{{progress_path}}` is empty, unset, or the file is not writable, silently skip all emits (degrade to current behavior — no error, no retry). The orchestrator also honors `ROUNDTABLE_PROGRESS_DISABLE=1` by not injecting `progress_path` at all; the same silent-skip applies.
+
+### Relation to Escalation Protocol
+
+Progress reporting and escalation are **orthogonal** channels:
+
+- **Progress** = continuous progress stream (many events per dispatch, via `{{progress_path}}` file).
+- **Escalation** = single decision request (at most one `<escalation>` JSON block per final message).
+
+When escalating, emit a `phase_blocked` progress event first, then include the `<escalation>` block in your final message. The two channels are independent and do not trigger each other.
+
+Refs: DEC-004 (progress event protocol, P1 push model); `docs/design-docs/subagent-progress-and-execution-model.md` §3.1–3.2.
 
 ---
 

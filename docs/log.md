@@ -38,6 +38,36 @@
 
 ---
 
+## review | subagent-progress-and-execution-model | 2026-04-19
+- 操作者: reviewer subagent (critical_modules 4+2 项全触发 → 必落盘)
+- 影响文件: docs/reviews/2026-04-19-subagent-progress-and-execution-model.md（新建）
+- 说明: 终审结论 Approved with caveats（0 Critical / 3 Warning / 4 Suggestion，非阻塞）。Critical 已在上轮修复且 reviewer 独立 jq 语义复验通过；3 Warning：W-R1 workflow.md §6b.2 示例两 recommended 违反 Option Schema / W-R2 bugfix.md §规则 2 `developer_form_default` 处理 inline 非对称 / W-R3 5 agent Bash emit 缺空值守卫。5 DEC 对齐 compliance: D2 ✓ / D8 ✓（正交补强不破）/ DEC-002 1 处示例违例（W-R1）/ DEC-003 ✓ / DEC-004 schema 一致性 ✓ / DEC-005 三级切换正确但 bugfix 不对称（W-R2）。user north-star 满足度 85%（实时感知 / 判断活着 / 关键点介入 / opt-out 均 High；判断卡住/快完了依赖 subagent 自觉 — push 模型固有）
+
+## fix | subagent-progress-and-execution-model Critical | 2026-04-19
+- 操作者: developer (inline 档，主会话执行)
+- 影响文件: commands/workflow.md (§3.5.3 jq 模板 + 鲁棒性 Notes), commands/bugfix.md (§Step 0.5 inline jq 模板), docs/design-docs/subagent-progress-and-execution-model.md (§3.3 + §3.6 变更记录)
+- 说明: 按用户裁决修 tester 标记的 Critical bug —— Monitor jq pipe 被单行非 JSON 击穿。`jq --unbuffered -c 'select(.event) | ...'` → `jq -R --unbuffered -c 'fromjson? | select(.event) | ...'`（-R 读 raw string，fromjson? 带问号 try-parse 在坏行时 silently no-op）；smoke 复验 3 合规 + 2 坏行 → 3 合规全过 exit 0；lint 0 命中
+
+## test-plan | subagent-progress-and-execution-model | 2026-04-19
+- 操作者: tester subagent (critical_modules 4 项全触发)
+- 影响文件: docs/testing/subagent-progress-and-execution-model.md（新建）
+- 说明: 对 issue #7 P0.1-P0.10 实施做对抗性测试；30+ case 覆盖 6 维度（JSON schema / Monitor 启动 / form 切换 / 正交性 / Phase Matrix / lint+smoke）；34 PASS / 4 FAIL / 18 WARN；发现 1 Critical（Monitor jq pipe 被单行非 JSON 击穿，后续 event 永久丢失）+ 5 Warning；产出 1 `<escalation>` 等待用户决策
+
+## impl | subagent-progress-and-execution-model | 2026-04-19
+- 操作者: 5× developer subagent (P0.1-P0.8 两批 4+4 并行) + orchestrator inline (P0.9-P0.10)
+- 影响文件: agents/developer.md, agents/tester.md, agents/reviewer.md, agents/dba.md, agents/research.md, commands/workflow.md, commands/bugfix.md, docs/claude-md-template.md, CLAUDE.md, docs/exec-plans/active/subagent-progress-and-execution-model-plan.md（10 个 checkbox 全勾）
+- 说明: issue #7 P0.1-P0.10 实施完成；lint 0 命中（regex 修正）；smoke 测试通过（3 event 过 jq 过滤格式对齐设计文档 §3.3）；progress + execution-model 机制已就绪待 tester 对抗测试
+
+## design | subagent-progress-and-execution-model | 2026-04-19
+- 操作者: architect (inline, 本会话) + Claude (orchestrator)
+- 影响文件: docs/design-docs/subagent-progress-and-execution-model.md（新建）, docs/exec-plans/active/subagent-progress-and-execution-model-plan.md（新建）, docs/decision-log.md（+DEC-004 progress protocol +DEC-005 developer 双形态）
+- 说明: 7 决策落定 —— 范围 A+B 合并 / developer 双形态（其他三角色仅 subagent）/ P1 push 模型 / phase checkpoint 颗粒度 / plugin 元协议 / 全部默认开启 / DEC-001 D8 正交补强；解 issue #7；exec-plan 10 phase 两批并行（P0.1-P0.8 4+4，P0.9-P0.10 串行）
+
+## analyze | subagent-progress-and-execution-model | 2026-04-19
+- 操作者: analyst (inline, 本会话执行)
+- 影响文件: docs/analyze/subagent-progress-and-execution-model.md
+- 说明: 对标 Claude Code subagent / Agent SDK / Monitor / transcript + CrewAI / AutoGen / LangGraph；列 6 条技术路径 + 8 条事实层开放问题交 architect；解 issue #7（subagent 进度可见性 + 执行模型可选配）
+
 ## design | parallel-research | 2026-04-19
 - 操作者: architect (inline, 本会话) + Claude (orchestrator)
 - 影响文件: docs/design-docs/parallel-research.md（新建）, docs/decision-log.md（+DEC-003）, skills/architect.md（§阶段 1 插入 3.5 Research Fan-out 子步骤）, agents/research.md（新建）

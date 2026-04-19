@@ -112,6 +112,73 @@ Architect either re-dispatches with the narrower scope or removes the option fro
 
 ---
 
+## Progress Reporting
+
+The orchestrator (architect skill) injects `{{progress_path}}`, `{{dispatch_id}}`, and `{{slug}}` into your dispatch prompt; your `role` field is always `research`. At each phase boundary, emit ONE single-line JSON event to `{{progress_path}}` before continuing work. `{{slug}}` here is the architectural-decision slug the dispatch belongs to (same slug architect uses for the design-doc being drafted), NOT the `option_label` under research — the `option_label` belongs in the `summary` string so users watching the Monitor stream can tell parallel research workers apart.
+
+### Event types
+
+Three events, emitted via `Bash echo '<json>' >> {{progress_path}}`:
+
+- **`phase_start`** — on entering a phase:
+  ```
+  echo '{"ts":"<now-iso-utc>","role":"research","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_start","summary":"<≤120 char 1-sentence; include option_label so parallel workers are distinguishable>"}' >> {{progress_path}}
+  ```
+- **`phase_complete`** — on finishing a phase; optionally add `detail` (e.g. `{"sources_fetched": N, "facts_collected": M}`):
+  ```
+  echo '{"ts":"<now-iso-utc>","role":"research","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_complete","summary":"<what just finished for this option_label>","detail":{"sources_fetched":N}}' >> {{progress_path}}
+  ```
+- **`phase_blocked`** — on hitting a blocker, BEFORE writing a `<research-abort>` block in the final message:
+  ```
+  echo '{"ts":"<now-iso-utc>","role":"research","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_blocked","summary":"<why blocked, one sentence; mention abort-reason category>"}' >> {{progress_path}}
+  ```
+
+Emit ONE line per event. Never batch multiple events into a single echo. Never suppress.
+
+### Research-specific phase names
+
+Research dispatches are short-lived (single-option, typically < 3 phases) and almost never map to an exec-plan `P0.n` checkpoint. Use these research-lifecycle phase tags:
+
+- `scope-received` — scope + injection variables validated; about to begin external / codebase investigation
+- `sources-fetched` — WebFetch / WebSearch / codebase Grep rounds done; facts collected but not yet structured
+- `synthesis` — filtering opinions, assembling `key_facts` / `tradeoffs` / `unknowns` for the `<research-result>` JSON
+
+A well-behaved dispatch emits roughly 3 `phase_start` + 3 `phase_complete` events (6 total). Abort paths emit one `phase_blocked` instead of the remaining `phase_complete` events.
+
+### Orthogonality with DEC-003 final-message channels
+
+Progress reporting and the DEC-003 result / abort channels are **orthogonal** — they travel on independent paths and do NOT substitute for each other:
+
+| Channel | Carrier | Cardinality per dispatch | Purpose |
+|---------|---------|-------------------------|---------|
+| Progress (DEC-004) | `{{progress_path}}` JSONL temp file | many (3–6 typical) | Phase-level progress transit so the user sees the research worker is alive and advancing |
+| `<research-result>` (DEC-003) | Final message JSON block | exactly 1 (success path) | Factual receipt: `key_facts` / `tradeoffs` / `unknowns` / `recommend_for: null` |
+| `<research-abort>` (DEC-003) | Final message JSON block | exactly 1 (abort path) | Structured abort feedback for architect re-dispatch |
+
+Progress events are a **transit stream** (many lines, ephemeral); `<research-result>` / `<research-abort>` are the **fact-of-record** (single block, consumed by architect synthesis). Emitting progress does NOT relieve you of returning exactly one result-or-abort block in the final message, and emitting a result-or-abort block does NOT relieve you of progress events during the run.
+
+### Parallel-dispatch safety
+
+Architect may fan out up to 4 research subagents in one message (DEC-003 §扇出硬上限). Each parallel dispatch has:
+
+- **Independent `dispatch_id`** (8-hex, generated per-dispatch by orchestrator)
+- **Independent `progress_path`** (`/tmp/roundtable-progress/<session_id>-<dispatch_id>.jsonl`; disjoint filename per dispatch)
+- **Independent `option_label`** (each worker investigates ONE option)
+
+Therefore progress events from parallel research workers are **naturally race-free**: no shared file, no shared lock, no shared channel. The orchestrator's Monitor tail processes per-file events independently and de-multiplexes by `dispatch_id` when relaying to the user. You do NOT need to coordinate with sibling research workers and MUST NOT assume anything about their state.
+
+### Granularity
+
+Phase-level, NOT tool-level. Do not emit after every `WebFetch` / `Grep` / `Read`; a single phase may span multiple such calls. Expected density: 3–6 events per dispatch (lower than developer/tester because research is short-lived).
+
+### Fallback
+
+If `{{progress_path}}` is empty, unset, or the injection is missing entirely, silently skip all emit calls — continue the task normally. Missing progress is a degraded (not failed) state; the `<research-result>` / `<research-abort>` final-message contract remains unchanged.
+
+Refs: DEC-004 (progress event protocol, P1 push model); DEC-003 (architect → parallel research subagent fan-out); `docs/design-docs/subagent-progress-and-execution-model.md` §3.1–3.7 (schema, emit convention, orthogonality matrix, parallel-dispatch four conditions).
+
+---
+
 ## 约束
 
 - **单 option 专注**：每个 research worker 只针对注入的 `option_label` 调研，不越界对比其他 options（对比是 architect 合成时做）

@@ -27,6 +27,24 @@ When later dispatching `developer` / `tester` / `reviewer` / `dba` agents, injec
 
 ---
 
+## Step 0.5: Progress Monitor Setup
+
+**See `commands/workflow.md` §Progress Monitor Setup for the full template.** The bugfix command reuses the same mechanism with the following deltas:
+
+1. **Default fan-out is narrower**: bugfix typically dispatches only ONE developer subagent (plus an optional reviewer / dba / tester). Run the Monitor setup per dispatch — one `dispatch_id` + one `progress_path` per subagent.
+2. **Opt-out env**: `ROUNDTABLE_PROGRESS_DISABLE=1` suppresses Monitor startup + progress injection, identical to workflow semantics.
+3. **Per-dispatch Bash (run before every `Task` call)** — identical to the workflow template:
+   - Generate `DISPATCH_ID=$(openssl rand -hex 4)`
+   - Derive `PROGRESS_PATH=/tmp/roundtable-progress/${SESSION_ID}-${DISPATCH_ID}.jsonl` (with `SESSION_ID=${CLAUDE_SESSION_ID:-$(date +%s)-$$}`)
+   - `mkdir -p` + `touch` the file
+   - Launch `Monitor` with `tail -F "$PROGRESS_PATH" 2>/dev/null | jq -R --unbuffered -c 'fromjson? | select(.event) | "[" + .phase + "] " + .role + " " + .event + " — " + .summary'`（`-R` + `fromjson?` makes the pipe tolerant to malformed lines; without them a single bad line kills Monitor and loses all later events — see `commands/workflow.md` §3.5.3 Notes + `docs/testing/subagent-progress-and-execution-model.md` Case 1.2）
+4. **Inject 4 variables** (`progress_path`, `dispatch_id`, `slug`, `role`) into the `developer` / `tester` / `reviewer` / `dba` Task prompt. The subagent's `## Progress Reporting` section consumes them.
+5. Relay each Monitor notification to the user in real time with the `[<phase>] <role> <event> — <summary>` format (DEC-004).
+
+If the user has no `developer_form_default` preference and the bugfix runs inline (see Step 3 Developer Form Selection below), **skip Monitor setup for the inline branch** — the main session observes the developer directly, no progress emit is produced.
+
+---
+
 ## 步骤 1：定位问题
 
 1. 如有 GitHub Issue 编号，用 `gh issue view <n>` 读取 Issue 描述和复现步骤
@@ -42,9 +60,29 @@ When later dispatching `developer` / `tester` / `reviewer` / `dba` agents, injec
 
 ## 步骤 3：Fix + 回归测试
 
-派发 `@roundtable:developer` agent 实施修复，派发 prompt 里注入：
+### Developer Form Selection (bugfix defaults)
+
+Bugfix tasks are typically small (single bug hotfix, 1–2 files), so **the bugfix command biases toward `inline` form** — the opposite default from `/roundtable:workflow`. Selection rules, applied in priority order:
+
+1. **Explicit user declaration** (per-session): if the bug description contains `@roundtable:developer inline` or `@roundtable:developer subagent`, honor it.
+2. **Target CLAUDE.md preference**: if `target_project` CLAUDE.md `# 多角色工作流配置` declares `developer_form_default: subagent`, respect the project's declaration (overrides the bugfix inline-bias default).
+3. **Task-shape heuristic → AskUserQuestion**: if neither 1 nor 2 decides, invoke `AskUserQuestion` with options carrying `rationale` + `tradeoff` + `recommended` per the architect Option Schema:
+   - Clearly small bug (single file + simple logic, narrow blast radius) → `inline` = **recommended** (main session sees every step, AskUserQuestion available, zero subagent boundary)
+   - Bug spans multiple modules OR requires a broad refactor to fix cleanly → `subagent` = **recommended** (context isolation, avoids polluting main session with large reads, progress relayed via Monitor)
+   - If the bug is clearly of one shape, present both options but only mark one as `recommended`.
+
+The 3-tier switching mechanism (user declaration > CLAUDE.md > AskUserQuestion) is identical to `/roundtable:workflow` §Developer Form Selection; see that section and `docs/design-docs/subagent-progress-and-execution-model.md` §3.4 for the complete rules. Only the **default bias** differs between the two commands.
+
+**Form → dispatch path**:
+- `inline`: the orchestrator reads `agents/developer.md` and executes its prompt in the main session (same mechanism as architect / analyst inline execution). `AskUserQuestion` is directly available. No progress emit. Skip the Monitor setup above for this branch.
+- `subagent`: dispatch via `Task` tool with the full progress injection per Step 0.5 (`progress_path` / `dispatch_id` / `slug` / `role`).
+
+### Dispatch contract
+
+派发 `@roundtable:developer` 实施修复（inline 或 subagent 形态，按上述规则选），派发 prompt 里注入：
 - target_project / docs_root / lint_cmd / test_cmd
 - bug 描述 / 根因分析
+- subagent 形态：额外注入 `progress_path` / `dispatch_id` / `slug` / `role`（per Step 0.5）
 - 明确要求：**必须补充回归测试**，确保同类 bug 不再出现
 - 明确要求：Fix 不附带无关重构
 
@@ -60,6 +98,8 @@ developer 完成后：
 - 若涉及数据库 schema / migration / SQL 变更，派发 `@roundtable:dba` agent 审查
 - Bug fix **默认不触发** tester（developer 已补回归测试）
 - 仅当 bug 暴露出"边界条件未覆盖"类问题且涉及关键模块时，才补充调用 tester 加强对抗性测试
+
+每次派发 reviewer / dba / tester subagent 前，按 Step 0.5 的模板重新生成 `dispatch_id` + `progress_path` 并启 Monitor；progress 变量注入到各自 Task prompt 里。
 
 ---
 
