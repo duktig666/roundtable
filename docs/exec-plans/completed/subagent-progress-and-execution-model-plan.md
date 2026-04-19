@@ -2,8 +2,9 @@
 slug: subagent-progress-and-execution-model
 source: design-docs/subagent-progress-and-execution-model.md
 created: 2026-04-19
-status: Active
-decisions: [DEC-004, DEC-005]
+completed: 2026-04-19
+status: Completed
+decisions: [DEC-004, DEC-005, DEC-008]
 issue: https://github.com/duktig666/roundtable/issues/7
 ---
 

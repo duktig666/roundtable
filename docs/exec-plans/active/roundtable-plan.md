@@ -68,24 +68,24 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 
 ### 任务清单
 
-- [ ] `plugin.json` 保持**无 userConfig 字段**（D2 B-0 决策）
-- [ ] 写 `skills/_target-project-detect.md`（共享 skill，供 architect / analyst 等调用）
+- [x] `plugin.json` 保持**无 userConfig 字段**（D2 B-0 决策）
+- [x] 写 `skills/_target-project-detect.md`（共享 skill，供 architect / analyst 等调用）—— 实际落盘为 `skills/_detect-project-context.md`（2026-04-17 refactor 改名，见 log.md）
   - 实现 D9 算法：session 记忆 → `git rev-parse` → 候选池扫描 → 任务描述正则匹配 → AskUserQuestion 兜底
   - 实现工具链检测：扫 `target_project` 根的 `Cargo.toml` / `package.json` / `pyproject.toml` / `go.mod` / `Move.toml`
   - 实现文档路径检测：`docs/` → `documentation/` → AskUserQuestion
   - 返回结构化结果给上层 skill 使用
-- [ ] 写 `skills/architect.md`
+- [x] 写 `skills/architect.md`
   - frontmatter：`name: architect`，**不声明 `tools`**（skill 自动继承主会话工具，含 AskUserQuestion）
   - 开工第一件事：调用 `_target-project-detect` 拿到 target_project 和工具链
   - 路径占位符：`{target_project}/{docs_root}/design-docs/[slug].md`
   - 约束：业务规则 / 设计参考 / critical_modules 一律从 `target_project/CLAUDE.md` 的「# 多角色工作流配置」section 读取，skill prompt 里不含任何语言 / 业务 / 项目特定术语
   - 保留三阶段工作流（探索 → 决策弹窗 → 落盘 → 用户审阅 → 按需 exec-plan）
   - 保留 AskUserQuestion 强制规则（决策点必须弹窗，不得文字提问）
-- [ ] 写 `commands/workflow.md`
+- [x] 写 `commands/workflow.md`
   - 编排逻辑区分两种派发：interactive role 通过 Skill 工具激活；autonomous role 通过 Task 工具派发
   - P1 阶段仅实现到 architect skill 激活；后续 developer/tester 派发在 P2 补齐
   - 所有技术栈判断委托给 `_target-project-detect` skill
-- [ ] 本地开发验收（两种启动方式都测）
+- [x] 本地开发验收（两种启动方式都测）
   - **方式 A**：从 workspace 根目录启动（非 git）
     - `cd <workspace> && claude --plugin-dir <workspace>/roundtable`
     - 触发 `/roundtable:workflow 设计 <project> 的 <topic>`
@@ -165,7 +165,7 @@ P1 开工前，已将原型实现（成熟的本地多角色 agent 定义）从 
 - [x] 写 `examples/ts-frontend-snippet.md`（TS + React 前端，89 行）
 - [x] 写 `examples/python-datapipeline-snippet.md`（Python 数据管道 / ML，93 行）
 - [x] 更新 `docs/INDEX.md`（把 P3 新文件链上）
-- [ ] 完善 README：Quick Start、各角色简介、常见问题、链接到 design.md / onboarding.md（README 已在 P0 完成并已含 Quick Start / 角色表；P3 不需要再改）
+- [x] 完善 README：Quick Start、各角色简介、常见问题、链接到 design.md / onboarding.md（README 已在 P0 完成并已含 Quick Start / 角色表；P3 不需要再改）
 
 ### 成功信号
 - [x] README 里的安装命令直接复制粘贴能用

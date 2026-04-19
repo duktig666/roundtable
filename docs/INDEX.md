@@ -64,11 +64,11 @@
 ### exec-plans
 
 - active/
-  - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable 实施计划（P0-P6，6 天）
-  - [subagent-progress-and-execution-model-plan.md](exec-plans/active/subagent-progress-and-execution-model-plan.md) — issue #7 实施计划（10 phase：5 agent + 2 command + 1 template + 1 critical_modules 同步 + 1 lint & smoke；P0.1-P0.8 可两批并行）
-  - [progress-content-policy-plan.md](exec-plans/active/progress-content-policy-plan.md) — issue #14 实施计划（P0.1-P0.4：shared helper + 4 agent 引用 + workflow awk collapse + lint/dogfood）
+  - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
 - completed/
-  - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构实施（P0.1-P0.7 全部完成；DEC-009 Accepted；净省 ~590 行 21-22%；lint 0 命中）
+  - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构（DEC-009 + DEC-010 Accepted；tree 2708→1672 / -38%；PR #17 merged）
+  - [subagent-progress-and-execution-model-plan.md](exec-plans/completed/subagent-progress-and-execution-model-plan.md) — issue #7 + DEC-004/005/008（26 checkbox 全勾；PR #16 merged）
+  - [progress-content-policy-plan.md](exec-plans/completed/progress-content-policy-plan.md) — issue #14 DEC-007（P0.1-P0.4 完成；PR #16 merged；归档时补勾 18 checkbox）
 
 ### testing
 

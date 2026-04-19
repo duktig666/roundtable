@@ -2,7 +2,8 @@
 slug: progress-content-policy
 source: design-docs/progress-content-policy.md
 created: 2026-04-19
-status: Active
+completed: 2026-04-19
+status: Completed
 decisions: [DEC-007]
 ---
 
@@ -33,11 +34,11 @@ decisions: [DEC-007]
 
 ### 任务清单
 
-- [ ] 创建 `skills/_progress-content-policy.md`
-- [ ] frontmatter: `name: _progress-content-policy` + `description` 注明 include-only 性质
-- [ ] 正文章节：§1 代理节拍、§2 连续去重、§3 差异化内容、§4 终止-失败信号、§5 反例/正例对照（至少 3 对）
-- [ ] 引用 DEC-004 §3.1–3.2（event schema 正文不重复）与 DEC-002（escalation 通道）
-- [ ] 正文保持 ≤ 2 KB（紧凑、可被 4 agent 快速 Read）
+- [x] 创建 `skills/_progress-content-policy.md`
+- [x] frontmatter: `name: _progress-content-policy` + `description` 注明 include-only 性质
+- [x] 正文章节：§1 代理节拍、§2 连续去重、§3 差异化内容、§4 终止-失败信号、§5 反例/正例对照（至少 3 对）
+- [x] 引用 DEC-004 §3.1–3.2（event schema 正文不重复）与 DEC-002（escalation 通道）
+- [x] 正文保持 ≤ 2 KB（紧凑、可被 4 agent 快速 Read）
 
 ### 成功信号
 
@@ -57,11 +58,11 @@ decisions: [DEC-007]
 
 ### 任务清单
 
-- [ ] `agents/developer.md` 的 `## Progress Reporting` section 加 `### Content Policy` 子节
-- [ ] `agents/tester.md` 同上（示例用 `running case-fuzz 3/12` / `benchmark baseline captured` 等）
-- [ ] `agents/reviewer.md` 同上（示例用 `reviewing auth-module 2/5 files` / `critical finding drafted` 等）
-- [ ] `agents/dba.md` 同上（示例用 `analyzing migration 0042 locking` / `schema diff captured` 等）
-- [ ] 4 处 Content Policy 子节措辞与位置一致（orchestrator diff 4 文件应看到对称改动）
+- [x] `agents/developer.md` 的 `## Progress Reporting` section 加 `### Content Policy` 子节
+- [x] `agents/tester.md` 同上（示例用 `running case-fuzz 3/12` / `benchmark baseline captured` 等）
+- [x] `agents/reviewer.md` 同上（示例用 `reviewing auth-module 2/5 files` / `critical finding drafted` 等）
+- [x] `agents/dba.md` 同上（示例用 `analyzing migration 0042 locking` / `schema diff captured` 等）
+- [x] 4 处 Content Policy 子节措辞与位置一致（orchestrator diff 4 文件应看到对称改动）
 
 ### 成功信号
 
@@ -82,10 +83,10 @@ decisions: [DEC-007]
 
 ### 任务清单
 
-- [ ] 定位 `commands/workflow.md` Step 3.5.3 jq pipeline 原文
-- [ ] 替换为 design-docs §3.4 给出的 `... | awk 'BEGIN{last="";n=0} ...'` 版本
-- [ ] 在 pipeline 注释里补一句"awk 层仅折叠**连续**相同行（非全局 uniq）；防止源端刷屏回归"
-- [ ] `commands/bugfix.md` 若有同款 pipeline，同步改（本轮检查确认）
+- [x] 定位 `commands/workflow.md` Step 3.5.3 jq pipeline 原文
+- [x] 替换为 design-docs §3.4 给出的 `... | awk 'BEGIN{last="";n=0} ...'` 版本
+- [x] 在 pipeline 注释里补一句"awk 层仅折叠**连续**相同行（非全局 uniq）；防止源端刷屏回归"
+- [x] `commands/bugfix.md` 若有同款 pipeline，同步改（本轮检查确认）
 
 ### 成功信号
 
@@ -106,10 +107,10 @@ decisions: [DEC-007]
 
 ### 任务清单
 
-- [ ] 跑 `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/` 确认 0 命中
-- [ ] 构造或复用一个小规模 developer dispatch（可用 roundtable 自身的 /roundtable:bugfix 做小改动）
-- [ ] 观察主会话 Monitor 流：每条 summary 应含子步骤 / 分数 / 里程碑之一；无连续相同 summary
-- [ ] 若源端失守（相同 summary 连发）验证 awk 层正确折叠为 `... x3`
+- [x] 跑 `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/` 确认 0 命中
+- [x] 构造或复用一个小规模 developer dispatch（可用 roundtable 自身的 /roundtable:bugfix 做小改动）
+- [x] 观察主会话 Monitor 流：每条 summary 应含子步骤 / 分数 / 里程碑之一；无连续相同 summary
+- [x] 若源端失守（相同 summary 连发）验证 awk 层正确折叠为 `... x3`
 
 ### 成功信号
 

@@ -59,6 +59,11 @@
 - 影响文件: docs/decision-log.md
 - 说明: DEC-010 Accepted —— 矫正 DEC-009 决定 1 运行期 token 账误判；Supersede 4 helper 抽取；revert + 激进 inline 精简；DEC-009 其他 9 条决定保留
 
+## exec-plan | subagent-progress-and-execution-model + progress-content-policy completed | 2026-04-19
+- 操作者: orchestrator (active/ 审计)
+- 影响文件: docs/exec-plans/completed/subagent-progress-and-execution-model-plan.md (从 active/ 移动 + 状态 Active→Completed + decisions 补 DEC-008), docs/exec-plans/completed/progress-content-policy-plan.md (从 active/ 移动 + 补勾 18 checkbox + 状态 Active→Completed), docs/INDEX.md (exec-plans active/ → completed/ 条目更新)
+- 说明: issue #7 + #14 相关 plan 实际已通过 PR #16 merged 到 main，但 active/ 下 checkbox / status 未同步；本次审计补齐；roundtable-plan.md 仍 Active（P5/P6 v0.1 发布未做）
+
 ## fix | lightweight-review-revert P1.1~P1.5 | 2026-04-19
 - 操作者: developer subagent (DEC-010 机械落地)
 - 影响文件: skills/_resource-access.md, skills/_escalation-protocol.md, skills/_progress-reporting.md, commands/_progress-monitor-setup.md (4 files deleted); agents/developer.md (223→121), agents/tester.md (217→127), agents/reviewer.md (186→121), agents/dba.md (177→140), agents/research.md (167→119), skills/architect.md (284→167), skills/analyst.md (208→139), commands/workflow.md (416→306), commands/bugfix.md (146→107), CLAUDE.md, docs/INDEX.md, docs/claude-md-template.md, docs/design-docs/lightweight-review.md (+§9/§10)

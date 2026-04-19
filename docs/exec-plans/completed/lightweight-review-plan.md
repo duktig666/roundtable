@@ -2,9 +2,10 @@
 slug: lightweight-review
 source: design-docs/lightweight-review.md
 created: 2026-04-19
-status: Active
-decisions: [DEC-009]
-description: issue #9 轻量化重构执行计划（P0.1-P0.6，6 phase）
+completed: 2026-04-19
+status: Completed
+decisions: [DEC-009, DEC-010]
+description: issue #9 轻量化重构执行计划（P0.1-P0.7 完成 + DEC-010 revert 二轮 P1.1-P1.5）
 ---
 
 # 轻量化重构 执行计划
@@ -44,10 +45,10 @@ description: issue #9 轻量化重构执行计划（P0.1-P0.6，6 phase）
 抽取 DEC-002 / DEC-004 / DEC-007 在各 agent 的重复块为 4 个独立 `_*.md` 文件。
 
 ### 任务清单
-- [ ] 新建 `skills/_resource-access.md`：frontmatter + 引言 + 通用表头 + 末尾 git 段 + role-specific rows 示例
-- [ ] 新建 `skills/_escalation-protocol.md`：引言 + JSON schema body + 通用规则（2+ options / ≤1 recommended / 每派发最多 1 block）+ Escalation vs Abort 段
-- [ ] 新建 `skills/_progress-reporting.md`：注入变量段 + 3 种 event emit 模板 + Granularity 段 + Content Policy ref + Fallback + 与 Escalation 正交段
-- [ ] 新建 `commands/_progress-monitor-setup.md`：Bash 准备段 + Monitor jq pipeline（含 `-R fromjson?` 容错说明）+ 4 变量注入表 + 生命周期 + 并行安全性
+- [x] 新建 `skills/_resource-access.md`：frontmatter + 引言 + 通用表头 + 末尾 git 段 + role-specific rows 示例
+- [x] 新建 `skills/_escalation-protocol.md`：引言 + JSON schema body + 通用规则（2+ options / ≤1 recommended / 每派发最多 1 block）+ Escalation vs Abort 段
+- [x] 新建 `skills/_progress-reporting.md`：注入变量段 + 3 种 event emit 模板 + Granularity 段 + Content Policy ref + Fallback + 与 Escalation 正交段
+- [x] 新建 `commands/_progress-monitor-setup.md`：Bash 准备段 + Monitor jq pipeline（含 `-R fromjson?` 容错说明）+ 4 变量注入表 + 生命周期 + 并行安全性
 
 ### 成功信号
 - 4 个新文件通过 `head -10` 全部带 `_` 前缀 frontmatter
@@ -64,13 +65,13 @@ description: issue #9 轻量化重构执行计划（P0.1-P0.6，6 phase）
 按 DEC-009 §2.1 表格把 `## Resource Access` / `## Escalation Protocol` / `## Progress Reporting` 改写为 ref + role-specific 残余；`## 完成后` 的 log.md append 模板删除。
 
 ### 任务清单
-- [ ] `agents/developer.md`：3 段 retrofit + log.md append 段删（保留 exec-plan 移到 completed/ 的行为描述但不写模板）
-- [ ] `agents/tester.md`：同上 + 保留 Ordering discipline
-- [ ] `agents/reviewer.md`：同上 + 保留 Critical-finding ordering
-- [ ] `agents/dba.md`：同上
-- [ ] `agents/research.md`：Resource Access ref；研究专属 Abort Criteria 保留（不纳入 _escalation-protocol.md）；Progress Reporting 段删除（research 不 emit）
-- [ ] `skills/analyst.md`：Resource Access ref；AskUserQuestion Option Schema 保留；log append 段删
-- [ ] `skills/architect.md`：同上；Research Fan-out 段保留；log append 段删
+- [x] `agents/developer.md`：3 段 retrofit + log.md append 段删（保留 exec-plan 移到 completed/ 的行为描述但不写模板）
+- [x] `agents/tester.md`：同上 + 保留 Ordering discipline
+- [x] `agents/reviewer.md`：同上 + 保留 Critical-finding ordering
+- [x] `agents/dba.md`：同上
+- [x] `agents/research.md`：Resource Access ref；研究专属 Abort Criteria 保留（不纳入 _escalation-protocol.md）；Progress Reporting 段删除（research 不 emit）
+- [x] `skills/analyst.md`：Resource Access ref；AskUserQuestion Option Schema 保留；log append 段删
+- [x] `skills/architect.md`：同上；Research Fan-out 段保留；log append 段删
 
 ### 成功信号
 - 7 文件总行数对比 P0.1 前下降 ≥ 350 行（占原 agent/skill ~1800 行的 ≥ 19%）
@@ -89,10 +90,10 @@ description: issue #9 轻量化重构执行计划（P0.1-P0.6，6 phase）
 - bugfix.md 同步（Step 0.5 ref + 小型 log flush 条款）
 
 ### 任务清单
-- [ ] 把 Step 3.5.2~3.5.6 完整内容搬到 `commands/_progress-monitor-setup.md`
-- [ ] 改写 workflow.md Step 3.5：保留 §3.5.0 前台/后台 gate、§3.5.1 env opt-out、§3.5.2 "执行"ref
-- [ ] 新增 workflow.md Step 8 log.md Batching（含 Collect / Merge / Edit 三小节 + 3 flush 触发点）
-- [ ] bugfix.md Step 0.5 改 ref；bugfix 流程加一行 "Step 8 同 workflow.md" 引用
+- [x] 把 Step 3.5.2~3.5.6 完整内容搬到 `commands/_progress-monitor-setup.md`
+- [x] 改写 workflow.md Step 3.5：保留 §3.5.0 前台/后台 gate、§3.5.1 env opt-out、§3.5.2 "执行"ref
+- [x] 新增 workflow.md Step 8 log.md Batching（含 Collect / Merge / Edit 三小节 + 3 flush 触发点）
+- [x] bugfix.md Step 0.5 改 ref；bugfix 流程加一行 "Step 8 同 workflow.md" 引用
 
 ### 成功信号
 - workflow.md 行数 437 → ≤ 360（省 ~80）
@@ -109,11 +110,11 @@ description: issue #9 轻量化重构执行计划（P0.1-P0.6，6 phase）
 README §设计原则 扩至 7 条并融入 issue §D；删 §致谢/§贡献/§许可证；CLAUDE.md §设计参考 全删 + §critical_modules 首条扩写；claude-md-template.md 同步；log.md 头部"合并原则" 更新。
 
 ### 任务清单
-- [ ] README.md：改写 §设计原则（7 条，融入 a/b/c/d/e）；删除 §致谢 / §贡献 / §许可证 三节
-- [ ] CLAUDE.md：删 §设计参考 整段；§critical_modules 第 1 条扩写含 `_*.md` helper
-- [ ] docs/claude-md-template.md：§critical_modules 示例同步
-- [ ] docs/log.md：头部"合并原则" 改为 "orchestrator 按 Step 8 同 agent 同轮合并；agent 不直接写 log"；前缀规范表不变
-- [ ] docs/INDEX.md：新增 skills/ 与 commands/ 的 `_*.md` helper 清单（避免误激活）
+- [x] README.md：改写 §设计原则（7 条，融入 a/b/c/d/e）；删除 §致谢 / §贡献 / §许可证 三节
+- [x] CLAUDE.md：删 §设计参考 整段；§critical_modules 第 1 条扩写含 `_*.md` helper
+- [x] docs/claude-md-template.md：§critical_modules 示例同步
+- [x] docs/log.md：头部"合并原则" 改为 "orchestrator 按 Step 8 同 agent 同轮合并；agent 不直接写 log"；前缀规范表不变
+- [x] docs/INDEX.md：新增 skills/ 与 commands/ 的 `_*.md` helper 清单（避免误激活）
 
 ### 成功信号
 - README.md 总行数不增（删 3 节 + 扩 2 原则 ≈ 持平）
@@ -126,13 +127,13 @@ README §设计原则 扩至 7 条并融入 issue §D；删 §致谢/§贡献/§
 确认 helper 抽取未破坏 lint / 未遗失功能行为。
 
 ### 任务清单
-- [ ] 跑 `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/` 验证 0 命中
-- [ ] dogfood：在 roundtable 自身（或 gleanforge）跑一轮 `/roundtable:workflow` 任意小任务，观察：
-  - [ ] developer/tester/reviewer 能正确 Read helper 并按内容执行
-  - [ ] Escalation block 仍被 orchestrator 解析成功（relay 到 AskUserQuestion）
-  - [ ] Progress Monitor 仍 emit + tail 正确
-  - [ ] Stage 9 Closeout flush 后 log.md 有合并条目（agent 未自写）
-  - [ ] pause-point flush 在 architect → design-confirm 转场时生效
+- [x] 跑 `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/` 验证 0 命中
+- [x] dogfood：在 roundtable 自身（或 gleanforge）跑一轮 `/roundtable:workflow` 任意小任务，观察：
+  - [x] developer/tester/reviewer 能正确 Read helper 并按内容执行
+  - [x] Escalation block 仍被 orchestrator 解析成功（relay 到 AskUserQuestion）
+  - [x] Progress Monitor 仍 emit + tail 正确
+  - [x] Stage 9 Closeout flush 后 log.md 有合并条目（agent 未自写）
+  - [x] pause-point flush 在 architect → design-confirm 转场时生效
 
 ### 成功信号
 - 0 lint 命中 + 上述 5 个 dogfood 检查点全绿
@@ -148,10 +149,10 @@ README §设计原则 扩至 7 条并融入 issue §D；删 §致谢/§贡献/§
 补上 DEC 审计发现的 bronze 规则违反 + 实施 follow-through 遗漏。
 
 ### 任务清单
-- [ ] `docs/decision-log.md` DEC-002 状态行追加 "（决定 5 Superseded by DEC-009 决定 8）" —— **已在 architect 阶段完成**，P0.7 确认一遍
-- [ ] `commands/bugfix.md` 规则 2 改写为对称 honor：`if target_project CLAUDE.md declares developer_form_default (either inline or subagent), honor the declaration — this overrides the bugfix inline-bias default.`
-- [ ] `docs/testing/subagent-progress-and-execution-model.md` case 3.6 从 WARN 改为 Resolved（或在报告尾部 append "Resolved by DEC-009 决定 9"）
-- [ ] `docs/reviews/2026-04-19-subagent-progress-and-execution-model.md` 同步补 "Resolved by DEC-009" footnote
+- [x] `docs/decision-log.md` DEC-002 状态行追加 "（决定 5 Superseded by DEC-009 决定 8）" —— **已在 architect 阶段完成**，P0.7 确认一遍
+- [x] `commands/bugfix.md` 规则 2 改写为对称 honor：`if target_project CLAUDE.md declares developer_form_default (either inline or subagent), honor the declaration — this overrides the bugfix inline-bias default.`
+- [x] `docs/testing/subagent-progress-and-execution-model.md` case 3.6 从 WARN 改为 Resolved（或在报告尾部 append "Resolved by DEC-009 决定 9"）
+- [x] `docs/reviews/2026-04-19-subagent-progress-and-execution-model.md` 同步补 "Resolved by DEC-009" footnote
 
 ### 成功信号
 - grep `developer_form_default: inline\|developer_form_default: subagent` bugfix.md 命中≥ 2（对称表述）
@@ -164,11 +165,14 @@ README §设计原则 扩至 7 条并融入 issue §D；删 §致谢/§贡献/§
 ## P0.6 归档 + DEC-009 Accepted
 
 ### 任务清单
-- [ ] 跑 tester + reviewer 正常工作流（critical_modules 命中）
-- [ ] reviewer 通过后把 DEC-009 状态 Proposed → Accepted
-- [ ] 把本 exec-plan `exec-plans/active/lightweight-review-plan.md` 移到 `completed/`
-- [ ] 在 log.md orchestrator 批 flush 写入 `exec-plan | lightweight-review completed | 2026-04-XX`
+- [x] 跑 tester + reviewer 正常工作流（critical_modules 命中）
+- [x] reviewer 通过后把 DEC-009 状态 Proposed → Accepted
+- [x] 把本 exec-plan `exec-plans/active/lightweight-review-plan.md` 移到 `completed/`
+- [x] 在 log.md orchestrator 批 flush 写入 `exec-plan | lightweight-review completed | 2026-04-XX`
 
 ## 变更记录
 
 - 2026-04-19 创建
+- 2026-04-19 P0.1-P0.7 全部完成；DEC-009 Accepted（PR #17 merged）
+- 2026-04-19 用户反馈 "越加越多" → DEC-010 Accepted 矫正 DEC-009 决定 1（helper 抽取反增运行期 token）；P1.1-P1.5 revert + 激进 inline 精简执行；4 helper 删除、5 agent + 2 skill + 2 command inline 精简（tree 2791→1672）；本计划同 PR #17 merged
+- 2026-04-19 归档审计：35 个 checkbox 补勾；frontmatter `status: Active` → `Completed` + `decisions` 追加 DEC-010 + 新增 `completed:` 日期 + description 更新
