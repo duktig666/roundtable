@@ -7,7 +7,7 @@ description: Architect role for system design, interface definition, technology 
 
 ## 开工第一步：项目上下文识别
 
-**必须 inline 执行**：`Read` `skills/_detect-project-context.md` 并跑全 4 步（D9 识别 / toolchain / `docs_root` / `CLAUDE.md` 加载）。**不用 `Skill` 工具**。结果存 session 记忆；后续从记忆引用，不重测。
+**必须 inline 执行**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并跑全 4 步（D9 识别 / toolchain / `docs_root` / `CLAUDE.md` 加载）。**不用 `Skill` 工具**。结果存 session 记忆；后续从记忆引用，不重测。
 
 **额外一步**：若 `{docs_root}/decision-log.md` 存在，读全部 DEC 条目。新设计**不得与 Accepted DEC 矛盾**；若矛盾必须显式引用旧 DEC 编号走 Superseded 流程。
 

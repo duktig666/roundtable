@@ -63,7 +63,7 @@ echo '{"ts":"<iso-utc>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug"
 **Critical-finding ordering discipline**：在 `analyzing` / `classifying` 识别到 **Critical** 问题时必须按顺序：(1) 先 emit `phase_blocked`，summary 设 `"Critical finding in <file:line>"` 立即暴露 blocker；(2) 然后产出 review 报告（对话或落盘 `{docs_root}/reviews/...`），若需用户/architect 方向在 final message emit `<escalation>`。本 discipline 不改变 `## 审查维度` 的严重度标准。
 
 - **Granularity**：phase 级，3–10 条/派发。
-- **Content Policy**：见 `skills/_progress-content-policy.md`。
+- **Content Policy**：见 `${CLAUDE_PLUGIN_ROOT}/skills/_progress-content-policy.md`。
 - **Fallback**：progress_path 空 / 不可写 / `ROUNDTABLE_PROGRESS_DISABLE=1` → 静默 skip。
 
 ## 约束

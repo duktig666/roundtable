@@ -7,7 +7,7 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 ## 开工第一步：项目上下文识别
 
-**必须 inline 执行**：`Read` `skills/_detect-project-context.md` 并跑 step 1（D9 识别）、step 3（`docs_root`）、step 4（`CLAUDE.md` 加载）。**Skip step 2**（analyst 不跑 lint/test）。**不用 `Skill` 工具**。结果存 session 记忆。
+**必须 inline 执行**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并跑 step 1（D9 识别）、step 3（`docs_root`）、step 4（`CLAUDE.md` 加载）。**Skip step 2**（analyst 不跑 lint/test）。**不用 `Skill` 工具**。结果存 session 记忆。
 
 ## 职责
 

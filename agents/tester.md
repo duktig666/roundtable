@@ -68,7 +68,7 @@ echo '{"ts":"<iso-utc>","role":"tester","dispatch_id":"{{dispatch_id}}","slug":"
 **Ordering discipline（bug-found）**：发现 `src/*` 真实 bug 时必须按顺序执行：(1) `tests/*` 下写失败 / `#[ignore]` 复现测试；(2) emit `phase_blocked`，phase=`bug-found`，summary 写明 bug 主题；(3) 然后在 final message 写 `<escalation>`。先 emit `phase_blocked` 保证 Monitor 在 final message 解析前就看见 blocker。
 
 - **Granularity**：phase 级，3–10 条/派发。
-- **Content Policy**：见 `skills/_progress-content-policy.md`（连续去重 / 差异化内容 / DONE `✅` 前缀）。
+- **Content Policy**：见 `${CLAUDE_PLUGIN_ROOT}/skills/_progress-content-policy.md`（连续去重 / 差异化内容 / DONE `✅` 前缀）。
 - **Fallback**：`{{progress_path}}` 空 / 不可写 / `ROUNDTABLE_PROGRESS_DISABLE=1` → 静默 skip。
 
 Content Policy 示例：`running case-fuzz 3/12 — boundary overflow` / `benchmark baseline captured`。

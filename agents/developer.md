@@ -74,7 +74,7 @@ echo '{"ts":"<iso-utc>","role":"developer","dispatch_id":"{{dispatch_id}}","slug
 
 - **Event**：`phase_start`（进入 phase）/ `phase_complete`（完成，DONE 用 `✅` 前缀，可选 `detail` 对象）/ `phase_blocked`（阻塞，**在 emit `<escalation>` 之前**）。
 - **Granularity**：phase checkpoint 级，每次派发预期 3–10 条；优先用 exec-plan 标签（`P0.1` / `P0.2`），否则自选（`plan` / `write-tests` / `implement-core` / `run-lint` 等）。不按 tool call 粒度 emit。
-- **Content Policy**：见 `skills/_progress-content-policy.md`（substantive-progress gate / 连续 summary 去重 / 差异化内容 / DONE ✅ 前缀）。
+- **Content Policy**：见 `${CLAUDE_PLUGIN_ROOT}/skills/_progress-content-policy.md`（substantive-progress gate / 连续 summary 去重 / 差异化内容 / DONE ✅ 前缀）。
 - **Fallback**：`{{progress_path}}` 空 / 不可写 / `ROUNDTABLE_PROGRESS_DISABLE=1` → 静默 skip，不报错。
 
 ## 约束

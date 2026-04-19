@@ -69,7 +69,7 @@ echo '{"ts":"<iso-utc>","role":"dba","dispatch_id":"{{dispatch_id}}","slug":"{{s
 - `writing-review` — 写 review 输出（含可选落盘）
 
 - **Granularity**：phase 级，3–10 条/派发。
-- **Content Policy**：见 `skills/_progress-content-policy.md`。
+- **Content Policy**：见 `${CLAUDE_PLUGIN_ROOT}/skills/_progress-content-policy.md`。
 - **Fallback**：progress_path 空 / 不可写 / `ROUNDTABLE_PROGRESS_DISABLE=1` → 静默 skip。
 
 ## 约束

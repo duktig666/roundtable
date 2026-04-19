@@ -13,7 +13,7 @@ argument-hint: <bug 描述 或 issue 编号>
 
 ## Step 0: Project Context Detection
 
-**inline 执行 4 步检测**：`Read` `skills/_detect-project-context.md` 并按 4 步执行（D9 → toolchain → docs_root → CLAUDE.md 加载）。**不用 `Skill` 工具**。
+**inline 执行 4 步检测**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并按 4 步执行（D9 → toolchain → docs_root → CLAUDE.md 加载）。**不用 `Skill` 工具**。
 
 后续派发 developer / tester / reviewer / dba 时注入：`target_project` / `docs_root` / `lint_cmd` / `test_cmd` / `critical_modules` / `slug` / `primary_lang`。
 

@@ -49,7 +49,7 @@ decisions: [DEC-001]
 ### 成功信号
 - [x] `duktig666/roundtable` 公开可见，LICENSE 为 Apache-2.0
 - [x] 仓库目录结构完整（skills / agents / commands / docs 分层清晰）
-- [ ] 冒烟验证：`/plugin marketplace add duktig666/roundtable` + `/plugin install roundtable@roundtable --scope user` 在 Claude Code 里能跑完（即使角色文件都空）—— 可放到 P1 开工时顺带做
+- [x] 冒烟验证：`/plugin marketplace add duktig666/roundtable` + `/plugin install roundtable@roundtable --scope user` 在 Claude Code 里能跑完（2026-04-19 通过；fix commit `254b97a` 修 schema `source "./"` 后生效）
 
 ---
 

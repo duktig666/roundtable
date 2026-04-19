@@ -37,7 +37,7 @@ argument-hint: <task description>
 
 ## Step 0: Project Context Detection
 
-**inline 执行 4 步检测**：`Read` `skills/_detect-project-context.md` 并直接按 4 步执行，结果存 session 记忆。
+**inline 执行 4 步检测**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并直接按 4 步执行，结果存 session 记忆。
 
 1. **target-project 识别（D9）**：session 记忆 → `git rev-parse --show-toplevel` → 扫描 CWD 下含 `.git/` 的子目录 → 正则匹配任务描述 → `AskUserQuestion` 兜底
 2. **Toolchain detection**：扫 `Cargo.toml` / `package.json` / `pyproject.toml` / `go.mod` / `Move.toml`；推导默认 `lint_cmd` / `test_cmd`
