@@ -155,26 +155,26 @@ claude
 
 ```mermaid
 flowchart TD
-    Start([/roundtable:workflow &lt;task&gt;]) --> S0[Step 0<br/>Context Detection<br/>inline]
-    S0 --> S1{Step 1<br/>任务规模}
-    S1 -->|小| Bugfix[/roundtable:bugfix<br/>或 @developer 直派]
-    S1 -->|中| Analyst2[analyst 可选]
-    S1 -->|大| Analyst[analyst]
+    Start(["/roundtable:workflow &lt;task&gt;"]) --> S0["Step 0<br/>Context Detection<br/>inline"]
+    S0 --> S1{"Step 1<br/>任务规模"}
+    S1 -->|小| Bugfix["/roundtable:bugfix<br/>或 @developer 直派"]
+    S1 -->|中| Analyst2["analyst 可选"]
+    S1 -->|大| Analyst["analyst"]
     Analyst --> Arch
-    Analyst2 --> Arch[architect<br/>决策逐点 AskUserQuestion<br/>落 design-doc + DEC]
-    Arch --> Confirm{Stage 4<br/>Design Confirm<br/>B gate}
+    Analyst2 --> Arch["architect<br/>决策逐点 AskUserQuestion<br/>落 design-doc + DEC"]
+    Arch --> Confirm{"Stage 4<br/>Design Confirm<br/>B gate"}
     Confirm -->|Reject| Arch
     Confirm -->|Modify| Arch
     Confirm -->|Accept| Dev
-    Bugfix --> Dev[developer<br/>plan-then-code<br/>lint + test]
-    Dev --> CritCheck{命中<br/>critical_modules?}
-    CritCheck -->|是| Tester[tester<br/>对抗性 + benchmark<br/>bug 走 escalation]
+    Bugfix --> Dev["developer<br/>plan-then-code<br/>lint + test"]
+    Dev --> CritCheck{"命中<br/>critical_modules?"}
+    CritCheck -->|是| Tester["tester<br/>对抗性 + benchmark<br/>bug 走 escalation"]
     CritCheck -->|否| DBCheck
-    Tester --> DBCheck{涉 DB<br/>变更?}
-    DBCheck -->|是| DBA[dba<br/>schema / 迁移 / 索引]
+    Tester --> DBCheck{"涉 DB<br/>变更?"}
+    DBCheck -->|是| DBA["dba<br/>schema / 迁移 / 索引"]
     DBCheck -->|否| Reviewer
-    DBA --> Reviewer[reviewer<br/>命中 critical 写 reviews/]
-    Reviewer --> Closeout([Stage 9 Closeout<br/>A gate<br/>用户 commit / PR / amend])
+    DBA --> Reviewer["reviewer<br/>命中 critical 写 reviews/"]
+    Reviewer --> Closeout(["Stage 9 Closeout<br/>A gate<br/>用户 commit / PR / amend"])
 
     classDef skill fill:#e3f2fd,stroke:#1976d2
     classDef agent fill:#fff3e0,stroke:#f57c00
@@ -192,7 +192,4 @@ flowchart TD
 - **Step 6b Developer 形态**（DEC-005）—— per-session `@...inline` > per-project `developer_form_default` > per-dispatch 弹窗；tester / reviewer / dba 永远 subagent
 - **Step 7 / 8 批量 flush** —— `INDEX.md` 与 `log.md` 由 orchestrator 聚合 flush，触发点：A 转场 / C 过桥 / Stage 9 终点
 
----
-
-贡献指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。许可证见 [LICENSE](LICENSE)（Apache-2.0）。
 
