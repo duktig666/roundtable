@@ -84,6 +84,61 @@ Typical triggers for tester:
 
 ---
 
+## Progress Reporting
+
+The orchestrator injects `{{progress_path}}`, `{{dispatch_id}}`, and `{{slug}}` into your dispatch prompt; your `role` field is always `tester`. At each phase boundary, emit ONE single-line JSON event to `{{progress_path}}` before continuing work.
+
+### Event types
+
+Three events, emitted via `Bash echo '<json>' >> {{progress_path}}`:
+
+- **`phase_start`** — on entering a phase:
+  ```
+  echo '{"ts":"<now-iso-utc>","role":"tester","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_start","summary":"<≤120 char 1-sentence what you are about to do>"}' >> {{progress_path}}
+  ```
+- **`phase_complete`** — on finishing a phase; optionally add `detail` (e.g. `{"tests_added": N, "files_changed": [...]}`):
+  ```
+  echo '{"ts":"<now-iso-utc>","role":"tester","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_complete","summary":"<what just finished>","detail":{"tests_added":N}}' >> {{progress_path}}
+  ```
+- **`phase_blocked`** — on hitting a blocker, BEFORE writing an `<escalation>` block in the final message:
+  ```
+  echo '{"ts":"<now-iso-utc>","role":"tester","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_blocked","summary":"<why blocked, one sentence>"}' >> {{progress_path}}
+  ```
+
+Emit ONE line per event. Never batch multiple events into a single echo. Never suppress.
+
+### Phase tag naming
+
+Use the closest exec-plan `P0.n` label if one exists. When the task has no exec-plan (or no P0.n decomposition), pick a tester-specific phase name reflecting the adversarial-testing lifecycle:
+
+- `scope-review` — reading design doc / developer output, scoping the attack surface
+- `writing-test-plan` — drafting `{docs_root}/testing/[slug].md` (medium / large tasks only)
+- `writing-tests` — implementing adversarial / E2E / benchmark test code
+- `adversarial-run` — executing test suite, observing failures
+- `bug-found` — reserved phase name for "reproduction test committed, business bug identified"; used together with `phase_blocked` before escalation (see Ordering discipline below)
+
+### Ordering discipline (tester-specific)
+
+Tester never fixes business code from within the subagent (per `## Resource Access` Forbidden row). When an adversarial test surfaces a real bug in `src/*`:
+
+1. Write / commit the failing (or `#[ignore]`-marked) reproduction test under `tests/*`.
+2. Emit `phase_blocked` with `phase: "bug-found"` and `summary` naming the bug subject (e.g. `"bug-found: order-matching double-fill under concurrent cancel"`).
+3. THEN write the `<escalation>` block into the final message per `## Escalation Protocol` so the orchestrator can relay to developer.
+
+This ordering guarantees the orchestrator-side Monitor sees the blocker BEFORE the final message parse begins, so the user gets a real-time signal even if the final message is delayed.
+
+### Granularity
+
+Phase-level, NOT tool-level. Do not emit after every `Write` of a test file or every `Bash` run. A single phase may span multiple Write / Bash / Read calls. Expected density: 3-8 events per dispatch.
+
+### Fallback
+
+If `{{progress_path}}` is empty, unset, or the injection is missing entirely, silently skip all emit calls — continue the task normally. Missing progress is a degraded (not failed) state.
+
+Refs: DEC-004 (progress event protocol); `docs/design-docs/subagent-progress-and-execution-model.md` §3.1 (schema) and §3.2 (emit convention). The progress channel is orthogonal to `## Escalation Protocol` — they travel on independent paths (temp-file JSONL vs final-message JSON block) and do not substitute for each other.
+
+---
+
 ## 约束
 
 - **只写测试代码**，不修改业务代码

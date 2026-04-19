@@ -24,6 +24,8 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 - **`_detect-project-context` 4 步检测逻辑**：错了整个 workflow 链路起不来，所有 target_project 识别失败
 - **AskUserQuestion Option Schema**：schema 偏差让弹窗选项失去 rationale / tradeoff / recommended，用户难以决策
 - **workflow command Phase Matrix + 并行判定树**：编排状态与并行安全性的核心
+- **Progress event JSON schema (DEC-004)**：所有 subagent 的进度 emit 依赖此 schema；schema 偏差让 orchestrator Monitor / jq 解析失败、主会话失去实时感知
+- **Developer execution-form switching rules (DEC-005)**：切换规则（per-session @声明 / per-project `developer_form_default` / per-dispatch AskUserQuestion）错位会导致 inline/subagent 选择错位，UX 与 context 风险同时受影响
 
 ## 设计参考
 
@@ -38,7 +40,7 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 > roundtable 本身是纯 prompt 包，无传统 build/test 链路。
 
 - **primary_lang**: markdown（含 YAML frontmatter）
-- **lint_cmd**: `grep -rnE "gleanforge|dex-sui|dex-ui|DEC-00[3-9]|\bvault/|\bllm/" skills/ agents/ commands/`（硬编码扫描，应 0 命中）
+- **lint_cmd**: `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/`（target-project 名 / 外部路径硬编码扫描，应 0 命中。**DEC-00X 引用本就合法**，不再扫 —— 过去误把 DEC-003/004/005 当"未完成 DEC 泄漏"是规则 bug）
 - **test_cmd**: dogfood run —— `/roundtable:workflow` 在 target 项目跑一轮做 E2E 验证（见 `docs/testing/p4-self-consumption.md` 样例）
 - **build_cmd**: N/A
 - **dev_cmd**: `claude --plugin-dir /data/rsw/roundtable`（本地测试 plugin）

@@ -34,6 +34,8 @@ Maintain this matrix across the dispatch lifecycle. Report it back to the user o
 
 Legend: ⏳ pending · 🔄 in-progress · ✅ complete · ⏩ skipped (with reason) · — inapplicable
 
+**Real-time progress stream (below the matrix)**: Progress notifications from active subagent dispatches appear here in real time, in the format `[<phase>] <role> <event> — <summary>` per DEC-004. The stream is independent of the matrix columns; it is not a matrix column but an append-only relay driven by the `Monitor` tool launched in Step 3.5. Each notification originates from one subagent's `## Progress Reporting` emit; multiple parallel dispatches interleave by `dispatch_id`.
+
 ---
 
 ## Step 0: Project Context Detection
@@ -126,6 +128,86 @@ dba       → reads migrations / schema / src
 
 ---
 
+## Step 3.5: Progress Monitor Setup (DEC-004)
+
+Every subagent dispatch is paired with a `Monitor` tool invocation so the user sees phase-level progress in the main session in real time. This Step executes **before every `Task` dispatch** (developer subagent / tester / reviewer / dba / research fan-out) and is independent of the Phase Matrix column semantics above.
+
+**Tool note**: the backticked `Monitor` name below is the Claude Code native tool (v2.1.98+). If the orchestrator has not loaded its schema yet, it MUST use `ToolSearch` to fetch the `Monitor` schema before this Step executes. `Monitor` streams stdout lines from a background process as notifications back to the main session.
+
+### 3.5.1 Opt-out check
+
+Read env var `ROUNDTABLE_PROGRESS_DISABLE`. If it equals `1`, skip this entire Step: do NOT generate a `progress_path`, do NOT start `Monitor`, and do NOT inject the 4 progress variables into the dispatch prompt. Subagents receiving an empty `progress_path` silently degrade to "no emit" per each agent's `## Progress Reporting` fallback clause (matches DEC-004 §3.2 "missed emit degrades to silent, not worse than current").
+
+### 3.5.2 Per-dispatch Bash preparation
+
+For every `Task` dispatch, run this Bash snippet **before** the Task call (one Bash invocation per dispatch; do NOT reuse paths across dispatches):
+
+```bash
+# 8-hex dispatch_id (openssl preferred, falls back to sha1 of ts+nanos if openssl is absent)
+DISPATCH_ID=$(openssl rand -hex 4 2>/dev/null || date +%s%N | sha1sum | head -c 8)
+
+# session_id: prefer Claude Code injected env; fall back to unix ts + pid for uniqueness
+SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
+
+# Progress file path; one file per dispatch, naturally disjoint across parallel dispatches
+PROGRESS_PATH="/tmp/roundtable-progress/${SESSION_ID}-${DISPATCH_ID}.jsonl"
+
+# Create directory and touch the file so `tail -F` starts clean
+mkdir -p "$(dirname "$PROGRESS_PATH")" && touch "$PROGRESS_PATH"
+
+# Export values so the next steps can inject them
+echo "DISPATCH_ID=$DISPATCH_ID"
+echo "PROGRESS_PATH=$PROGRESS_PATH"
+```
+
+Capture `DISPATCH_ID` and `PROGRESS_PATH` from Bash output; both are needed for Step 3.5.3 and 3.5.4.
+
+### 3.5.3 Launch the Monitor
+
+Immediately after the Bash preparation, launch `Monitor` with:
+
+```
+Monitor script: "tail -F ${PROGRESS_PATH} 2>/dev/null | jq -R --unbuffered -c 'fromjson? | select(.event) | \"[\" + .phase + \"] \" + .role + \" \" + .event + \" — \" + .summary'"
+```
+
+Notes:
+- `tail -F` (capital F) survives the file briefly not existing and re-opens on truncation.
+- `jq --unbuffered` defeats pipe buffering so each JSONL line is flushed as a separate notification. Without `--unbuffered`, jq may batch lines and delay the user-visible relay by several seconds.
+- **`-R` + `fromjson?` (required fault tolerance)**: `-R` reads each line as a raw string and `fromjson?` attempts to parse it — the `?` swallows parse errors per line so unparseable input (garbled debug prints, truncated writes under disk pressure, concurrent interleaving) is silently skipped instead of aborting the whole pipe. Without this, a single malformed line makes jq exit 4 and silently kills the Monitor; all subsequent events are lost. See `docs/testing/subagent-progress-and-execution-model.md` Case 1.2 / 1.2b for the failure mode this guards against.
+- `select(.event)` further filters out parsed-but-incomplete rows (valid JSON but missing `event` field).
+- The formatted output becomes the "Real-time progress stream" line documented below the Phase Matrix.
+
+### 3.5.4 Inject 4 variables into the Task prompt
+
+Every `Task` call dispatched after Step 3.5.3 MUST inject these 4 variables into the subagent prompt (in addition to the regular context variables from Step 0):
+
+| Variable | Source | Used by subagent |
+|----------|--------|------------------|
+| `progress_path` | `$PROGRESS_PATH` from Step 3.5.2 | `Bash echo '{...}' >> {{progress_path}}` at every phase boundary |
+| `dispatch_id` | `$DISPATCH_ID` from Step 3.5.2 | included as `dispatch_id` JSON field in every emitted event |
+| `slug` | from Step 3 (Slug + Artifact Handoff) | included as `slug` JSON field |
+| `role` | the dispatched subagent role (`developer` / `tester` / `reviewer` / `dba` / `research`) | included as `role` JSON field |
+
+The subagent's `## Progress Reporting` section handles the emit format; the orchestrator is only responsible for the 4-variable injection.
+
+### 3.5.5 Lifecycle & cleanup
+
+- `Monitor` runs in the background for the duration of the dispatch. When the `Task` call returns, `tail -F` idles (no new writes); the Monitor instance can be left to expire naturally, or explicitly torn down with `MonitorStop` if the orchestrator is about to dispatch another subagent and wants a clean channel. Default: let it expire.
+- Progress files accumulate under `/tmp/roundtable-progress/`; rely on OS tmpfiles.d cleanup (DEC-004 §3.5). Plugin does not gc.
+
+### 3.5.6 Parallel-dispatch safety
+
+Per DEC-004 §3.7 and DEC-002 §4 parallel dispatch rules, each parallel `Task` gets its own `DISPATCH_ID` → its own `PROGRESS_PATH` → its own `Monitor`. The 4 conditions of the parallel decision tree hold:
+
+1. **PREREQ MET** — progress files only append, no pre-existing state required.
+2. **PATH DISJOINT** — per-dispatch filename (`${SESSION_ID}-${DISPATCH_ID}.jsonl`) guarantees disjoint file sets.
+3. **SUCCESS-SIGNAL INDEPENDENT** — each `Monitor` watches a distinct file; its notifications are scoped to one `dispatch_id`.
+4. **RESOURCE SAFE** — no shared lock on `/tmp/roundtable-progress/`; concurrent `tail -F` on distinct files is OS-level safe.
+
+Parallel dispatches therefore produce interleaved notifications in the user's stream, each prefixed with `role` and tagged by `phase` — the `dispatch_id` is preserved in the underlying JSONL for debug / audit but not rendered in the default format.
+
+---
+
 ## Step 4: Parallel Dispatch Decision Tree
 
 The orchestrator MAY dispatch multiple subagents in parallel when ALL of the following hold. When any fails, dispatch sequentially.
@@ -183,6 +265,75 @@ See each agent's `## Escalation Protocol` section for the block format.
 7. **Handling escalations**: see Step 5.
 
 8. **No autonomous git operations**: `git commit` / `push` / `branch` / `tag` / `reset` / `stash` only when the user explicitly asks. Default: leave everything in the working tree. Staging (`git add`) for committing is likewise user-triggered.
+
+---
+
+## Step 6b: Developer Form Selection (DEC-005)
+
+The `developer` role supports two execution forms per DEC-005: `subagent` (DEC-001 D8 default) and `inline` (main-session execution of `agents/developer.md`). `tester` / `reviewer` / `dba` / `research` remain subagent-only (DEC-005 explicitly does not extend the dual-form pattern to them). This Step runs **immediately before** every developer dispatch.
+
+### 6b.1 Default form
+
+**Default = `subagent`** (preserves DEC-001 D8 role→form mapping). Switching to `inline` requires one of the three triggers in §6b.2 to fire.
+
+### 6b.2 Three-level switch triggers (DEC-005 §3.4.2)
+
+Evaluate in order; the first matching trigger wins.
+
+1. **Per-session (user prompt)** — the user's current task description, or an earlier message in the same session, explicitly asks for inline:
+   - Marker phrases: `@roundtable:developer inline`, `developer 用 inline`, `this developer task inline`, or natural-language equivalents the orchestrator recognizes.
+   - Effect: force `form = inline` for this dispatch. No AskUserQuestion.
+
+2. **Per-project (target CLAUDE.md)** — read the `# 多角色工作流配置` section (already parsed in Step 0) for the optional key:
+   ```markdown
+   developer_form_default: inline    # or: subagent
+   ```
+   If present, use its value as the baseline. If absent, baseline stays `subagent`. Per-session (level 1) still overrides per-project (level 2).
+
+3. **Per-dispatch (AskUserQuestion)** — when neither of the above applies, invoke `AskUserQuestion` before dispatch. Build options following the architect's Option Schema (`rationale` + `tradeoff` + `recommended`). Choose the recommendation by the "small task signal" heuristic:
+   - **Small task markers** (any one): single-file change, bug hotfix, estimated < 2 min wall time, estimated < 20k total tokens, strictly inside one module.
+   - If small-task markers present → set `recommended: true` on the `inline` option.
+   - Otherwise → set `recommended: true` on the `subagent` option.
+
+   Example options payload:
+   ```
+   Option A: inline
+     rationale: "Small task (1 file, bug hotfix) — inline keeps decisions visible and AskUserQuestion available."
+     tradeoff:  "Pollutes main-session context with developer's reads/edits."
+     recommended: true   # when small-task markers present
+   Option B: subagent
+     rationale: "Isolates developer's context and enables parallel dispatch."
+     tradeoff:  "Progress only via phase-level events (DEC-004); interactive decisions gated through <escalation>."
+     recommended: true   # when task is not small
+   ```
+   The user's answer is final; the orchestrator never overrides the user choice.
+
+### 6b.3 Execution paths
+
+Once `form` is decided:
+
+**Form = `inline`** (small / single-file / hotfix path):
+- Orchestrator `Read`s `agents/developer.md` and executes its instructions **in the main session** (same mechanism as the `architect` and `analyst` skills).
+- `AskUserQuestion` is directly available to the developer flow — no `<escalation>` indirection.
+- **Do NOT run Step 3.5** for this dispatch (no `progress_path`, no `Monitor`, no 4-variable injection). The main session observes the developer flow directly; progress relay is redundant.
+- Resource Access constraints match the subagent form (`agents/developer.md` Resource Access matrix applies identically; see DEC-005 decision #7).
+- `<escalation>` blocks are not needed; decisions go through `AskUserQuestion` inline.
+
+**Form = `subagent`** (default path):
+- Run Step 3.5 (Progress Monitor Setup) first.
+- Dispatch via `Task` with the subagent prompt carrying the 4 progress injection variables plus the regular Step 0 context.
+- Developer's `## Progress Reporting` section handles phase-boundary emits; `<escalation>` handles user-decision points per Step 5.
+
+### 6b.4 tester / reviewer / dba / research remain subagent-only
+
+Per DEC-005, do NOT offer an inline form for `tester`, `reviewer`, `dba`, or `research`:
+- Their contexts are large (adversarial test suites / full-repo review / cross-schema DB analysis / fan-out research) and inline execution would pollute or exhaust main-session context.
+- These four roles always go through `Task` dispatch and always receive the 4 progress variables from Step 3.5.
+- The per-project `developer_form_default` key in CLAUDE.md applies ONLY to developer. Ignore any user attempt to set analogous keys for the other three roles — this is a DEC-005 boundary.
+
+### 6b.5 Form selection audit trail
+
+When form resolves to `inline`, include one-line note in the phase-gate summary: `Developer dispatched inline (trigger: <per-session | per-project | per-dispatch user choice>)`. This keeps the user informed that the usual subagent-boundary isolation was relaxed for this task.
 
 ---
 

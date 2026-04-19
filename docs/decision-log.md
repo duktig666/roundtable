@@ -35,6 +35,58 @@
 
 ---
 
+### DEC-005 developer 双形态（inline | subagent）正交补强 DEC-001 D8
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: issue #7 问题 B —— P4 dogfood 实录证实 developer 在小任务（单文件改 / bug 热修）场景下用 subagent 形态让用户失去掌控感；但 tester/reviewer/dba 的大 context 对抗/审查任务 inline 执行会爆主会话。DEC-001 D8 "role→form 单射" 在 developer 这一行产生张力
+- **决定**:
+  1. **developer 支持双形态**：`inline`（主会话内联执行 `agents/developer.md`，AskUserQuestion 直接可用）和 `subagent`（DEC-001 D8 原默认，Task 派发 + Escalation）
+  2. **默认仍 subagent**：保持 D8 原映射为默认；inline 是非默认可选档
+  3. **tester / reviewer / dba 不扩展**：仍仅 subagent（大 context 无例外）
+  4. **切换触发三级**：
+     - per-session：用户 prompt 里声明 `@roundtable:developer inline`
+     - per-project：target CLAUDE.md `# 多角色工作流配置` 可选 `developer_form_default: inline`
+     - per-dispatch：`/roundtable:workflow` 在 developer 阶段前 AskUserQuestion，小任务标志触发 inline=recommended
+  5. **正交补强 DEC-001 D8**（不 Superseded D8）—— D8 的 role→form 基础映射继续有效；本 DEC 新增规则："developer 角色除 subagent 外另支持 inline；其他三角色 D8 边界不变"。与 DEC-003 对 D8 的处理模式一致
+  6. **能力差异表**：在 design-doc §3.4.3 明示 AskUserQuestion / Escalation / 并行派发 / context 污染等维度在双形态下的行为差异
+  7. **Resource Access 保持不变**：无论 inline / subagent，developer 读写范围（src/* + tests/* + exec-plan checkbox 报告）完全一致；仅交互通道不同
+- **备选**:
+  - **全四角色双形态**（developer/tester/reviewer/dba 都支持 inline）：维护成本 4×；reviewer / tester inline 实测易撑爆主会话（80k+ /dispatch），拒绝
+  - **auto 档**（按任务规模自动选）：触发规则解释成本高；analyst §失败模式证实 6 个月后易成摆设，拒绝
+  - **Supersede DEC-001 D8**（全量重写角色形态分配）：改动远大于实际语义变化（tester/reviewer/dba 三行并无实质变化）；与 DEC-003 "保留 D8" 的和谐模式不一致，拒绝
+  - **Partial Supersede D8**（仅 developer 那一行状态改 "Partially Superseded by DEC-005"）：需引入"Partially Superseded"状态机，decision-log 铁律复杂化，拒绝
+- **理由**: (1) developer 是 P4 实录里 dispatch 次数最多的角色（4/9 次），小任务场景最频繁，UX 收益最高；(2) 保持 tester/reviewer/dba subagent 纪律规避 1M context 风险；(3) 正交补强而非 Supersede 保证 D8 原文不改、decision-log 单调递增；(4) 三级切换触发覆盖 per-session/project/dispatch 的决策层次；(5) 能力差异表让用户在 AskUserQuestion 弹窗里能理解 inline/subagent 的实际代价
+- **相关文档**: docs/design-docs/subagent-progress-and-execution-model.md（D2 双形态设计 + §3.4）、本条 + DEC-001 D8 共同定义 developer 形态语义、DEC-004（协同的 progress protocol，subagent 档才启用）
+- **影响范围**: `agents/developer.md`（新增 §Execution Form 双形态声明）；`commands/workflow.md`（Step 6 增加 developer 形态切换判定 + inline 执行路径）；`commands/bugfix.md`（同上，bugfix 流程也要识别 inline）；`docs/claude-md-template.md`（§多角色工作流配置 增加可选 `developer_form_default` 示例）；`docs/decision-log.md` 本条；`docs/log.md` 新增 `decide | DEC-005` 条目。运行时行为：小任务 / bug 热修用户可一键切 inline 全程可见；默认行为零变化
+
+### DEC-004 subagent progress event protocol（P1 push 模型）
+- **日期**: 2026-04-19
+- **状态**: Accepted
+- **上下文**: issue #7 问题 A —— P4 dogfood 实录证实 subagent 长任务（3-10+ 分钟）期间主会话无反馈，用户失去对流程的掌控感。Claude Code 原生 `/agents` Running tab、transcript JSONL、Ctrl+B 提供**用户侧**观察通道，但 orchestrator LLM 对 subagent 内部**系统性**不可见（官方 "intermediate tool calls … only its final message returns to the parent"）
+- **决定**:
+  1. **push 模型**（非 pull）：subagent 在 phase 边界主动 append JSON event 到共享文件；orchestrator `Monitor` tail。对比 pull 模型（周期 Read transcript）的关键收益：事件驱动（无空 poll）、官方架构对齐（Claude Code Agent 工具 description 明确建议"do NOT poll"）、与 DEC-002 Escalation JSON 同一范式
+  2. **事件颗粒度**：phase checkpoint 级（exec-plan P0.n 维度），3 种 event 类型 `phase_start` / `phase_complete` / `phase_blocked`；一次 dispatch 预期 3-10 条 event
+  3. **JSON schema**：单行 JSONL，必选字段 `ts` / `role` / `dispatch_id` / `slug` / `phase` / `event` / `summary`（≤120 char 一句话），可选 `detail`（files_changed / tests_passed 等）
+  4. **发射机制**：subagent prompt 本体新增 `## Progress Reporting` section 约定 `Bash echo '{json}' >> {{progress_path}}`；不用 PostToolUse hook（plugin 跨平台分发脚本复杂 + 颗粒度不匹配）
+  5. **监听机制**：orchestrator 在 Task 派发前 Bash 生成 `dispatch_id` + `progress_path = /tmp/roundtable-progress/{session_id}-{dispatch_id}.jsonl` + 启动 `Monitor "tail -F ${PATH} | jq --unbuffered -c ..."`；Task 完成后 Monitor 自然结束
+  6. **触发规则**：所有 subagent dispatch 默认开启（不做 critical_modules 二级过滤）；用户可设 `ROUNDTABLE_PROGRESS_DISABLE=1` 关掉
+  7. **协议层级**：plugin 元协议（与 DEC-002 Escalation 同层）；不入 target CLAUDE.md（保持 DEC-001 D2 "零 userConfig" 边界）
+  8. **与 DEC-002 / DEC-003 正交**：progress 用临时文件路径；escalation 用 Task final message；research-result 用 research agent final message。三通道独立、不相互触发
+  9. **漏发降级**：subagent 漏 emit 时降级为"静默"（= 当前现状），不恶化
+- **备选**:
+  - **P6 orchestrator pull**（零改 subagent，周期 Read transcript）：违反官方"do NOT poll"倾向；5 分钟 cache TTL 让周期 ≥5 分钟时每轮 cache miss；token 成本倍增；拒绝
+  - **P3 banner only**（启动时 echo 观察通道提示，不 relay）：用户需手动切 `/agents` 视图，不满足 "实时感知流程位置" 的 user north-star；拒绝
+  - **P4 heartbeat text tag**（subagent prompt 约定打 `<heartbeat>` tag）：LLM 生成文本 tag 颗粒度不稳定（易漏打、格式漂移）；结构化 JSON 更可靠；拒绝
+  - **P5 独立 reporter agent**：引入新 agent 形态与 DEC-003 research 角色形态重复；2× subagent 并行开销；拒绝
+  - **每工具调用颗粒度**：单 dispatch 20-50 event 密度过高；主会话 notification 风暴；拒绝
+  - **CLAUDE.md 声明 schema**：违反 DEC-001 D2 "CLAUDE.md 只放业务规则" 边界；plugin 元协议与业务规则混杂；拒绝
+  - **PostToolUse hook 自动 emit**：hook 脚本 plugin 跨平台分发复杂（shebang / 权限位）；hook 每 tool call 触发颗粒度不对；拒绝
+- **理由**: (1) 事件驱动 push 比 pull 高效且对齐官方架构；(2) phase checkpoint 颗粒度与 DEC-002 exec-plan P0.n 结构天然对齐；(3) plugin 元协议定位让用户 CLAUDE.md 零改动；(4) JSON schema 结构化与 DEC-002 Escalation 范式一致；(5) 漏发降级兜底保证不变更糟；(6) `/tmp` 临时文件路径简化生命周期管理（不用 gc）
+- **相关文档**: docs/design-docs/subagent-progress-and-execution-model.md（设计主文档 §3.1-3.7）、DEC-005（developer 双形态；inline 档不 emit progress，只 subagent 档 emit）、DEC-002（Escalation 同层协议）
+- **影响范围**: `agents/developer.md` / `agents/tester.md` / `agents/reviewer.md` / `agents/dba.md` / `agents/research.md` 均新增 `## Progress Reporting` section；`commands/workflow.md` / `commands/bugfix.md` 新增 Task 派发前的 Monitor 启动模板；`docs/design-docs/subagent-progress-and-execution-model.md`（新建）；`docs/exec-plans/active/subagent-progress-and-execution-model-plan.md`（新建）；`docs/decision-log.md` 本条；`docs/INDEX.md` 新增 design-docs / exec-plans 引用；`docs/log.md` 新增 `design | subagent-progress-and-execution-model` + `decide | DEC-004` 条目。运行时行为：所有 subagent dispatch 自动带 progress 可见性；用户可 env var 关掉
+
+---
+
 ### DEC-003 architect skill → parallel research subagent dispatch 能力
 - **日期**: 2026-04-19
 - **状态**: Accepted

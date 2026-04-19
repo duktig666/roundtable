@@ -83,6 +83,40 @@ Typical triggers for dba:
 
 ---
 
+## Progress Reporting
+
+When the orchestrator dispatches this agent, it injects `{{progress_path}}`, `{{dispatch_id}}`, and `{{slug}}` into the prompt. At every phase boundary, emit a single-line JSON event to `{{progress_path}}` before continuing work. The orchestrator tails this file via `Monitor` and relays events to the user, so emission is the sole channel through which the user perceives dba progress during a subagent run.
+
+### Event emission
+
+Use `Bash` with `echo` and append-redirect (`>>`) — one event per line, never batch, never suppress:
+
+- On entering a phase:
+  ```bash
+  echo '{"ts":"<now-iso-utc>","role":"dba","dispatch_id":"{{dispatch_id}}","slug":"{{slug}}","phase":"<tag>","event":"phase_start","summary":"<≤120 char one-sentence what you are about to do>"}' >> {{progress_path}}
+  ```
+- On completing a phase: same shape but `"event":"phase_complete"`; optionally include a `detail` object, e.g. `{"files_changed":["docs/reviews/..."],"critical":0,"warning":2}`.
+- On being blocked (emit BEFORE writing the `<escalation>` block in the final message): `"event":"phase_blocked"` with `summary` stating why.
+
+### Phase granularity
+
+Target 3-10 events per dispatch (DEC-004 §3.1). Pick phase tags at the granularity of a logical review segment rather than per tool call. For dba the following tags are recommended; use whichever apply to the current dispatch:
+
+- `schema-read` — reading schema files, migration history, ORM models, and target `design-docs/[slug].md`
+- `migration-analysis` — evaluating pending migrations for lock impact, backfill safety, forward compatibility
+- `index-check` — EXPLAIN / index coverage / redundant or missing index analysis (may include N+1 scan of callers)
+- `writing-review` — composing the review output, including optional drop to `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md`
+
+If the dispatch follows an exec-plan with explicit `P0.n` labels, prefer the plan label over the tags above. If neither applies, pick a concise custom tag.
+
+### Fallback behaviour
+
+If `{{progress_path}}` is absent or empty in the injected context (e.g. orchestrator set `ROUNDTABLE_PROGRESS_DISABLE=1`), silently skip emission and proceed with the review. Emission failure never blocks dba work; missing events degrade to the pre-DEC-004 silent baseline.
+
+Pointer: see DEC-004 for the full protocol (event schema, orchestrator `Monitor` template, orthogonality with DEC-002 `<escalation>` and DEC-003 `<research-result>`).
+
+---
+
 ## 约束
 
 - **只读**：不直接修改代码，不运行非只读 SQL（禁止 INSERT / UPDATE / DELETE / ALTER / DROP / TRUNCATE 等）
