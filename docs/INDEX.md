@@ -83,6 +83,7 @@
 - [progress-content-policy.md](testing/progress-content-policy.md) — issue #14 DEC-007 对抗测试（25 cases：0 Critical / 3 Warning / 4 Suggestion；D1 原 dogfood 刷屏回归修复确认 `(x5)`）
 - [step35-foreground-skip-monitor.md](testing/step35-foreground-skip-monitor.md) — issue #15 DEC-008（workflow §3.5.0 前台派发免 Monitor gate）对抗测试（18 cases：2 Critical / 3 Warning / 1 Suggestion → post-fix 全绿）
 - [lightweight-review.md](testing/lightweight-review.md) — issue #9 DEC-009 轻量化重构对抗测试（19 cases：1 Critical 升级为 Warning / 5 Warning；W-01 design-doc §5 决定编号漂移 7/8/9→8/9/10 已 post-fix；A6 helper role-specific 泄漏已清；D1/E2/B2/F2 post-fix 全绿）
+- [fix-analyst-askuserquestion-params.md](testing/fix-analyst-askuserquestion-params.md) — issue #25 analyst/architect AskUserQuestion schema 修复的对抗性验证（6 类反例 + schema 新旧对比 + 4 条手动 dogfood 验收场景 + 未来 lint 扩展建议；静态扫描 0 命中残留伪字段；结论 PASS）
 
 ### reviews
 
