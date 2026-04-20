@@ -87,6 +87,16 @@ claude --plugin-dir /absolute/path/to/roundtable   # 在你的项目目录下执
 
 完整模板见 [`docs/claude-md-template.md`](docs/claude-md-template.md)（P3 阶段产出）。
 
+### 决策模式（modal | text）
+
+决策默认走 `AskUserQuestion` 模态弹窗（Claude Code 主会话内响应）。远程前端（Telegram / CI / 日志回放）弹窗无法响应会阻塞 workflow，改用 **text 模式** —— 决策以 `<decision-needed>` 块形式 emit 到对话流，用户自由文本回复（`A` / `选 A` / `go with B but tweak X` 皆可）。详见 [DEC-013](docs/decision-log.md) / [设计文档](docs/design-docs/decision-mode-switch.md)。
+
+| 优先级 | 来源 | 示例 |
+|--------|------|------|
+| 1 | CLI 参数 | `/roundtable:workflow --decision=text ...` |
+| 2 | 环境变量 | `ROUNDTABLE_DECISION_MODE=text`（或经 `.claude/settings.json` 的 `env` 块，Claude Code 按 local > project > user 自动合并） |
+| 3 | 默认 | `modal` |
+
 ### 3. 跑起来
 
 ```bash

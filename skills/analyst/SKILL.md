@@ -34,6 +34,11 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 **研究中的即时确认**：遇到范围边界、优先级取舍、调研深度、有明确 A/B/C 取向时，**必须** `AskUserQuestion`，禁用文字提问。**架构层决策不在此列**（那是 architect 职责）。
 
+**`decision_mode` 分支**（orchestrator 注入 context prefix；DEC-013）：
+
+- `modal`（默认）→ 调 `AskUserQuestion(question, options)`，不变
+- `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 DEC-013 / design-doc §3.1）；options 行 `<letter>：<label> — <fact> / <tradeoff>`（analyst 用 `fact` 替 `rationale`）；**禁用 `★ 推荐`**（停事实层，推荐归 architect）；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
+
 **后续追问**：报告写完后接受追问，以 FAQ 形式追加到报告。
 
 ## AskUserQuestion Option Schema

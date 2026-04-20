@@ -35,6 +35,36 @@
 
 ---
 
+### DEC-013 orchestrator 可切换决策模式（modal | text），支持远程前端（TG / CI / 日志回放）
+- **日期**: 2026-04-20
+- **状态**: Accepted
+- **上下文**: [issue #31](https://github.com/duktig666/roundtable/issues/31) —— `AskUserQuestion` 是 Claude Code 原生模态弹窗，仅在 CLI 主会话内可响应。任何非 Claude Code 原生 UI 的前端（Telegram plugin / 远程 agent / CI / 日志回放）均无法截获和响应，导致 workflow 永久阻塞。部分用户本地使用亦反馈模态不便复制、审计、重放。P1 阻塞所有远程 / TG-driven workflow
+- **决定**:
+  1. **双模式**：`modal`（默认，现行）vs `text`（新增）。`text` 模式下不调 `AskUserQuestion`，改用 `<decision-needed>` 文本块向对话流 emit；orchestrator 监测到后 pause 等用户自由文本回复
+  2. **决策块协议（精简 YAML 风格）**：外层 `<decision-needed id="...">` / `</decision-needed>` 开闭标签界定；必选字段 `id` / `question` / `options`（≥2，每项含 label + rationale + tradeoff + 可选 ★ 推荐）；详见 `docs/design-docs/decision-mode-switch.md` §3.1
+  3. **最小改动形状**（D1）：agent 层（developer / tester / reviewer / dba / research）prompt **本体零改动**，继续 emit `<escalation>` JSON（DEC-002 保留）；orchestrator（`commands/workflow.md` + `commands/bugfix.md`）按 decision_mode 适配渲染 —— `modal` → `AskUserQuestion`（现行）、`text` → 把 JSON 渲染为 `<decision-needed>` 文本块；skill 层（`skills/architect.md` + `skills/analyst.md`）prompt 加条件分支
+  4. **用户回复解析**（D4）：orchestrator LLM fuzzy 理解（`A` / `选 A` / `go with A` / `选 B 但加 X` 均可），歧义时直接对话澄清，不加硬规则 parser
+  5. **优先级链 3 级**（D6）：CLI arg `--decision=text|modal` > env `ROUNDTABLE_DECISION_MODE` > plugin 默认 `modal`。`.claude/settings.json` 的 `env` 块由 Claude Code 原生合并（local > project > user）自动进入 shell env，无需 plugin 层分辨
+  6. **不抬 target CLAUDE.md**（D7）：对齐 DEC-011 / DEC-012 边界 —— `dispatch mode` 是 orchestrator 内部策略，非项目业务规则；同一项目可能既本地又远程跑，项目级 default 无意义
+  7. **集中落点 = 全散 inline**（D5，不新增 helper）：orchestrator bootstrap + Escalation 渲染分支 + 2 skill 条件分支共 4 处 inline，总增 ~35 行。对齐 DEC-010 精简心智；per-workflow token ~30 行（helper 方案会 ~90 行）
+  8. **展现与接收解耦**：`text` 模式**只规定**"决策块 emit 到对话流"，**不负责谁接收**。下游由环境决定 —— TG plugin 会话天然经 MCP 转 TG / 终端用户直接回复 / CI 脚本可 parse 决策块自动喂。plugin 不硬编码任何前端转发
+  9. **与 DEC-002 / DEC-003 关系**：DEC-002 Escalation JSON（agent → orchestrator 机器通道）保留不变；DEC-003 research `<research-result>` JSON 保留不变；本 DEC 是**展现层**改动，在 orchestrator 对用户的对话界面加第二种渲染路径；与两者正交
+  10. **DEC-006 producer-pause 心智同源**：text 模式的 pause 等自由文本回复与 A 类 `go / 问 / 调 / 停` 心智一致，复用既有交互范式
+  11. **dogfood 自验**：本 DEC 设计过程自身即 text 模式 dogfood —— Telegram 驱动的整个 issue #31 架构决策（D1~D7）全程走 `<decision-needed>` 块（见 TG session 232~252 轨迹）。AskUserQuestion 在 TG 天然不可用是**预期即视效应**，proof-of-concept 已闭环
+- **备选**:
+  - **统一改动 5 agent + 2 skill 全切 text emit**：critical_modules 命中 7 处 prompt 本体；DEC-002 JSON 通道与 text emit 并存复杂；未来 schema 演化 7 处同步。评分 26 vs 最小改动 43
+  - **JSON schema 展示给用户**：用户端消费差（TG 看 JSON 难读），违背"text 模式给人看"初衷
+  - **硬规则 parse 用户回复**（`/^A$/` / `选\s*A` 等）：用户必须精确语法 UX 差；orchestrator 是 LLM 本可 fuzzy
+  - **独立 skill `skills/request-decision.md`**：新公开 skill auto-delegation 误触发风险；违反 DEC-010 精简；per-workflow token 反增 3 倍
+  - **shared helper `skills/_request-decision.md`**：违反 DEC-010；per-workflow token 同样反增（DEC-010 已用数据证明）
+  - **issue 原文 6 级优先级链**：文档冗余，Claude Code 已处理 settings.json 合并。评分 38 vs 3 级 46
+  - **允许 target CLAUDE.md 覆盖**：违反 DEC-011 / DEC-012 "dispatch mode 是内部策略" 边界
+- **理由**: (1) 最小改动路径（agent prompt 零改动）直击 critical_modules 命中面最小；(2) 精简 YAML 决策块对 TG / terminal / CI 所有前端友好，与 DEC-002 JSON 正交；(3) orchestrator LLM fuzzy parse 天然成立，复用 DEC-006 producer-pause 自由文本心智；(4) 3 级优先级链与 Claude Code 原生机制对齐无冗余；(5) 展现与接收解耦让 TG plugin 等远程前端天然受益零前端硬编码；(6) 全散 inline 对齐 DEC-010 精简，per-workflow token 比 helper 方案省 3 倍；(7) 本 workflow 自身 dogfood 闭环证明 text 模式可用
+- **相关文档**: [docs/design-docs/decision-mode-switch.md](design-docs/decision-mode-switch.md)（完整设计 + 3 项决策量化评分）、DEC-002（Escalation JSON 正交保留）、DEC-003（research agent JSON 正交保留）、DEC-006（A 类 producer-pause 心智同源）、DEC-010（helper 抽取反增教训）、DEC-011 / DEC-012（dispatch mode 不抬 CLAUDE.md 边界）、[issue #31](https://github.com/duktig666/roundtable/issues/31)
+- **影响范围**: `commands/workflow.md` 顶部新增 Step -1 Bootstrap（~5 行）+ Step 5 Escalation 渲染分支（~3 行）；`commands/bugfix.md` ref workflow.md（~4 行）；`skills/architect/SKILL.md` + `skills/analyst/SKILL.md` 加条件分支各 ~5 行；`README.md` + `README-zh.md` §决策模式章节各 ~10 行；`docs/design-docs/decision-mode-switch.md` + `docs/exec-plans/active/decision-mode-switch-plan.md` + `docs/testing/decision-mode-switch.md` 新建；`docs/decision-log.md` 本条置顶；`docs/INDEX.md` + `docs/log.md` 追加。**不改** 5 agent prompt 本体；**不改** DEC-002 / DEC-003 / DEC-004 / DEC-005 / DEC-006 / DEC-007 / DEC-008 / DEC-011 / DEC-012 任何 Accepted 条款；**不改** Phase Matrix / Step 4 并行判定树 / critical_modules 机械触发；**不改** target CLAUDE.md 业务规则边界。运行时：远程 / TG / CI 前端下 text 模式生效 workflow 不再阻塞；本地用户可 env 或 CLI arg 切换偏好。**post-fix 2026-04-20**：tester F1/F2/F3/F5/E1/E2/E4/E5/E7 全部 inline 回填 design-doc（§2.1 非法值 fallback / §2.1a timeout 非目标 / §3.1 canonical schema + 推荐标记统一 / §3.1.1 多块串行 emit / §3.1.2 id 命名空间 / §3.6 歧义处理 4 层）+ 3 处 prompt 本体 canonical 行格式统一 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`；不新开 DEC（append-only，属 DEC-013 scope 内 clarification）
+
+---
+
 ### DEC-009 轻量化重构：4 shared helper + log.md closeout batching + README/CLAUDE.md 结构重塑
 - **日期**: 2026-04-19
 - **状态**: 部分 Superseded by DEC-010（决定 1 "4 shared helper 抽取" Superseded —— 运行期 token 账误判；决定 2 log.md batching / 决定 3-6 结构性规则 / 决定 8-10 DEC 修正条款仍 Accepted）

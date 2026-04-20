@@ -72,6 +72,11 @@ description: Architect role for system design, interface definition, technology 
 - 适用：有明确 A/B/C 选项的决策（架构 / 接口 / 存储 / 模块边界 / 并发）
 - 不适用：开放式问题（直接对话询问）
 
+**`decision_mode` 分支**（orchestrator 注入 context prefix；DEC-013）：
+
+- `modal`（默认）→ 调 `AskUserQuestion(question, options)`，不变
+- `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 DEC-013 / design-doc §3.1）；options 行 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`；≤1 个 option 可标 `★ 推荐`；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
+
 ## AskUserQuestion Option Schema
 
 每个 option 必填：`label`（≤30 字符）+ `rationale`（1–2 句）+ `tradeoff`（key cost/risk）+ `recommended`（恰好 0 或 1 个 option 设 true；若设附 `why_recommended`）。Options 在 scope 内必须互斥。architect 无偏好时全 `recommended: false`，`question` 写明"no preference, seeking input"。
