@@ -104,6 +104,39 @@ claude
 
 ---
 
+## Orchestrator 编排器
+
+**orchestrator 就是运行 `/roundtable:workflow` 或 `/roundtable:bugfix` 的主会话 Claude** —— 不是独立 agent 或进程，是主会话本身执行 `commands/workflow.md` 的编排逻辑。职责：只编排，不自己做设计 / 编码 / 审查；只派发、gate、聚合。
+
+### 派发机制
+
+| 角色形态 | 派发方式 | 运行位置 |
+|---------|---------|---------|
+| **skill**（analyst / architect） | `Skill` 工具 | 主会话（与 orchestrator 共 context） |
+| **subagent**（tester / reviewer / dba / research） | `Task` 工具 | 独立 subagent context |
+| **inline developer**（DEC-005 逃生门） | orchestrator `Read` `agents/developer.md` 主会话照做 | 主会话 |
+
+### 特权（角色没有）
+
+- **唯一 Writer**：`docs/INDEX.md` / `docs/log.md` / `exec-plans/[slug]-plan.md` checkbox —— 角色只 report `log_entries:` YAML / `created:` path，orchestrator 代写避免 race
+- **唯一 `AskUserQuestion` relayer**：subagent 的 `<escalation>` JSON block 必须过 orchestrator 转弹窗 —— subagent 本体无 AskUserQuestion
+- **唯一 git 执行者**：`commit` / `push` / `branch` / `tag` / `reset` / `stash` 仅在用户显式要求时执行
+
+### 各 Step 做什么
+
+- **Step 0** context 检测 —— `target_project` / `docs_root` / toolchain / CLAUDE.md `critical_modules`
+- **Step 1** 任务规模判定 —— 小 / 中 / 大 → pipeline 选型
+- **Step 3.4** 派发 mode 选择 —— per-session `@<role> bg|fg` → 并行度 → `AskUserQuestion`
+- **Step 3.5** Progress Monitor 启动 —— 仅后台派发（DEC-008 gate）
+- **Step 4** 并行派发判定树 —— PREREQ MET / PATH DISJOINT / SUCCESS-SIGNAL INDEPENDENT / RESOURCE SAFE
+- **Step 5** 解析 `<escalation>` → `AskUserQuestion` relay → 按用户决策重派
+- **Step 6** phase gating —— A 产出-暂停 / B 审批门 / C 验证链（DEC-006）
+- **Step 7/8** A 转场 / C 过桥 / Stage 9 终点批量 flush `INDEX.md` / `log.md`
+
+**类比项目经理**：skill 是请进主办公室开会的专家（共享白板）；subagent 是外包到独立会议室的审阅团队（只带结论回来）；orchestrator 就是 PM —— 排班、写纪要、对客户（用户）说话。
+
+---
+
 ## 使用：命令 / Skill / Agent
 
 roundtable 共提供 **3 个命令**、**2 个 skill**、**5 个 agent**。命令是入口；skill 是可直接调用的交互式角色；agent 是由编排器派发的隔离 subagent（你也可以用 `@mention` 直接点名）。

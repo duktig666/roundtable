@@ -104,6 +104,39 @@ claude
 
 ---
 
+## The Orchestrator
+
+The **orchestrator** is the **main-session Claude** running `/roundtable:workflow` or `/roundtable:bugfix` — not a separate agent or process. It executes `commands/workflow.md`'s orchestration logic: it never designs, codes, or reviews itself; it only dispatches, gates, and aggregates.
+
+### Dispatch mechanisms
+
+| Role form | Dispatched via | Runs in |
+|-----------|---------------|---------|
+| **skill** (analyst, architect) | `Skill` tool | main session (shares context with orchestrator) |
+| **subagent** (tester, reviewer, dba, research) | `Task` tool | isolated subagent context |
+| **inline developer** (DEC-005 escape hatch) | orchestrator `Read`s `agents/developer.md` and acts in-line | main session |
+
+### Privileges (roles do NOT have these)
+
+- **Sole writer** of `docs/INDEX.md` / `docs/log.md` / `exec-plans/[slug]-plan.md` checkboxes — roles report `log_entries:` YAML / `created:` paths; orchestrator writes on their behalf to avoid races on shared artifacts
+- **Sole `AskUserQuestion` relayer** for subagent `<escalation>` JSON blocks — subagents can't pop dialogs themselves
+- **Sole git actor** — only runs `commit` / `push` / `branch` / `tag` / `reset` / `stash` when the user explicitly asks
+
+### What the orchestrator does, stage by stage
+
+- **Step 0** context detection — `target_project` / `docs_root` / toolchain / CLAUDE.md `critical_modules`
+- **Step 1** task sizing — small / medium / large → pipeline selection
+- **Step 3.4** dispatch mode selection — per-session `@role bg|fg` → parallelism → `AskUserQuestion`
+- **Step 3.5** Progress Monitor setup — background dispatches only (DEC-008 gate)
+- **Step 4** parallel-dispatch decision tree — PREREQ MET / PATH DISJOINT / SUCCESS-SIGNAL INDEPENDENT / RESOURCE SAFE
+- **Step 5** parse `<escalation>` → relay via `AskUserQuestion` → re-dispatch with user's decision
+- **Step 6** phase gating — A producer-pause / B approval-gate / C verification-chain (DEC-006)
+- **Step 7/8** batch-flush `INDEX.md` / `log.md` at A-transitions, C bridges, and the Stage 9 endpoint
+
+**Analogy — the PM in a meeting room**: skills are subject-matter experts in the main room (shared whiteboard); subagents are outside review teams in their own rooms (only final memos come back); the orchestrator is the PM — scheduling who's in the room, keeping minutes, and talking to the client (user).
+
+---
+
 ## Usage: Commands, Skills, Agents
 
 roundtable ships **3 commands**, **2 skills**, and **5 agents**. Commands are the entry points; skills are interactive roles you can invoke directly; agents are isolated subagents that the orchestrator dispatches (though you can `@mention` them directly too).
