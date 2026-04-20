@@ -64,6 +64,59 @@ argument-hint: <task description>
 
 **转发**：active channel 下按 Step 5b 事件类 a 转发检测结果块（``` 围栏零转义）。
 
+## Step 0.5: FAQ Sink Protocol（issue #27；常驻规则，在 Step 0 之后激活）
+
+> **位置说明**（C1 修复）：本 step 虽按编号紧随 Step 0，但语义上是 **session 生命期常驻规则**，而非"执行一次"的 bootstrap。`{docs_root}` / `target_project` 必须由 Step 0 先填充，本 step 在**首次用户机制提问**到达时才激活；Step 0 完成前的任何提问**延后 sink**（先回答，等 Step 0 完成后再追加）。
+
+用户**直接提问**（非 `<escalation>` / 非 A 类菜单 `问:` / 非 skill 阶段调研）涉及 roundtable 机制时，orchestrator 回答后**自动追加** Q&A 到 `{docs_root}/faq.md`（不存在则创建 minimal header；`<project>` 字面值 = `basename(target_project)`，例如 `/data/rsw/roundtable` → `roundtable`）：
+
+```
+# <project> FAQ
+
+> 机制 / 概念 / 决策类问答沉淀。slug 级 FAQ 在各 analyst/design-docs ## FAQ 段，与本全局 FAQ 互补。
+
+---
+```
+
+**Sink 触发**（白名单启发式；用户命令覆盖；大小写不敏感匹配）：
+- **roundtable 专有术语**命中（任一）：`orchestrator` / `phase matrix` / `DEC-\d+` (regex) / `auto_mode` / `decision_mode` / `escalation` / `producer-pause` / `approval-gate` / `verification-chain` / `critical_modules` / `Resource Access` / `roundtable` / `roundtable:(architect|analyst|developer|tester|reviewer|dba)` / slug 级 DEC 名如 `DEC-015` / Step 编号如 `Step 5b` / `§3.1a`
+- **中文通用词**（`机制` / `流程` / `阶段` / `决策` / `工作流`）**必须**与上述专有术语**同句**共现才触发（避免 target 项目业务语境误伤）
+- 用户显式 `加入 FAQ` / `沉淀到 FAQ` / `add to FAQ` / `add faq` → 强制 sink（**前提**：该问仍属 roundtable 机制类；纯业务问题即使命令强制也拒绝并回 `此提问非 roundtable 机制类，未 sink；可改写为 mechanism 化表述`，W4）
+- 用户显式 `别沉淀` / `skip FAQ` / `don't FAQ` / `no faq` → 强制跳过
+- **冲突解析**：同一消息同时含强制 sink + 强制 skip 命令 → **`skip` 胜出**（保守；用户可后续手动 `加入 FAQ`）
+
+**Sink 不触发**：target 项目代码 debug / 特定错误定位 / 用户偏好讨论 / 纯闲聊 / 一次性对话 / A 类 `问:` 前缀（走 menu 循环路径到 analyst slug FAQ，DEC-006 §A）。
+
+**A 类 menu 激活期间裸问机制题**（用户无 `问:` 前缀）：Step 0.5 优先 —— 回答 + sink global FAQ，**不**进入 menu 循环（menu 循环专属 `问:` 前缀用户意图）。回答完 orchestrator 重 emit 原 A 类 menu（DEC-006 §A 菜单穷举）。
+
+**去重算法**（F1 澄清）：
+1. 追加前 `Read` `{docs_root}/faq.md`（若存在）
+2. **Tokenize**：Q 标题 lowercase + 按 `[\s\p{P}]+` split（中英混合同款，中文按字符粒度留存，英文按空格，标点剔除）
+3. **Bag-of-words Jaccard 相似度**：`|A ∩ B| / |A ∪ B|`（两个 Q 的 token 集合）
+4. **≥ 0.7** → 判重复，**不追加**，改在回复末尾 ref 已有 § 锚点
+5. 同义词（如 `orchestrator` vs `编排器`）不在本简化算法范围；follow-up 若误判率高可扩词典
+
+**条目格式**：
+
+```
+## Q: <简化问题 ≤80 字符>
+**提问于**：YYYY-MM-DD session
+**类别**：[roundtable 机制 | Phase Matrix | DEC-xxx | ...]
+
+<answer ≤500 字；超长引 docs/... 路径>
+
+---
+```
+
+**回复末尾标注**：
+- Sink 触发 → 加一行 `📚 已追加到 {docs_root}/faq.md § Q: <简化标题>`
+- 去重命中 → `📚 已有相关条目见 {docs_root}/faq.md § Q: <锚点>`
+
+**`log_entries:` 上报**：orchestrator 自造 `prefix: faq-sink` / `slug: faq-sink` / `files: [{docs_root}/faq.md]` / `note: Q-<简化> sunk`。新前缀 `faq-sink` 追加到 `docs/log.md` §前缀规范白名单（expected 一次性动作）。
+
+**与 A 类 `问:` 区别**：A 类 menu 的 `问: ...` 触发 skill 回派答 FAQ 后**返回菜单循环**（DEC-006 §A），FAQ 条目走 **analyst slug 级** `## FAQ`（analyst 报告内）；本 Step 0.5 是 **非 A 类 menu 的** 直接提问，走 **global `{docs_root}/faq.md`**。两者互补不冲突。
+
+
 ## Step 1: 任务规模判定
 
 | 规模 | 信号 | Pipeline |

@@ -21,6 +21,8 @@ argument-hint: <bug 描述 或 issue 编号>
 
 **Phase & audit forwarding**：沿用 `commands/workflow.md` Step 5b 完整规则（DEC-013 §3.1a 扩展 / issue #48）—— active channel 下 context detection 结果（a）/ role completion digest（c）/ C 类交接（d）/ auto_mode 4 audit 事件（e）强制同步转发，`markdownv2` 结构化。**事件类 b（A 类 producer-pause）不适用 bugfix**（bugfix 流程无 A 类 pause）。详见 `docs/design-docs/tg-forwarding-expansion.md`。
 
+**FAQ sink**：沿用 `commands/workflow.md` Step 0.5 完整规则（issue #27）—— 用户直接问 roundtable 机制类问题时 orchestrator 自动沉淀到 `{docs_root}/faq.md`。
+
 ## Step 0: Project Context Detection
 
 **inline 执行 4 步检测**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并按 4 步执行（D9 → toolchain → docs_root → CLAUDE.md 加载）。**不用 `Skill` 工具**。

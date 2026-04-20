@@ -23,6 +23,26 @@
     修复：7 处 prompt inline 加"Final message 输出规范"条款，明示 `created:` 是唯一机读源；workflow.md Step 7 契约补"单一产出字段原则"。orchestrator 端从 `created:` 自动生成 A 类 producer-pause summary，skill/agent 不再自带。
     验证：lint 0 命中；后续 /roundtable:workflow 派发观察 final message 应不再含 `产出:` 段。
 
+## review | faq-sink-protocol | 2026-04-21
+- 操作者: reviewer (subagent, fg; critical_modules 命中 → 必落盘；orchestrator relay due to subagent Write unavailable — Step 7 兜底第二次 dogfood)
+- 影响文件: docs/reviews/2026-04-21-faq-sink-protocol.md (new, orchestrator relay)
+- 说明: issue #27 终审 Approve-with-caveats —— C1 Step 0.2→0.5 位置修复 + W1/W2/W4/W5 + S2/S4 全 inline 修 / W3/S1/S3 follow-up；DEC-006/013/014/015/002/009 一致；自举验证 Step 7 兜底 contract 稳定（第二次 dogfood）
+
+## test-plan | faq-sink-protocol | 2026-04-21
+- 操作者: tester (subagent, fg; critical_modules 命中 → 必落盘)
+- 影响文件: docs/testing/faq-sink-protocol.md (new)
+- 说明: issue #27 FAQ sink protocol 对抗审查 —— 2 High (F1 70% dedupe 算法未指定 / F2 `<project>` 填充规则未定义) + 4 Medium (F3 A 类 menu 裸问歧义 / F4 log prefix 语义过载 / F5 命令识别大小写冲突 / F6 白名单中文通用词漂移) + 5 Low follow-up；lint 0 命中
+
+## fix | faq-sink-protocol | 2026-04-21
+- 操作者: orchestrator (inline post-fix)
+- 影响文件: commands/workflow.md (Step 0.2→0.5 位置移到 Step 0 后 + 位置说明段 + F1 Jaccard 算法 + F2 basename 填充 + F3 A 类裸问消歧 + F4 faq-sink 新前缀 + F5 命令识别规则 + F6 中文通用词共现约束 + W4 强制 sink 机制类前提); commands/bugfix.md (ref Step 0.5); docs/design-docs/faq-sink-protocol.md (§2.4 / §3.1 / §6 同步 post-fix); docs/log.md (§前缀规范 +faq-sink 行); docs/faq.md (头部 ref 泛化 S2)
+- 说明: tester 2 High + 4 Medium 合并 post-fix；reviewer C1 + W1-W5 + S2/S4 合并 post-fix；W3/S1/S3 归 follow-up
+
+## design | faq-sink-protocol | 2026-04-21
+- 操作者: architect (inline; bugfix-level, no full architect phase)
+- 影响文件: docs/design-docs/faq-sink-protocol.md (new); docs/faq.md (new, minimal header); commands/workflow.md (Step 0.2 新增); commands/bugfix.md (+1 行 ref); docs/INDEX.md (append design-docs + 决策与索引 faq.md 导航)
+- 说明: issue #27 P2 bug —— 用户直接问 roundtable 机制类问题 orchestrator 回答后未沉淀 FAQ。协议：白名单关键词启发式触发 + `{docs_root}/faq.md` 全局落点（不存在则创建 minimal header，`<project>` = basename(target_project)）+ Jaccard bag-of-words ≥0.7 去重 + 📚 回复标注 + `log_entries:` 自造 `prefix: faq-sink` slug `faq-sink` + 用户命令覆盖（加入 FAQ / 别沉淀，冲突时 skip 胜出，加入 FAQ 仍需机制类前提 W4）；与 DEC-006 §A `问:` 菜单循环正交；Step 0.5 位置已从 bootstrap 区调整到 Step 0 之后（C1 修复）；纯 orchestrator 动作不动 5 agent / 2 skill / target CLAUDE.md
+
 ## review | reviewer-write-permission | 2026-04-21
 - 操作者: reviewer (subagent, fg; critical_modules 3/3 命中 → 必落盘；orchestrator relay due to subagent Write unavailable — Step 7 兜底 dogfood)
 - 影响文件: docs/reviews/2026-04-21-reviewer-write-permission.md (new, orchestrator relay)
@@ -257,6 +277,7 @@
 | `lint` | 健康检查发现的问题及处理 | `lint \| 3 issues found \| 2026-04-17` |
 | `fix` | 裁决冲突后的修复 | `fix \| DEC-xxx updated \| 2026-04-17` |
 | `fix-rootcause` | bug 根因结构化 entry（Tier 1/2，DEC-014） | `fix-rootcause \| some-bug \| 2026-04-20` |
+| `faq-sink` | orchestrator 自动沉淀机制类 Q&A 到 `{docs_root}/faq.md`（issue #27） | `faq-sink \| faq-sink \| 2026-04-21` |
 
 ## 条目格式
 

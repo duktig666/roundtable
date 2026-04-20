@@ -24,6 +24,7 @@
 |------|-----|
 | [decision-log.md](decision-log.md) | **项目决策权威注册表**（DEC-xxx），append-only |
 | [log.md](log.md) | 设计层文档时间索引（"何时、谁、动了哪份文档"） |
+| [faq.md](faq.md) | 全局 FAQ 沉淀（orchestrator 按 `commands/workflow.md` Step 0.2 自动追加机制类 Q&A；issue #27） |
 | [../CHANGELOG.md](../CHANGELOG.md) | 发布面 changelog（Keep a Changelog 格式 + SemVer） |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | 贡献指南 + 本地测试清单 |
 
@@ -64,6 +65,7 @@
 - [workflow-auto-execute-mode.md](design-docs/workflow-auto-execute-mode.md) — issue #33 `/roundtable:workflow --auto` 批量预授权 A/B 类 gate 自动采纳 recommended（CLI+env 两级优先链 / recommended 缺失强停 / #30 正交 / 4 agent 零改动），DEC-015 Accepted
 - [tg-forwarding-expansion.md](design-docs/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 转发语义扩展到 5 类 orchestrator-emitted 事件（context / producer-pause / role digest / C handoff / auto_mode audit；orchestrator-only 落点；markdownv2 结构化 TG 可读性增强），append-only clarification
 - [phase-end-approval-gate.md](design-docs/phase-end-approval-gate.md) — issue #30 phase-end approval gate 统一协议（A 类 producer-pause 菜单穷举 + Q&A 循环 + architect `go-with-plan` / `go-without-plan: <理由>` 拆分；orchestrator + 2 skill 落点），DEC-006 §A append-only clarification
+- [faq-sink-protocol.md](design-docs/faq-sink-protocol.md) — issue #27 FAQ 沉淀协议（orchestrator 启发式触发 + `{docs_root}/faq.md` 全局落点 + 70% 词重叠去重 + 📚 回复标注；与 slug 级 FAQ 互补）
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -94,6 +96,7 @@
 - [tg-forwarding-expansion.md](testing/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展对抗性 prompt 审查（1 Critical F13 措辞 + 7 Warning + 4 Suggestion + 2 Positive；post-fix inline 修 F13+F1/F2/F3/F4/F5/F10；F8/F9/F12/F14 follow-up；lint 0 命中）
 - [phase-end-approval-gate.md](testing/phase-end-approval-gate.md) — issue #30 phase-end approval gate 对抗审查（2 Critical F1/F2 + 4 Warning F3-F6 + 4 Suggestion + 2 Positive；post-fix inline 修 F1-F6；F7-F10 follow-up；lint 0 命中）
 - [reviewer-write-permission.md](testing/reviewer-write-permission.md) — issue #23 reviewer/tester/dba Write 权限明示对抗审查（1 Critical F4 兜底 contract + 3 Warning + 2 Suggestion + 3 Positive；post-fix 修 F4/F1/F5；F3 follow-up；lint 0）
+- [faq-sink-protocol.md](testing/faq-sink-protocol.md) — issue #27 FAQ sink protocol 对抗审查（2 High F1/F2 + 4 Medium F3-F6 + 5 Low F7-F11；post-fix 修 F1-F6；F7-F11 follow-up；lint 0）
 
 ### reviews
 
@@ -108,6 +111,7 @@
 - [2026-04-21-tg-forwarding-expansion.md](reviews/2026-04-21-tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展终审（Approve-with-caveats；0 Critical / 1 Warning W1 / 3 Suggestion R1-R3；tester post-fix 7 项全实质修复；验收 8/8；合入后跟进 R1+R2）
 - [2026-04-21-dedupe-produce-created.md](reviews/2026-04-21-dedupe-produce-created.md) — issue #29 dedupe 产出/created 终审 (Approve；tester W1-W3 实质吸收；W4+S1-S3 follow-up)
 - [2026-04-21-reviewer-write-permission.md](reviews/2026-04-21-reviewer-write-permission.md) — issue #23 reviewer/tester/dba Write 权限明示终审 (Approve-with-caveats；0 Critical / 3 Warning / 3 Suggestion / 5 Positive；自举 dogfood Step 7 兜底；F3 sentinel-vs-escalation follow-up issue 建议创建)
+- [2026-04-21-faq-sink-protocol.md](reviews/2026-04-21-faq-sink-protocol.md) — issue #27 FAQ sink protocol 终审 (Approve-with-caveats；C1 Step 0.2→0.5 位置修复 + W1-W5 inline / S2/S4 inline；W3/S1/S3 follow-up；自举 dogfood Step 7 兜底 ×2)
 
 ### bugfixes
 
