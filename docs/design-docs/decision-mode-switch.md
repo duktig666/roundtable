@@ -125,6 +125,34 @@ options:
 - 推荐选项唯一（≤1 个 `★ 推荐`），skill 无偏好时全部不标；analyst skill **禁用** `★ 推荐`（事实层职责，见 `skills/analyst/SKILL.md`）
 - `id` 格式规则见 §3.1.2
 
+### 3.1a Active channel forwarding（orchestrator 转发义务，issue #38）
+
+**背景**：DEC-013 决定 8 "展现与接收解耦" 本意让外层 wrapper 自处理前端转发。实测发现 orchestrator LLM 收到 "emit `<decision-needed>` 块到对话流" 默认走终端文本输出，不知道当前 session 的 **active inbound channel** 是 MCP plugin（TG / Slack / CI）时必须同步调 reply 工具才能让远程用户看到决策块，导致 TG 驱动 workflow 首个决策点即死锁（issue #38）。
+
+**规则**（canonical，appended 2026-04-20）：
+
+> 若当前 session inbound prompt 含 `<channel source="<plugin>:<name>" chat_id="..." ...>` 标签，或该 channel 的 reply 工具在本 session 内曾调用过（**sticky 语义**，不按轮次窗口衰减），每次 emit `<decision-needed>` 块**必须**同步调该 channel reply 工具把**字节等价**的同一块体转发过去（同 `id` / `question` / `options`，纯文本即可，不重排、不重生成 `id`、不缩略）。终端 stdout emit 保留（orchestrator fuzzy parse 与日志回放依赖）。检测不到远程 channel（纯终端 session）→ 不调 reply，行为与现状一致。
+
+**宁可过度转发不可遗漏** —— sticky 语义选择 tiebreak 原则：session 内一旦认定有远程 channel，后续所有 `<decision-needed>` emit 都转发；不做轮次窗口衰减（N 轮重计）以避免长会话 stale-channel 假阴性死锁。
+
+**仅在 emit `<decision-needed>` 时触发**（普通对话 / phase A producer-pause summary / FAQ 不在本规则范围，另议；对齐 DEC-013 决定 8 "plugin 不硬编码任何前端转发" 精神：转发义务是 orchestrator 内部动作，不是前端硬编码）。
+
+**落点**（append-only clarification，不新开 DEC）：
+- 3 处 prompt 本体 inline 加 ~3 行：`commands/workflow.md` Step 5 Escalation `text` 分支 / `skills/architect/SKILL.md` `decision_mode` 分支 text 段 / `skills/analyst/SKILL.md` `decision_mode` 分支 text 段
+- 1 处 ref 继承：`commands/bugfix.md` 通过 Step -1 引用 `commands/workflow.md` 自动继承（不独改）
+- 1 处规范落点：本 design-doc §3.1a
+
+**检测启发式**（orchestrator LLM judgement，不强制硬算法）：
+1. 最近一轮 inbound prompt 出现 `<channel source="...">` 开标签 → 命中
+2. 本 session 内曾调用过该 channel 的 reply / edit_message 工具 → 命中（sticky，不按轮次衰减）
+3. 两条都不成立 → 纯终端 session
+
+**非目标**：
+- 不改 DEC-013 决定 8 "展现与接收解耦" 边界（转发是 orchestrator 内部动作）
+- 不改 4 agent prompt（developer/tester/reviewer/dba）
+- 不抬 target CLAUDE.md 业务规则
+- **本规则只解决 `<decision-needed>` 死锁**；phase A producer-pause summary / 普通对话 / FAQ 的转发策略 out of scope，由 orchestrator 按 channel sticky 语义自行判断，后续 issue 跟进
+
 ### 3.1.1 多决策块 emit 纪律（tester E7）
 
 - **串行 emit** —— 一次 skill/orchestrator 激活最多 emit 1 个 `<decision-needed>` 块；若同轮有多个决策点，skill 内部 queue，依次在收到用户回复后 emit 下一个
@@ -344,3 +372,4 @@ orchestrator 本身是 LLM，直接读用户自由文本回复推断选中 optio
 
 - 2026-04-20 初版（architect skill + Telegram text 模式 dogfood 产出）
 - 2026-04-20 追加 §7 实施原则：简洁优先 + §8 实施路线（应用户要求 message #256 —— 补 exec-plan + token 节约纪律）
+- 2026-04-20 追加 §3.1a Active channel forwarding（issue #38 —— TG/CI 远程前端转发义务 append-only clarification；3 处 prompt 本体 inline 修复；不新开 DEC）

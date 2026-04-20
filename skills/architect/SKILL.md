@@ -76,6 +76,7 @@ description: Architect role for system design, interface definition, technology 
 
 - `modal`（默认）→ 调 `AskUserQuestion({questions: [...]})`，schema 见下方 §AskUserQuestion Option Schema
 - `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 DEC-013 / design-doc §3.1）；options 行 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`；≤1 个 option 可标 `★ 推荐`；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
+  - **Active channel forwarding**（DEC-013 §3.1a）：若 session inbound prompt 含 `<channel source="<plugin>:<name>" chat_id="..." ...>` 标签，或该 channel reply 工具在本 session 内曾调用过（sticky 语义，不按轮次窗口衰减），skill emit `<decision-needed>` 块**必须**同步调该 channel reply 工具把**字节等价**的同一块体转发过去（同 `id` / `question` / `options`，纯文本即可，不重排、不重生成 `id`、不缩略）；终端 stdout emit 保留。纯终端 session 不触发。只在 emit `<decision-needed>` 时触发，普通对话 / phase summary / FAQ 不在本规则范围。
 
 ## AskUserQuestion Option Schema
 
