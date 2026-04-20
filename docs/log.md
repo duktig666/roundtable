@@ -14,6 +14,26 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## review | tg-forwarding-expansion | 2026-04-21
+- 操作者: reviewer (subagent, fg; critical_modules 3/3 命中 → 必落盘)
+- 影响文件: docs/reviews/2026-04-21-tg-forwarding-expansion.md (new)
+- 说明: issue #48 DEC-013 §3.1a 扩展终审 Approve-with-caveats —— DEC-013 决定 1/3/8/9 全守住；tester post-fix 7 项（F13 Critical + F1/F2/F3/F4/F5/F10 Warning）全部实质性修复非贴补；4 项 follow-up non-blocking（F14 已被 F2 覆盖可关闭）；Reviewer 新增 1 Warning（W1 Step 5b ~31 行膨胀监控）+ 3 Suggestion（R1 design-doc §5 测试场景补 4 新 / R2 DEC-013 影响范围段累积超 DEC-010 ≤10 行需脚注豁免 / R3 bugfix ref 清晰度 OK）均不阻塞；lint 0 命中；验收 8/8 通过；合入后跟进 R1+R2 + dogfood 实测 F8/F9
+
+## test-plan | tg-forwarding-expansion | 2026-04-21
+- 操作者: tester (subagent, fg; critical_modules 3/3 命中 → 必落盘)
+- 影响文件: docs/testing/tg-forwarding-expansion.md (new)
+- 说明: issue #48 DEC-013 §3.1a 扩展对抗性 prompt 审查 —— 1 Critical (F13 Step 5b 末段 "3 处 skill-emitted" 措辞偏差) + 7 Warning (F1 a/d 重叠 / F2 ordering / F3 ≤200 字计量 / F4 纯/混合边界 / F5 sticky 语义 / F8 字节等价与 markdownv2 混合 / F10 session 定义) + 4 Suggestion + 2 Positive；lint 0 命中；post-fix 已 inline 完成 F13+F1+F2+F3+F4+F5+F10
+
+## fix | tg-forwarding-expansion | 2026-04-21
+- 操作者: orchestrator (inline post-fix)
+- 影响文件: commands/workflow.md (+~22 行 F1/F2/F3/F4/F5/F10/F13 inline 修复); commands/bugfix.md (+0 行，ref 段微调 F6); docs/testing/tg-forwarding-expansion.md (+变更记录 2026-04-21 post-fix 条目)
+- 说明: tester 1 Critical + 4 Warning + 2 collateral Warning 合并 post-fix 一次出 —— Step 5b 末段改精确列 3 处 prompt 本体（workflow Step 5 text / architect text / analyst text）/ 新增 Ordering & 批次规则子段（c 独立、d+e 合并、a+Step 1 合并、b 独立）/ 格式按事件类硬绑定段（事件类格式列优先）/ Unicode codepoint 计量 + 超长截断策略段（路径>findings>单行引用）/ Sticky 语义扩展段（tag 一次永久 + 多 channel 广播）/ Step 6.1 C 类末尾加 Stage 1 不重发 d 条款 / bugfix ref 显式标注 b 不适用；lint 0 命中；F8/F9/F12/F14 4 项 non-blocking 列为 follow-up
+
+## design | tg-forwarding-expansion | 2026-04-21
+- 操作者: architect (skill, inline)
+- 影响文件: docs/design-docs/tg-forwarding-expansion.md (new); docs/decision-log.md (DEC-013 post-fix 2026-04-21 追加); docs/INDEX.md (append design-docs 条目)
+- 说明: issue #48 —— DEC-013 §3.1a Active channel forwarding 语义扩展到 5 类 orchestrator-emitted 事件 (context/producer-pause/role digest/C handoff/auto_mode audit)；D1 落点 orchestrator-only (workflow.md + bugfix.md，skill 零改动) + D2 append-only clarification + D3 ≤200 字 digest + markdownv2 结构化 TG 可读性增强 (用户反馈 msg_id=428) + D4 全 4 auto_mode audit 事件转发；auto_mode=on 全 4 决策 auto-pick recommended；不新开 DEC / 不改 DEC-013 决定 8 边界 / 不改 skill/agent prompt / 不抬 target CLAUDE.md
+
 ## design | workflow-auto-execute-mode | 2026-04-20
 - 操作者: architect (skill, inline)
 - 影响文件: docs/design-docs/workflow-auto-execute-mode.md (new); docs/decision-log.md (DEC-015 置顶); docs/exec-plans/active/workflow-auto-execute-mode-plan.md (new); docs/INDEX.md (append design-docs + exec-plans 条目)

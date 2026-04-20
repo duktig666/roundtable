@@ -19,6 +19,8 @@ argument-hint: <bug 描述 或 issue 编号>
 
 同 `commands/workflow.md` Step -1 / Step 5 分支：解析 `decision_mode`（`modal` | `text`），注入每个派发 prompt prefix，按 mode × `auto_mode` 选 Escalation 渲染路径。
 
+**Phase & audit forwarding**：沿用 `commands/workflow.md` Step 5b 完整规则（DEC-013 §3.1a 扩展 / issue #48）—— active channel 下 context detection 结果（a）/ role completion digest（c）/ C 类交接（d）/ auto_mode 4 audit 事件（e）强制同步转发，`markdownv2` 结构化。**事件类 b（A 类 producer-pause）不适用 bugfix**（bugfix 流程无 A 类 pause）。详见 `docs/design-docs/tg-forwarding-expansion.md`。
+
 ## Step 0: Project Context Detection
 
 **inline 执行 4 步检测**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并按 4 步执行（D9 → toolchain → docs_root → CLAUDE.md 加载）。**不用 `Skill` 工具**。
