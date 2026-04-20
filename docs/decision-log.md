@@ -77,6 +77,31 @@
 
 ---
 
+### DEC-012 subagent 派发 run_in_background 选择策略（D2 并行度 + D4 两级逃生门；DEC-008 正交补齐上游）
+- **日期**: 2026-04-20
+- **状态**: Accepted
+- **上下文**: issue #19 —— DEC-008 在 `commands/workflow.md` Step 3.5.0 引入 gate（`run_in_background: true` 才启 Monitor），但**上游决策缺失**：orchestrator 如何选 `run_in_background` 的值？`commands/workflow.md` / `commands/bugfix.md` / 5 agent prompt 均无选择规则（analyst F1/F2 确认 0 规则），orchestrator 靠 LLM 自由心证。dogfood 实录显示"Monitor 通知 + 主会话缩进流双份信号"偶发（P8 bug），即误判典型。analyst 报告 3 选项对比（规则补齐 / 删 Monitor 全前台 / 强制全后台）+ 5 场景 × 3 选项矩阵 + 判据 D1-D4 浓缩为 3 个 architect 决策点
+- **决定**:
+  1. **方向 1 规则补齐**（不 Supersede DEC-004/007/008；保留所有既有投入）—— 方向 2 丢并行（S3 wall time 翻 3×）+ revert 600+ 行代价大；方向 3 违反 Claude Code Task 工具 foreground-default 官方心智
+  2. **D2 并行度核心判据**：单派发 Task（同一 assistant message 只 1 个 Task）→ `run_in_background: false`（对齐官方默认）；并行批 ≥2 Task → 全部 `run_in_background: true` + Monitor。Step 4 并行判定树不变
+  3. **D4 用户逃生门两级**：per-session 用户 prompt @声明（`@roundtable:<role> bg|fg` 或中英文等价）强制覆盖 D2；per-dispatch orchestrator 模糊时调 `AskUserQuestion`（fg/bg 两选项带 rationale）
+  4. **不引入 target CLAUDE.md 配置项**（不抬 `dispatch_mode_default`）—— 对齐 DEC-011 边界："dispatch mode 是 orchestrator 内部策略，非项目业务规则"；与 DEC-005 `developer_form_default` 有意区别（developer form 是角色形态偏好，是项目级；dispatch mode 是运行时参数选择）
+  5. **DEC-008 Accepted 保留**：DEC-012 正交补齐上游（DEC-012 选 mode → DEC-008 根据 mode 决定 Monitor 是否启）；不 Supersede
+  6. **#20 scope 边界**：本 DEC **只决策 subagent 形态（Task 派发）下的 fg/bg**；不碰"role 是否支持 inline 形态"（issue #20 独立）。若 #20 给 tester/reviewer/dba 加 inline 逃生门，inline 路径天然不经 Task，不触发本 DEC §3.4
+  7. **P8 验收点**：实施后单发 developer subagent → D2 命中 fg → DEC-008 skip Monitor → 主会话不再出现双份信号
+- **备选**:
+  - **方向 2（删 Monitor 全前台，Supersede DEC-004/007/008）**：量化评分 27 vs 方向 1 的 54；并行派发能力丢失是关键；拒绝
+  - **方向 3（强制全后台，Supersede DEC-008）**：评分 44；违反官方默认 + 小任务多付 Monitor 启动开销；拒绝
+  - **D1+D2（角色 + 并行度）**：评分 32 vs D2+D4 的 44；5 agent 或 commands 表硬编码改动面大 + critical_modules 多点命中 + 无用户逃生门；拒绝
+  - **D2 only**：评分 39；规则最扁但无用户逃生门；拒绝
+  - **D1+D2+D4（三层）**：评分 40；三层 fallback 复杂度高，D1 属过度设计（user memory `feedback_foreground_agent_no_monitor` 证前台缩进流可接受，无需 per-role 区分）；拒绝
+  - **D4 三级（+ per-project CLAUDE.md）**：违反决定 4 边界；dispatch mode 是 orchestrator 层非业务层；拒绝
+- **理由**: (1) 方向 1 保留 DEC-004/007/008 投入 + 保留并行能力 + 对齐 Claude Code 官方默认，量化评分 54 最优；(2) D2 单一判据确定性高，orchestrator 查"本 message 内几个 Task"即可决策；(3) D4 per-session 声明对齐 DEC-005 per-session 机制心智；(4) per-dispatch AskUserQuestion 兜底模糊情况，复用现有弹窗机制零新 UI；(5) 不引入 CLAUDE.md 配置项避免选项疲劳 + 保持业务规则边界；(6) P8 bug 由 D2 自动修复（单发 developer → fg）无需 targeted hotfix
+- **相关文档**: docs/analyze/dispatch-mode-strategy.md（F1-F6 事实 + 3 选项对比 + 5 场景 × 3 选项矩阵 + 判据 D1-D4 + P1-P8 开放问题）、docs/design-docs/dispatch-mode-strategy.md（含 3 项决策量化评分 + P8 验收点）、DEC-004（Progress schema 上游）、DEC-008（前台免 Monitor gate 下游，正交补齐）、DEC-005（developer 双形态心智对齐）、DEC-011（边界声明参考：内部策略不抬 CLAUDE.md）、issue #19
+- **影响范围**: `commands/workflow.md` 新增 §3.4 Dispatch Mode Selection（置于 Step 3.5 前）；`commands/bugfix.md` Step 0.5 加引用（一句）；`docs/design-docs/dispatch-mode-strategy.md` 新建；`docs/decision-log.md` 本条（置顶 dogfood DEC-011）；`docs/INDEX.md` 新增 design-doc 条目。不改 5 agent prompt；不改 DEC-001~DEC-011 任何 Accepted 条款；不改 target CLAUDE.md；不改 Step 4 并行判定树。运行时：下一次派发 subagent 时 orchestrator 走 D2→D4 树选 mode；P8 dogfood bug 自动修复
+
+---
+
 ### DEC-011 decision-log 条目顺序约定传导到目标项目（SKILL.md 补插入位置规则 + Minimal header 初始化）
 - **日期**: 2026-04-20
 - **状态**: Accepted

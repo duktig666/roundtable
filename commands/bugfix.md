@@ -21,6 +21,8 @@ argument-hint: <bug 描述 或 issue 编号>
 
 复用 `/roundtable:workflow` §3.5 机制。
 
+**Dispatch mode selection（DEC-012）**：派发前按 `commands/workflow.md` §Step 3.4 评估 `run_in_background`。Bugfix 通常单派发 → D2 命中 fg；reviewer / dba / tester 兜底派发同规则。
+
 **Gate（DEC-008）+ env opt-out**：仅 `run_in_background: true` 且 `ROUNDTABLE_PROGRESS_DISABLE` 未设为 `1` 的派发触发本 Step。前台派发 / env opt-out / developer inline（见 Step 3）均 skip Monitor setup 并不注入 4 progress 变量；subagent 按其 `## Progress Reporting` fallback 静默降级。并行批每个 `Task` 独立评估。
 
 **执行**：Gate 通过且未 opt-out → 按 `commands/workflow.md` §3.5.1–3.5.4 执行 Bash 准备 / Monitor 启动 / 4 变量注入 / Lifecycle。
