@@ -609,13 +609,168 @@ analyst §3.10 数据：当前 11 open issue 中 7 条共享 workflow.md 路径 
 | 日期 | 版本 | 变更 | 作者 |
 |------|------|------|------|
 | 2026-04-20 | v1 Draft | 初版；10 关键决策量化评分；基于 Q4/Q5/Q7 research + 官方文档"subagents cannot spawn"约束重塑架构 | architect |
+| 2026-04-20 | v1.1 | PR #49 评审后补：§7.2 C1-C5 决策；§9 用户视角使用流程 / 问题解决清单 / 价值评估 / v1 推迟声明 | architect |
 
 ## 7. 待确认项
 
-- [ ] batch subagent text mode pause 的 final turn 行为（Q7 unknown）—— P4 dogfood smoke 测
-- [ ] CLAUDE.md / plugin commands 是否在 `isolation:worktree` subagent 内自动可用（Q4 unknown）—— 同 P4
-- [ ] maxTurns 默认值 / `/roundtable:workflow` 设计阶段完整跑所需 turn 数 —— P4
-- [ ] MCP TG plugin tool 是否继承到子 agent（research 文档矛盾：一处说"默认继承所有工具含 MCP"，一处说"string references 需显式列出"）—— P4 实测
+### 7.1 Research unknown（需 P5 dogfood 实测）
+
+- [ ] batch subagent text mode pause 的 final turn 行为（Q7 unknown）—— P5 dogfood smoke 测
+- [ ] CLAUDE.md / plugin commands 是否在 `isolation:worktree` subagent 内自动可用（Q4 unknown）—— 同 P5
+- [ ] maxTurns 默认值 / 设计阶段完整跑所需 turn 数 —— P5
+- [ ] MCP TG plugin tool 是否继承到子 agent（research 文档矛盾：一处说"默认继承所有工具含 MCP"，一处说"string references 需显式列出"）—— P5 实测
+
+### 7.2 用户确认的实施细节（2026-04-20 PR #49 review 阶段）
+
+- [x] **C1 D2 Scope 降级质疑** → **A. v1 落地（设计阶段 only MVP）**
+  - **用户诚实反馈（关键事实）**：2026-04-20 PR #49 评审时用户明确声明 "目前实施效果，与我的期望有较大差异"。原期望是"批量 dogfood 全流程（含实施）"，v1 降级为"设计阶段 only"的价值显著低于原期望
+  - **处理**：v1 按 PR #49 design 保持不变；**v1 实施被推迟**直到以下任一条件满足：(a) Claude Code 放开 subagents-cannot-spawn 约束 → 可直接做 v2 全流程；(b) 用户明确评估 design-only 价值足够愿意接受 v1 实施；(c) 出现更高价值的优先需求
+  - **暂不开 v2 议题 placeholder issue**（见 C3）
+
+- [x] **C2 P5 dogfood 首跑 issue** → **A. 新建 3 个 P3 micro-issue 做 smoke**
+  - 选 {#20, #23, #27} 不匹配 design-only 场景（这些是 implementation-heavy）
+  - v1 **实施时**（若决定实施）再新建 3 个 P3 专门做 smoke：例如 "docs: refine DEC-011 header initialization wording" / "docs: add FAQ section to lightweight-review design-doc" / "docs: document worktree cleanup best practices" 三类 pure-docs 场景；符合 design-only 测试目标
+  - **当前 v1 推迟状态下本项暂挂起**
+
+- [x] **C3 v2 议题占位 issue** → **不开**（用户明确拒绝）
+  - 三个 v2 议题（tester/reviewer/dba inline / agent teams 评估 / `--scope=impl` 分段）保留在本 design-doc §1.2 非目标段记录；未来需要时直接从这里查
+  - 理由（用户口径）：避免 issue 列表膨胀 / YAGNI
+
+- [x] **C4 PR 合并顺序 + branch 命名** → **A. batch 汇总按冲突组排序 + Claude Code 自动 `claude/<random>`**
+  - 汇总报告建议 merge 顺序：同冲突组内先完成先合；组间独立
+  - branch 命名沿用 Claude Code `isolation:worktree` 原生 `claude/<random>`，不显式指定 `batch/<issue>-<slug>`（减少命名策略复杂度）
+
+- [x] **C5 Concurrency default model-aware 探测** → **A. 读 env `CLAUDE_MODEL` / `--concurrency` flag；不探测默认 3**
+  - batch 命令优先序：`--concurrency N` > env `CLAUDE_MODEL ∈ {sonnet*}` → 5 / env 含 `opus*` → 3 / default → 3（保守）
+  - 永远默认 3 是 fallback；模型探测失败也走 3
+
+## 9. 用户视角：最终使用体验与交付价值
+
+### 9.1 使用流程（end-to-end）
+
+**场景**：你在 TG 想批量消化 3 个 P3 issue `#A #B #C` 的设计阶段。
+
+**Step 1 — 触发命令**：
+
+```
+TG @bot → /roundtable:batch #A #B #C
+```
+
+**Step 2 — 30 秒内 TG 收到调度计划**：
+
+```markdown
+📋 Batch Plan (3 issues, concurrency=3)
+
+冲突预检:
+  Group 1 (串行): {#A, #B} — 共享 DEC-005 token
+  Group 2 (独): {#C}
+
+调度批次:
+  Batch 1: #A + #C 并行（不同组）
+  Batch 2: #B (等 #A 完成；同组内串行)
+
+预估耗时: 30-60 min
+继续？回 go / 停
+```
+
+**Step 3 — 用户 `go` 后进入 30-60 分钟静默期**：
+
+本 v1 诚实面：`<decision-needed>` 转发（DEC-013 §3.1a）仅在 emit 决策块时生效，子 agent 跑设计期间 TG 无反馈（除非命中 auto-halt fallback 或 skill 决策）。
+
+**Step 4 — 后台实际执行**（用户不可见，供架构回溯）：
+
+```
+主会话 /roundtable:batch:
+  ├ fan-out: Agent(#A, bg, worktree) + Agent(#C, bg, worktree)
+  ├ 等 batch 1 完 → fan-out #B
+  └ 全部完 → parse + renumber DEC + 汇总
+
+每个 bg subagent (worktree 内):
+  ├ gh issue view <N>
+  ├ analyst skill inline  → docs/analyze/<slug>.md (深度分析)
+  ├ architect skill inline → docs/design-docs/<slug>.md
+  │                           + DEC-NEW-<uuid8> 占位
+  │                           + docs/exec-plans/active/<slug>-plan.md
+  ├ git commit + push + gh pr create --draft
+  └ final message (含 PR URL + DEC-NEW uuid)
+```
+
+**Step 5 — 全部完成时 TG 汇总报告**：
+
+```markdown
+✅ Batch 完成 (3/3, 42 min)
+
+✅ 已完成 (3):
+  #A → PR#51 (DEC-017) branch: claude/abc123
+  #B → PR#52 (DEC-018) branch: claude/def456
+  #C → PR#53 (DEC-019) branch: claude/ghi789
+
+🟡 待决策 (0)
+🔴 失败 (0)
+
+DEC renumber map:
+  DEC-NEW-aaa → DEC-017 (#A)
+  DEC-NEW-bbb → DEC-018 (#B)
+  DEC-NEW-ccc → DEC-019 (#C)
+
+建议 merge 顺序: #A → #B (同组串行) → #C
+```
+
+**Step 6 — 用户在 GitHub 逐 PR review 设计**：
+
+- 认同 → Approve + merge
+- 要改 → PR comment 指出，architect skill 按反馈迭代（重跑 `/roundtable:workflow <N>` 的 architect 阶段，针对单 PR 的 slug）
+- 拒绝 → close PR；issue 保持 open
+
+**Step 7 — Merged 后实施阶段（不走 batch）**：
+
+```
+TG @bot → /roundtable:workflow #A --auto
+```
+
+主会话跑完整 workflow 派发 developer / tester / reviewer subagent，产实施 commit 追加到同 branch / 同 PR。
+
+### 9.2 解决的问题
+
+| # | 痛点 | v1 如何解决 | 量化 |
+|---|------|------------|------|
+| 1 | 积压多 issue 的设计阶段串行耗时 | 并行 fan-out worktree subagent | 3 条并行 ~1-2h vs 串行 ~3-6h（3x 加速） |
+| 2 | 用户 review 时机太晚（要等完整 workflow 跑完） | 设计阶段产出即 draft PR | 不用等 developer/tester，早期发现设计问题 |
+| 3 | 多 issue 并发时 DEC 编号竞争 | post-hoc renumber + DEC-NEW-\<uuid\> 占位 | 零协调 / 容错 / 审计清晰 |
+| 4 | 并发改同文件的 race | worktree 硬隔离 + 启发式冲突预检分组 | 假阴性兜底靠合并期 rebase |
+| 5 | 分布式决策记录难追溯 | 汇总报告 DEC renumber map + PR body 映射 | PR 审计时可反查原 uuid |
+
+### 9.3 不解决的问题（v1 诚实面）
+
+| # | 问题 | 根因 | 缓解 |
+|---|------|------|------|
+| 1 | ❌ 不加速实施阶段 | Claude Code 硬约束：subagents cannot spawn subagents | v2 议题（见 §1.2）；或等 Claude Code 放宽 |
+| 2 | ❌ 子 agent 跑期间 TG 零反馈 | DEC-013 §3.1a 转发不跨三层嵌套 | #48 修复后显著改善（仍非完美） |
+| 3 | ❌ 启发式预检 30%+ 假阴性 | body 描述与真实改动面不一定对齐 | worktree 隔离是合并期兜底 |
+| 4 | ❌ recommended 缺失子 agent 停在 worktree | 非 `EXPERIMENTAL_AGENT_TEAMS=1` 无 SendMessage | 用户 `cd <worktree>` 手动续跑 |
+| 5 | ❌ 长期 worktree 堆积耗磁盘 | Claude Code 原生保留有变更 worktree | 文档引导用户 `git worktree prune` |
+
+### 9.4 价值评估（诚实面）
+
+**值得做的情况**：
+
+- 当前 open 11 个 issue 里 P2/P3 积压 9 个
+- 用户有"先 review 设计再实施"的 PR-first 流程偏好
+- 批量设计文档产出节省 ~3-5h 首次积压消化时间
+
+**不值得做的情况**：
+
+- **用户期望"批量 dogfood 完整 pipeline"**：v1 不覆盖实施阶段，与原期望差距大（2026-04-20 用户原话："目前实施效果，与我的期望有较大差异"）
+- Claude Code 预期短期（1-3 月）放开 subagents-cannot-spawn 约束 → 应直接做 v2 全流程
+- 用户不急于消化 P2/P3 积压
+
+### 9.5 v1 推迟决策（2026-04-20）
+
+基于用户明确反馈"实施效果与期望差异较大"，v1 实施**暂停**。本 PR #49 保留作为设计存档；是否最终实施等待：
+
+1. Claude Code 对 subagents-cannot-spawn 约束的动态
+2. 用户对 design-only 价值的再次评估
+3. 更高价值的优先需求完成后重新审视
 
 ## 8. 影响文件清单
 
