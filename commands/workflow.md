@@ -351,7 +351,7 @@ created:
     description: Feature X design
 ```
 
-**单一产出字段原则**（issue #29）：`created:` 是 final report 文件清单的**唯一机读源**；`log_entries.files[]` 与之一致（Step 8）。角色**禁止**在 final message 额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 从 `created:` 路径 + `description:` 生成用户可见 A 类 producer-pause summary，skill/agent 自带 summary 会与 orchestrator 生成重复。
+**单一产出字段原则**（issue #29）：`created:` 是 final report **新建文件**清单的**唯一机读源**；`log_entries.files[]` 可额外包含 **修改**文件（两者互补非冗余：`created[]` → INDEX.md / `log_entries.files[]` → log.md），不要求字面 equal。Step 6.1 A 类模板的 `产出：` 行**归 orchestrator 生成**（基于 `created[].path` + `description`）；角色**禁止**在 final message 自写 `产出:` / `Outputs:` 自然语言文件清单（避免与 orchestrator 侧重复）。`tests/*` / `src/*` 代码文件不进 `created:`（INDEX.md 只识 `docs/` 6 类），归 git log。
 
 Fallback：`/roundtable:lint` 周期性审计 orphan。**角色从不自行编辑 `INDEX.md`**。
 
