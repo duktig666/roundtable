@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | workflow-auto-execute-mode | 2026-04-20
+- 操作者: architect (skill, inline)
+- 影响文件: docs/design-docs/workflow-auto-execute-mode.md (new); docs/decision-log.md (DEC-015 置顶); docs/exec-plans/active/workflow-auto-execute-mode-plan.md (new); docs/INDEX.md (append design-docs + exec-plans 条目)
+- 说明: issue #33 D1-D5 一揽子 Accepted by 用户 msg 380 → architect 产出 DEC-015 (11 决定) + 完整设计（§2 业务逻辑矩阵 auto×gate / §3 orchestrator 唯一改动落点 / §4 D1 量化评分 B=46 vs A=23 / §5 影响清单明示 4 agent + 5 skill + README + CLAUDE.md 零改动）+ P0-P8 exec-plan；对齐 DEC-013 三级链 / DEC-006 Phase Matrix 守约 / DEC-010 token 节约 / DEC-011/012 不抬 CLAUDE.md 边界
+
 ## fix | dec013-active-channel-forwarding | 2026-04-20
 - 操作者: developer (inline) / tester (subagent, fg; critical_modules 多命中 → 必评审) / orchestrator
 - 影响文件: commands/workflow.md (Step 5 text 分支加 sub-bullet); skills/architect/SKILL.md (decision_mode text 段加 sub-bullet); skills/analyst/SKILL.md (decision_mode text 段加 sub-bullet); docs/design-docs/decision-mode-switch.md (新增 §3.1a + §10 变更记录追加); docs/decision-log.md (DEC-013 entry 追加 post-fix 2026-04-20 注记)
