@@ -165,7 +165,7 @@ created: YYYY-MM-DD
 7. **红线**：
    - 允许："此处归属模糊，因 X 在 A 模块、Y 在 B 模块"（事实）
    - 禁止："建议归 A 模块 / 推荐方案 A / 请用户选 B"
-8. 回答用户追问，追加到 FAQ
+8. 回答用户追问 → 追加到 `## FAQ` → **return to orchestrator**；由 orchestrator 重新 emit phase-end 菜单（支持多轮追问，用户 `go` / `调` / `停` 才离开 analyst 阶段；DEC-006 §A 菜单穷举 / issue #30 Q&A 循环）
 
 ## 完成后
 
