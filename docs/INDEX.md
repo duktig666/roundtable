@@ -62,6 +62,7 @@
 - [decision-mode-switch.md](design-docs/decision-mode-switch.md) — issue #31 orchestrator 可切换决策模式 modal \| text（最小改动：agent 零改动 + orchestrator 渲染分支 + skill 条件分支；支持 TG / CI / 日志回放远程前端），DEC-013 Accepted
 - [bugfix-rootcause-layered.md](design-docs/bugfix-rootcause-layered.md) — issue #37 bugfix 根因分层落盘（Tier 0 对话 / Tier 1 log.md fix-rootcause entry / Tier 2 docs/bugfixes postmortem；D1-D4 锁定；C1 执行锚点 4 条 + W1-W4 post-fix），DEC-014 Accepted
 - [workflow-auto-execute-mode.md](design-docs/workflow-auto-execute-mode.md) — issue #33 `/roundtable:workflow --auto` 批量预授权 A/B 类 gate 自动采纳 recommended（CLI+env 两级优先链 / recommended 缺失强停 / #30 正交 / 4 agent 零改动），DEC-015 Accepted
+- [tg-forwarding-expansion.md](design-docs/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 转发语义扩展到 5 类 orchestrator-emitted 事件（context / producer-pause / role digest / C handoff / auto_mode audit；orchestrator-only 落点；markdownv2 结构化 TG 可读性增强），append-only clarification
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -89,6 +90,7 @@
 - [lightweight-review.md](testing/lightweight-review.md) — issue #9 DEC-009 轻量化重构对抗测试（19 cases：1 Critical 升级为 Warning / 5 Warning；W-01 design-doc §5 决定编号漂移 7/8/9→8/9/10 已 post-fix；A6 helper role-specific 泄漏已清；D1/E2/B2/F2 post-fix 全绿）
 - [fix-analyst-askuserquestion-params.md](testing/fix-analyst-askuserquestion-params.md) — issue #25 analyst/architect AskUserQuestion schema 修复的对抗性验证（6 类反例 + schema 新旧对比 + 4 条手动 dogfood 验收场景 + 未来 lint 扩展建议；静态扫描 0 命中残留伪字段；结论 PASS）
 - [bugfix-rootcause-layered.md](testing/bugfix-rootcause-layered.md) — issue #37 DEC-014 两轮对抗（round 1: 1 Critical C1 + 4 Warning W1-W4 / round 2 post-fix 全 PASS；新 W5 非阻塞 + 3 nit follow-up；lint 0 命中）
+- [tg-forwarding-expansion.md](testing/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展对抗性 prompt 审查（1 Critical F13 措辞 + 7 Warning + 4 Suggestion + 2 Positive；post-fix inline 修 F13+F1/F2/F3/F4/F5/F10；F8/F9/F12/F14 follow-up；lint 0 命中）
 
 ### reviews
 
@@ -100,6 +102,7 @@
 - [2026-04-20-decision-log-entry-order.md](reviews/2026-04-20-decision-log-entry-order.md) — issue #18 DEC-011 终审（Approve with 1 Warning；0 Critical / 1 Warning / 3 Suggestion；W-01 Minimal header 无 DEC fallback + S1/S2 措辞 post-fix）
 - [2026-04-20-dispatch-mode-strategy.md](reviews/2026-04-20-dispatch-mode-strategy.md) — issue #19 DEC-012 终审（Approve-with-caveats；0 Critical / 3 Warning / 2 Suggestion；W-01 section-number §3.4.5→§3.4 + W-03 Step 4 前置顺序 + S-01/S-02 全 post-fix）
 - [2026-04-20-bugfix-rootcause-layered.md](reviews/2026-04-20-bugfix-rootcause-layered.md) — issue #37 DEC-014 终审（Approve-with-caveats；0 Critical / 3 Warning / 5 Suggestion；W1 PR 实施 commit 未推送 + W2 CLAUDE.md scope 溢出 + W3 INDEX 导航 table 已同步；tester 双轮 C1+W1-W4 闭环；critical_modules 1/6 命中必落盘）
+- [2026-04-21-tg-forwarding-expansion.md](reviews/2026-04-21-tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展终审（Approve-with-caveats；0 Critical / 1 Warning W1 / 3 Suggestion R1-R3；tester post-fix 7 项全实质修复；验收 8/8；合入后跟进 R1+R2）
 
 ### bugfixes
 
