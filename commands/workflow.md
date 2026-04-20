@@ -355,6 +355,12 @@ created:
 
 Fallback：`/roundtable:lint` 周期性审计 orphan。**角色从不自行编辑 `INDEX.md`**。
 
+**Orchestrator 兜底 Write**（issue #23）：若 subagent（reviewer / tester / dba）在**命中 critical_modules 或 Critical findings** 场景下应落盘但 final message 声称 `Write <path> denied by runtime` 或直接返回对话不落盘，orchestrator **必须代写**对应 artifact：
+1. **Content 源**：subagent final message **去除** 工具调用 / 进度行 / `log_entries:` YAML / `<escalation>` block 之外的正文（findings + 判定 + rationale）作为 artifact body；frontmatter 由 orchestrator 补（slug / source / created / reviewer=subagent-type）
+2. **log_entries 归因**：orchestrator 自造 `prefix: review`（或 `test-plan` / `review` for dba）`note` 末尾加 `(orchestrator relay due to subagent Write failure)`；files 填代写路径
+3. **INDEX.md description fallback**：优先用 subagent 在 final message 明示的 one-liner；缺失时 orchestrator 从 body 第一段提取
+4. **不兜底**：**非** critical_modules 且 subagent 判定对话返回即可的正常场景
+
 ---
 
 ## Step 8: log.md Batching（DEC-009 决定 2）

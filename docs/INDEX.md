@@ -93,6 +93,7 @@
 - [bugfix-rootcause-layered.md](testing/bugfix-rootcause-layered.md) — issue #37 DEC-014 两轮对抗（round 1: 1 Critical C1 + 4 Warning W1-W4 / round 2 post-fix 全 PASS；新 W5 非阻塞 + 3 nit follow-up；lint 0 命中）
 - [tg-forwarding-expansion.md](testing/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展对抗性 prompt 审查（1 Critical F13 措辞 + 7 Warning + 4 Suggestion + 2 Positive；post-fix inline 修 F13+F1/F2/F3/F4/F5/F10；F8/F9/F12/F14 follow-up；lint 0 命中）
 - [phase-end-approval-gate.md](testing/phase-end-approval-gate.md) — issue #30 phase-end approval gate 对抗审查（2 Critical F1/F2 + 4 Warning F3-F6 + 4 Suggestion + 2 Positive；post-fix inline 修 F1-F6；F7-F10 follow-up；lint 0 命中）
+- [reviewer-write-permission.md](testing/reviewer-write-permission.md) — issue #23 reviewer/tester/dba Write 权限明示对抗审查（1 Critical F4 兜底 contract + 3 Warning + 2 Suggestion + 3 Positive；post-fix 修 F4/F1/F5；F3 follow-up；lint 0）
 
 ### reviews
 
@@ -105,6 +106,8 @@
 - [2026-04-20-dispatch-mode-strategy.md](reviews/2026-04-20-dispatch-mode-strategy.md) — issue #19 DEC-012 终审（Approve-with-caveats；0 Critical / 3 Warning / 2 Suggestion；W-01 section-number §3.4.5→§3.4 + W-03 Step 4 前置顺序 + S-01/S-02 全 post-fix）
 - [2026-04-20-bugfix-rootcause-layered.md](reviews/2026-04-20-bugfix-rootcause-layered.md) — issue #37 DEC-014 终审（Approve-with-caveats；0 Critical / 3 Warning / 5 Suggestion；W1 PR 实施 commit 未推送 + W2 CLAUDE.md scope 溢出 + W3 INDEX 导航 table 已同步；tester 双轮 C1+W1-W4 闭环；critical_modules 1/6 命中必落盘）
 - [2026-04-21-tg-forwarding-expansion.md](reviews/2026-04-21-tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展终审（Approve-with-caveats；0 Critical / 1 Warning W1 / 3 Suggestion R1-R3；tester post-fix 7 项全实质修复；验收 8/8；合入后跟进 R1+R2）
+- [2026-04-21-dedupe-produce-created.md](reviews/2026-04-21-dedupe-produce-created.md) — issue #29 dedupe 产出/created 终审 (Approve；tester W1-W3 实质吸收；W4+S1-S3 follow-up)
+- [2026-04-21-reviewer-write-permission.md](reviews/2026-04-21-reviewer-write-permission.md) — issue #23 reviewer/tester/dba Write 权限明示终审 (Approve-with-caveats；0 Critical / 3 Warning / 3 Suggestion / 5 Positive；自举 dogfood Step 7 兜底；F3 sentinel-vs-escalation follow-up issue 建议创建)
 
 ### bugfixes
 
