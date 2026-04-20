@@ -87,6 +87,16 @@ You're not listening to one Claude monologue — you're chairing a roundtable.
 
 Full template at [`docs/claude-md-template.md`](docs/claude-md-template.md) (P3 output).
 
+### Decision mode (modal | text)
+
+Decisions normally surface via `AskUserQuestion` modal popup (works in Claude Code main session). For remote frontends where the modal cannot be answered (Telegram, CI, log replay), switch to **text mode** — decisions emit as `<decision-needed>` blocks into the chat stream; reply with free text (`A` / `选 A` / `go with B but tweak X`). See [DEC-013](docs/decision-log.md) / [design-doc](docs/design-docs/decision-mode-switch.md).
+
+| Priority | Source | Example |
+|----------|--------|---------|
+| 1 | CLI arg | `/roundtable:workflow --decision=text ...` |
+| 2 | Env var | `ROUNDTABLE_DECISION_MODE=text` (or via `.claude/settings.json` `env` block — Claude Code merges local > project > user automatically) |
+| 3 | Default | `modal` |
+
 ### 3. Run it
 
 ```bash

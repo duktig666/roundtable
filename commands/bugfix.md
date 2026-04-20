@@ -11,6 +11,10 @@ argument-hint: <bug 描述 或 issue 编号>
 
 项目已按 roundtable 约定组织 docs。未配置时先提醒用户按 `docs/claude-md-template.md` 补齐 target CLAUDE.md 的「# 多角色工作流配置」section。
 
+## Step -1: Decision Mode Bootstrap（DEC-013）
+
+同 `commands/workflow.md` Step -1 / Step 5 分支：解析 `decision_mode`（`modal` | `text`），注入每个派发 prompt prefix，按 mode 选 Escalation 渲染路径。
+
 ## Step 0: Project Context Detection
 
 **inline 执行 4 步检测**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并按 4 步执行（D9 → toolchain → docs_root → CLAUDE.md 加载）。**不用 `Skill` 工具**。

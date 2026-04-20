@@ -58,6 +58,7 @@
 - [lightweight-review.md](design-docs/lightweight-review.md) — issue #9 轻量化重构（DEC-009 Proposed；4 shared helper 抽取 + log.md closeout batching + README/CLAUDE.md 结构重塑；预估省 22-25%）
 - [decision-log-entry-order.md](design-docs/decision-log-entry-order.md) — issue #18 DEC 条目顺序约定传导到目标项目（SKILL.md 补插入规则 + Minimal header 初始化 + template 补一行），DEC-011 Accepted
 - [dispatch-mode-strategy.md](design-docs/dispatch-mode-strategy.md) — issue #19 subagent 派发 run_in_background 选择策略（方向 1 规则补齐 + D2 并行度判据 + D4 两级逃生门；DEC-008 正交补齐），DEC-012 Accepted
+- [decision-mode-switch.md](design-docs/decision-mode-switch.md) — issue #31 orchestrator 可切换决策模式 modal \| text（最小改动：agent 零改动 + orchestrator 渲染分支 + skill 条件分支；支持 TG / CI / 日志回放远程前端），DEC-013 Accepted
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -68,6 +69,7 @@
 
 - active/
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
+  - [decision-mode-switch-plan.md](exec-plans/active/decision-mode-switch-plan.md) — issue #31 DEC-013 可切换决策模式执行计划（P0.1-P0.4 developer 已完成；P0.5-P0.7 tester / reviewer / lint 待执行）
 - completed/
   - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构（DEC-009 + DEC-010 Accepted；tree 2708→1672 / -38%；PR #17 merged）
   - [subagent-progress-and-execution-model-plan.md](exec-plans/completed/subagent-progress-and-execution-model-plan.md) — issue #7 + DEC-004/005/008（26 checkbox 全勾；PR #16 merged）

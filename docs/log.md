@@ -14,6 +14,31 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | decision-mode-switch | 2026-04-20
+- 操作者: architect
+- 影响文件: docs/design-docs/decision-mode-switch.md, docs/exec-plans/active/decision-mode-switch-plan.md, docs/decision-log.md
+- 说明: issue #31 —— DEC-013 Accepted：双模式 modal/text，agent prompt 零改动（最小改动 D1=A），orchestrator 按 decision_mode 渲染 Escalation（modal→AskUserQuestion/text→`<decision-needed>` 块），skill 条件分支，3 级优先级链（CLI > env > default），不抬 CLAUDE.md 边界（DEC-011/012 对齐），全散 inline 不新增 helper（DEC-010 对齐 per-workflow token 省 3×），LLM fuzzy 用户回复解析，展现与接收解耦（TG/terminal/CI 下游自处理）；本设计过程自身即 text 模式 dogfood（TG 驱动 D1~D7 全程走 `<decision-needed>`）；3 项决策量化评分；exec-plan P0.1-P0.7 初版
+
+## fix | decision-mode-switch | 2026-04-20
+- 操作者: developer (inline)
+- 影响文件: commands/workflow.md (+11 行 Step -1 + Step 5 分支), commands/bugfix.md (+4 行 Step -1 ref), skills/architect/SKILL.md (+5 行 mode 分支), skills/analyst/SKILL.md (+5 行 mode 分支 + recommended 禁用保留), README.md / README-zh.md (+10 行 §决策模式章节), docs/INDEX.md (+2 条)
+- 说明: DEC-013 落地 —— 5 处 prompt 本体 + 2 README 镜像共 44 行（prompt 本体 25 行，design-doc §7 硬纪律 ≤40 通过）；lint_cmd 0 命中；per-workflow 新增 token ≤40 行达标
+
+## test-plan | decision-mode-switch | 2026-04-20
+- 操作者: tester
+- 影响文件: docs/testing/decision-mode-switch.md
+- 说明: 对抗性审查 + acceptance 映射 —— 14 项静态一致性（发现 F1/F2/F3/F4/F5 schema 漂移）+ 7 类边界条件对抗（发现 E1/E2/E4/E5/E6/E7 设计遗漏）+ 4 个 E2E 场景预期观察清单（未实跑 等 plugin reload）+ 7 项 acceptance 映射（1 done / 5 待 E2E 验 / 1 soft dogfood）；全 Warning Info 级 无 Critical 不 block 落地
+
+## design | decision-mode-switch | 2026-04-20
+- 操作者: architect (post-fix)
+- 影响文件: docs/design-docs/decision-mode-switch.md, docs/decision-log.md, commands/workflow.md, skills/architect/SKILL.md, skills/analyst/SKILL.md
+- 说明: tester F1/F2/F3/F5/E1/E2/E4/E5/E7 + reviewer W1/W2 全部 inline 回填 —— design-doc 新增 §2.1 非法值 fallback / §2.1a timeout 非目标 / §3.1 canonical schema (行格式 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`) / §3.1.1 多块串行 emit / §3.1.2 id 命名空间 / §3.6 歧义处理 4 层；3 处 prompt 本体 canonical 行格式对齐；DEC-013 §影响范围 post-fix 注标；不新开 DEC (属 clarification scope)
+
+## review | decision-mode-switch | 2026-04-20
+- 操作者: reviewer (subagent, 对话报告)
+- 影响文件: (无落盘；对话报告后 W1/W2 立即 inline 回填)
+- 说明: Approve w/ 3 Warning 0 Critical —— W1 design-doc §3.1 canonical 代码框 vs 文字描述自相矛盾 (architect post-fix 清除) / W2 §5 路径滞后 SKILL.md 子目录 (architect post-fix 清除) / W3 tester 文档行号引用易漂 (历史不改)；DEC-002/003/005/006/010/011/012 边界全对齐；lint_cmd 0 命中；10 file diff 与 DEC-013 §影响范围匹配；剩余 6/7 acceptance 依赖 plugin reload 后 E2E 实跑闭环
+
 ## design | dispatch-mode-strategy | 2026-04-20
 - 操作者: architect
 - 影响文件: docs/design-docs/dispatch-mode-strategy.md, docs/decision-log.md
