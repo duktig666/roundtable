@@ -35,6 +35,34 @@
 
 ---
 
+### DEC-014 bugfix 根因分层落盘（Tier 0 对话 / Tier 1 log.md fix-rootcause entry / Tier 2 docs/bugfixes postmortem）
+- **日期**: 2026-04-20
+- **状态**: Accepted
+- **上下文**: [issue #37](https://github.com/duktig666/roundtable/issues/37) —— `commands/bugfix.md` 步骤 1+2 的「定位 + 根因分析」阶段明确"不落盘"，产生 4 项缺陷：(a) 根因分析作为未来资产会话结束即丢；(b) commit message 放不下完整根因；(c) abort 退化窗口 —— developer 派发前退出 → 分析连 `log.md` 都进不去（DEC-008 batching 只接 `log_entries:`）；(d) 不该升级为 design-doc（语义不符 + 破坏 DEC-010 bugfix 轻量化心智）。原方案是"新增 `docs/bugfixes/` 目录 + log_entries YAML 扩 entry_type"粗粒度；architect 通过 4 决策点 D1-D4 细化为分层 tier + 触发门 + schema 形态 + 时机作者。
+- **决定**:
+  1. **三档 tier**（D1 双轴自动判定）：Tier 0 对话 ← 单文件 + 单模块 + 无 critical hit；Tier 1 `log.md` fix-rootcause entry ← ≥2 文件 或 跨模块；Tier 2 `{docs_root}/bugfixes/[slug].md` postmortem ← critical_modules 命中 或 涉 DEC 或 生产事故；Tier 2 bug **同时**产 Tier 1 entry 索引 postmortem 文件
+  2. **log_entries YAML 扩展**（D2 新前缀）：DEC-008 前缀白名单新增 `fix-rootcause`（与 `fix` 并列；`fix` 保留原"操作记录"义），entry 可选字段 `root_cause` / `fix_summary` / `reproduction`；合并规则：`files:` union / 扩展字段取首条非空值
+  3. **触发门位置**（D4 半自动）：critical_modules 命中 → 硬自动 Tier 2 无问询；否则 `commands/bugfix.md` 步骤 2 根因分析输出后 orchestrator emit 一次 `<decision-needed>` 三选一，按"文件数 / 跨模块度"挂 ★ recommended；步骤 2 summary ≤50 字 且 单文件 → 跳过问询直接 Tier 0（简单 bug 捷径）
+  4. **Postmortem 写入**（D3 Stage 4 verify 后）：developer 在 `commands/bugfix.md` 步骤 4（lint+test 通过）之后、步骤 5（关键审查）之前写 `{docs_root}/bugfixes/[slug].md`；reviewer/dba 在 Stage 5 审查完成后 append §5 findings + §7 变更记录；closeout 前 orchestrator 检查 Tier 2 bug 是否有 postmortem 缺失则 block closeout
+  5. **Postmortem 模板**（7 section：现象 / 根因 / 修复 / 复现 / 验证 / 后续动作 / 变更记录）；尺寸 ≤150 行；含 frontmatter `severity` / `related_issue` / `related_dec`
+  6. **不改** 5 agent prompt；不抬 target CLAUDE.md；不改 DEC-004 event schema / DEC-006 Phase Matrix / Step 4 并行判定树 / critical_modules 触发机制
+  7. **与 DEC-008 正交**：DEC-014 扩前缀 + 扩字段，flush 机制（3 触发点 / 合并 / Read+Edit 步骤）完全沿用，不 Supersede
+  8. **与 DEC-010 轻量化心智一致**：三档 tier 让简单 bug 零额外开销（Tier 0 沿用现状），仅复杂 bug 付 postmortem 成本；符合 DEC-010 "用户 north star 是 token 成本"
+- **备选**:
+  - **D1-B 完全用户声明**（`/bugfix --tier=N`）：UX 负担 + 违背 DEC-006 自动 gating 心智；拒绝
+  - **D1-C 单一硬规则 critical→Tier 2 其余 Tier 0**：丢失中等粒度（log.md 结构化 entry），根因资产丢失问题未解；拒绝
+  - **D2-B 扩 `fix` 前缀可选字段**：语义混杂 + flush 合并复杂化；拒绝
+  - **D2-C 正交 `entry_type` 字段**：两维分类破坏 DEC-004/008 单维 schema 心智；拒绝
+  - **D3-B pre-fix 写 postmortem**：违背 bugfix "跳过 design" 本意 + 与实际 fix drift 风险；拒绝
+  - **D3-C orchestrator closeout 聚合写**：orchestrator 领域上下文弱编造风险 + agent final message 超 log_entries 范畴；拒绝
+  - **D4-A 纯自动机械判定**：灰区无 override 机会；拒绝
+  - **D4-C 每次 bugfix 都问**：UX 打扰严重违背轻量化；拒绝
+- **理由**: (1) D1 双轴规则用 critical_modules + 文件/模块数机械判定，复用已有心智零新判据；(2) D2 新前缀语义清晰（fix=操作 / fix-rootcause=分析）flush 机制零改动；(3) D3 Stage 4 验证后写确保 factual 准确 + developer 有最深上下文；(4) D4 半自动平衡自动化与用户主权，critical 场景零打扰；(5) 三档 tier 让 Tier 0 简单 bug 零开销对齐 DEC-010；(6) 不改 agent prompt 沿用 DEC-013 最小改动面心智
+- **相关文档**: [docs/design-docs/bugfix-rootcause-layered.md](design-docs/bugfix-rootcause-layered.md)（完整设计）、DEC-008（log.md batching 机制正交补齐）、DEC-010（轻量化心智对齐）、DEC-013（text 模式 `<decision-needed>` 复用用于 D4 灰区门）、[issue #37](https://github.com/duktig666/roundtable/issues/37)
+- **影响范围**: `commands/bugfix.md` §步骤 2/3/4 + log batching 节（~25 行）；`commands/workflow.md` §Step 7 + §Step 8 白名单与渲染（~7 行）；`docs/log.md` §前缀规范 + §条目格式（~7 行）；`docs/claude-md-template.md` 文档约定（~1 行）；`docs/INDEX.md` 新增 `bugfixes/` 分类。新建 `docs/bugfixes/` 目录（运行期按需）+ 本 design-doc。**不改** 5 agent prompt / `skills/_detect-project-context.md` / DEC-001~DEC-013 任何 Accepted 条款 / target CLAUDE.md 业务规则边界。运行时：Tier 0 bug 行为与现状一致；Tier 1/2 bug 额外产 log entry / postmortem
+
+---
+
 ### DEC-013 orchestrator 可切换决策模式（modal | text），支持远程前端（TG / CI / 日志回放）
 - **日期**: 2026-04-20
 - **状态**: Accepted
