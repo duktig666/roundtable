@@ -14,6 +14,31 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## review | bugfix-rootcause-layered | 2026-04-20
+- 操作者: reviewer (subagent, fg; critical_modules 多命中 → 必落盘)
+- 影响文件: docs/reviews/2026-04-20-bugfix-rootcause-layered.md (new)
+- 说明: DEC-014 终审 Approve-with-caveats —— 0 Critical / 3 Warning (W1 PR 实施 commit 未推送 / W2 CLAUDE.md scope 溢出 DEC-014 / W3 INDEX 导航 table 未同步 bugfixes 行) / 5 Suggestion (analysis 字段显式声明 / LOC 计量口径 / 警示 UI decision_mode 引用 / session 记忆 {slug}.tier 跨 session 边界 / §7 待确认项勾选)；DEC-008/010/011/013/006/005/004 全正交对齐；tester 双轮 C1+W1-W4 闭环；W3 已 inline post-fix（INDEX.md nav table 加 bugfixes/ 行 + design-docs/testing/reviews section 各加 1 条）；W1 post-review commit 解；W2 保留为 follow-up（不阻本 DEC）
+
+## test-plan | bugfix-rootcause-layered | 2026-04-20
+- 操作者: tester (subagent, fg; critical_modules 多命中 → 必落盘)
+- 影响文件: docs/testing/bugfix-rootcause-layered.md (new)
+- 说明: DEC-014 prompt 层 10 项静态对抗（round 1）—— 1 Critical (C1 postmortem 硬约束缺 orchestrator 执行锚点) + 4 Warning (W1 LOC 未纳入 / W2 生产事故 label 未定义 + critical override / W3 "50 字" i18n 歧义 / W4 INDEX 未预建 bugfixes 分类)；PASS 项：前缀白名单 3 处同步 / _detect-project-context 0 命中 / DEC-008 正交 / DEC-010 token +57 行合理 / lint 0 命中。**round 2 post-fix 回归**：C1/W1/W2/W3/W4 全 PASS 无 regression；新 W5 非阻塞（workflow.md Step 8 YAML 契约未显式声明 `analysis` 可选字段）+ 3 nit 列入 follow-up
+
+## fix | bugfix-rootcause-layered | 2026-04-20
+- 操作者: developer (subagent, fg；两轮)
+- 影响文件: commands/bugfix.md (+20 行), commands/workflow.md (+5 行), docs/log.md (+27 行 —— 含本条及历史 entry；§前缀规范 1 行 + §条目格式 fix-rootcause YAML 示例), docs/claude-md-template.md (+1 行), docs/INDEX.md (+4 行，### bugfixes 空占位)
+- 说明: DEC-014 落地 + post-fix C1/W1-W4 合并一次产出 —— 首轮实施 +57 行被 tester 复审发现 C1 + 4 Warning；第二轮 post-fix 激进压缩 + 5 项全修：bugfix.md §步骤 2 改表格（Tier 判定双轴 + LOC 维度 W1 + `production-incident` label 来源 W2 + critical override 警示 W2 + ≤3 句捷径 W3 + 灰区 decision-needed 门）+ §步骤 4 Postmortem 硬约束 4 条 orchestrator 执行锚点（C1：session 记忆 {slug}.tier + mini-loop 回派 + closeout gate 校验）；workflow.md §Step 8 渲染规则压到 2 行（analysis 合并字段）；log.md 示例用合并 `analysis` 多行字段；INDEX.md 预建 `### bugfixes` 空占位（W4）；prompt 本体 commands 净增 25 行对齐 DEC-010；lint 0 命中
+
+## design | bugfix-rootcause-layered | 2026-04-20
+- 操作者: architect (post-fix, orchestrator inline)
+- 影响文件: docs/design-docs/bugfix-rootcause-layered.md, docs/decision-log.md
+- 说明: tester C1/W1/W2/W3/W4 + 用户"激进精简"指示 inline 回填 —— §2 Tier 表加 LOC 维度 + production-incident label source / §3.2 "≤50 字" 改 "≤3 句" 消 i18n 歧义 / §4.2-4.3 `root_cause` + `fix_summary` + `reproduction` 3 字段合并为 `analysis` 多行字段（省 5 行）/ §5.3 postmortem 硬约束新增 4 步 orchestrator 执行锚点（C1）/ §6 INDEX 预建 `### bugfixes`；DEC-014 §影响范围 post-fix 段注标；不新开 DEC（属 clarification scope）
+
+## design | bugfix-rootcause-layered | 2026-04-20
+- 操作者: architect
+- 影响文件: docs/design-docs/bugfix-rootcause-layered.md, docs/decision-log.md
+- 说明: issue #37 —— DEC-014 Accepted：bugfix 根因分层落盘三档（Tier 0 对话 / Tier 1 log.md fix-rootcause entry / Tier 2 docs/bugfixes postmortem）；D1 双轴自动判定（critical_modules + 规模），D2 新前缀 fix-rootcause（扩 DEC-008 白名单，可选字段 root_cause/fix_summary/reproduction），D3 developer Stage 4 验证后写 postmortem，D4 critical 硬自动 + 灰区 decision-needed 问一次；不改 5 agent prompt / _detect-project-context.md / target CLAUDE.md；与 DEC-008/010/013 正交；bugfix 轻量化心智对齐
+
 ## fix | fix-analyst-askuserquestion-params | 2026-04-20
 - 操作者: developer (inline)
 - 影响文件: skills/analyst/SKILL.md, skills/architect/SKILL.md
@@ -158,6 +183,7 @@
 | `test-plan` | tester 产出测试计划 | `test-plan \| some-slug \| 2026-04-17` |
 | `lint` | 健康检查发现的问题及处理 | `lint \| 3 issues found \| 2026-04-17` |
 | `fix` | 裁决冲突后的修复 | `fix \| DEC-xxx updated \| 2026-04-17` |
+| `fix-rootcause` | bug 根因结构化 entry（Tier 1/2，DEC-014） | `fix-rootcause \| some-bug \| 2026-04-20` |
 
 ## 条目格式
 
@@ -167,6 +193,22 @@
 - 影响文件: [文件列表]
 - 说明: [一句话]
 ```
+
+**fix-rootcause 扩展示例**（Tier 1/2，DEC-014）：
+
+```yaml
+log_entries:
+  - prefix: fix-rootcause
+    slug: some-bug
+    files: [src/foo.rs, tests/foo_test.rs]
+    note: <一句话>
+    analysis: |
+      根因: <2-5 句>
+      修复: <1-3 句>
+      复现: <步骤；有回归测试则省略>
+```
+
+Tier 2 同产 `{docs_root}/bugfixes/some-bug.md` postmortem。
 
 ---
 

@@ -37,6 +37,7 @@
 | `exec-plans/completed/` | developer（归档） | 已完成的执行计划 |
 | `testing/` | tester | 测试产出（测试计划 / 对抗性 bug 分析 / benchmark 报告），文件名 `[slug].md` 或 `[slug]-<type>.md` |
 | `reviews/` | reviewer / dba | 关键审查归档，文件名 `[YYYY-MM-DD]-[slug].md` 或 `[YYYY-MM-DD]-db-[slug].md` |
+| `bugfixes/` | developer | Tier 2 postmortem（根因+修复+复现+验证+后续），文件名 `[slug].md`（DEC-014） |
 
 ## 当前文档清单
 
@@ -59,6 +60,7 @@
 - [decision-log-entry-order.md](design-docs/decision-log-entry-order.md) — issue #18 DEC 条目顺序约定传导到目标项目（SKILL.md 补插入规则 + Minimal header 初始化 + template 补一行），DEC-011 Accepted
 - [dispatch-mode-strategy.md](design-docs/dispatch-mode-strategy.md) — issue #19 subagent 派发 run_in_background 选择策略（方向 1 规则补齐 + D2 并行度判据 + D4 两级逃生门；DEC-008 正交补齐），DEC-012 Accepted
 - [decision-mode-switch.md](design-docs/decision-mode-switch.md) — issue #31 orchestrator 可切换决策模式 modal \| text（最小改动：agent 零改动 + orchestrator 渲染分支 + skill 条件分支；支持 TG / CI / 日志回放远程前端），DEC-013 Accepted
+- [bugfix-rootcause-layered.md](design-docs/bugfix-rootcause-layered.md) — issue #37 bugfix 根因分层落盘（Tier 0 对话 / Tier 1 log.md fix-rootcause entry / Tier 2 docs/bugfixes postmortem；D1-D4 锁定；C1 执行锚点 4 条 + W1-W4 post-fix），DEC-014 Accepted
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -84,6 +86,7 @@
 - [step35-foreground-skip-monitor.md](testing/step35-foreground-skip-monitor.md) — issue #15 DEC-008（workflow §3.5.0 前台派发免 Monitor gate）对抗测试（18 cases：2 Critical / 3 Warning / 1 Suggestion → post-fix 全绿）
 - [lightweight-review.md](testing/lightweight-review.md) — issue #9 DEC-009 轻量化重构对抗测试（19 cases：1 Critical 升级为 Warning / 5 Warning；W-01 design-doc §5 决定编号漂移 7/8/9→8/9/10 已 post-fix；A6 helper role-specific 泄漏已清；D1/E2/B2/F2 post-fix 全绿）
 - [fix-analyst-askuserquestion-params.md](testing/fix-analyst-askuserquestion-params.md) — issue #25 analyst/architect AskUserQuestion schema 修复的对抗性验证（6 类反例 + schema 新旧对比 + 4 条手动 dogfood 验收场景 + 未来 lint 扩展建议；静态扫描 0 命中残留伪字段；结论 PASS）
+- [bugfix-rootcause-layered.md](testing/bugfix-rootcause-layered.md) — issue #37 DEC-014 两轮对抗（round 1: 1 Critical C1 + 4 Warning W1-W4 / round 2 post-fix 全 PASS；新 W5 非阻塞 + 3 nit follow-up；lint 0 命中）
 
 ### reviews
 
@@ -94,6 +97,11 @@
 - [2026-04-19-lightweight-review.md](reviews/2026-04-19-lightweight-review.md) — issue #9 DEC-009 终审（Approve-with-caveats：0 Critical / 3 Warning / 4 Suggestion / 5 Positive；DEC-001 D1-D9 + DEC-002~008 全保；decision-log 3 铁律遵守；DEC-004 schema 零改；lint 0 命中；W-01 已 post-fix）
 - [2026-04-20-decision-log-entry-order.md](reviews/2026-04-20-decision-log-entry-order.md) — issue #18 DEC-011 终审（Approve with 1 Warning；0 Critical / 1 Warning / 3 Suggestion；W-01 Minimal header 无 DEC fallback + S1/S2 措辞 post-fix）
 - [2026-04-20-dispatch-mode-strategy.md](reviews/2026-04-20-dispatch-mode-strategy.md) — issue #19 DEC-012 终审（Approve-with-caveats；0 Critical / 3 Warning / 2 Suggestion；W-01 section-number §3.4.5→§3.4 + W-03 Step 4 前置顺序 + S-01/S-02 全 post-fix）
+- [2026-04-20-bugfix-rootcause-layered.md](reviews/2026-04-20-bugfix-rootcause-layered.md) — issue #37 DEC-014 终审（Approve-with-caveats；0 Critical / 3 Warning / 5 Suggestion；W1 PR 实施 commit 未推送 + W2 CLAUDE.md scope 溢出 + W3 INDEX 导航 table 已同步；tester 双轮 C1+W1-W4 闭环；critical_modules 1/6 命中必落盘）
+
+### bugfixes
+
+（Tier 2 postmortem 暂无条目；DEC-014）
 
 ## 主题 slug 约定
 

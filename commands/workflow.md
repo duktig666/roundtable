@@ -251,7 +251,7 @@ Developer 支持 `subagent`（默认）和 `inline`。tester/reviewer/dba/resear
 
 ## Step 7: Index Maintenance（批量）
 
-角色在 `{docs_root}/`（`analyze/` / `design-docs/` / `exec-plans/` / `api-docs/` / `testing/` / `reviews/`）创建新 artifact 时，`{docs_root}/INDEX.md` 维护归 orchestrator（DEC-002 shared-resource 转发）。
+角色在 `{docs_root}/`（`analyze/` / `design-docs/` / `exec-plans/` / `api-docs/` / `testing/` / `reviews/` / `bugfixes/`）创建新 artifact 时，`{docs_root}/INDEX.md` 维护归 orchestrator（DEC-002 shared-resource 转发）。
 
 **Batching**：不每次 subagent 返回就更新；phase 内累积，**每个 phase gate 一次** Edit（或 workflow 结束）。
 
@@ -298,13 +298,16 @@ agent / skill **不直接写 `{docs_root}/log.md`** —— 在 final message 用
    - 影响文件: [path1, path2, ...]
    - 说明: [一句话]
    ```
+
+   **`fix-rootcause` 扩展**（DEC-014）：`analysis:` 原样缩进渲染为 `- 分析:` 多行块；`tier==2` 时追加 `- 关联 postmortem: {docs_root}/bugfixes/[slug].md` 行。
+   合并取首条非空 `analysis`（不拼接）。
 4. **Report**：summary 加 `log.md flushed N new entries`
 
 **YAML 契约**（agent/skill 上报格式）：
 
 ```yaml
 log_entries:
-  - prefix: analyze | design | decide | exec-plan | review | test-plan | lint | fix
+  - prefix: analyze | design | decide | exec-plan | review | test-plan | lint | fix | fix-rootcause
     slug: [slug]
     files: [docs/path/..., ...]
     note: [一句话]
