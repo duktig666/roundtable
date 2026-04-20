@@ -23,6 +23,20 @@
     修复：7 处 prompt inline 加"Final message 输出规范"条款，明示 `created:` 是唯一机读源；workflow.md Step 7 契约补"单一产出字段原则"。orchestrator 端从 `created:` 自动生成 A 类 producer-pause summary，skill/agent 不再自带。
     验证：lint 0 命中；后续 /roundtable:workflow 派发观察 final message 应不再含 `产出:` 段。
 
+## review | reviewer-write-permission | 2026-04-21
+- 操作者: reviewer (subagent, fg; critical_modules 3/3 命中 → 必落盘；orchestrator relay due to subagent Write unavailable — Step 7 兜底 dogfood)
+- 影响文件: docs/reviews/2026-04-21-reviewer-write-permission.md (new, orchestrator relay)
+- 说明: issue #23 终审 Approve-with-caveats —— 0 Critical / 3 Warning (reviewer prompt 400 字过长 / F3 sentinel-vs-escalation 双通道 follow-up / testing commit hash merge 后回填) / 3 Suggestion / 5 Positive；F4 Critical post-fix Step 7 4 sub-bullet 实质性修复有效；F1 绝对优先措辞合格；F5 anchor 判据有效；F3 短期保留 sentinel 合理（Write denial 非 decision request）；自举验证：本次 reviewer runtime 未暴露 Write → 触发 Step 7 兜底 dogfood；决策一致性 DEC-002/009/014 兼容
+
+## fix-rootcause | reviewer-write-permission | 2026-04-21
+- 操作者: orchestrator (inline bugfix)
+- 影响文件: agents/reviewer.md (+1 段 §输出落盘 Write 权限明示); agents/tester.md (+1 段 §测试计划模板 Write 权限明示); agents/dba.md (+1 段 §输出落盘 Write 权限明示); commands/workflow.md (Step 7 +1 段 Orchestrator 兜底 Write)
+- 分析: |
+    issue #23 P2 bug —— reviewer subagent 在 critical_modules 命中时拒绝落盘 `docs/reviews/*.md`，自声明 "Do NOT Write report/summary/findings/analysis .md files" 受 Claude Code subagent runtime 通用提示约束，违反 agent prompt Resource Access matrix 授权。
+    根因：Claude Code subagent runtime base prompt 含通用"不写 report .md"指引，与 roundtable 专门化 agent（reviewer/tester/dba）的 Resource Access matrix 矛盾；agent LLM 默认偏向 runtime 基线而非 prompt 覆盖。
+    修复：3 agent prompt 显式加"Write 权限明示"段 —— 声明本 agent **被授权** Write 指定路径 + runtime 通用提示**不适用**本 agent + 遇冲突以本 prompt 为准 + 仅在**真实工具层 denial** 才降级对话返回并 emit `Write <path> denied by runtime` 供 orchestrator 兜底。workflow.md Step 7 加兜底规则 —— critical_modules 命中场景 subagent 未落盘时 orchestrator 代写并归因注。
+    验证：下次 reviewer/tester/dba 派发观察是否恢复正常落盘；lint 0 命中。
+
 ## test-plan | phase-end-approval-gate | 2026-04-21
 - 操作者: tester (subagent, fg; critical_modules 3/3 命中 → 必落盘)
 - 影响文件: docs/testing/phase-end-approval-gate.md (new)
