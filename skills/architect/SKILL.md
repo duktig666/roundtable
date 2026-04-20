@@ -16,7 +16,7 @@ description: Architect role for system design, interface definition, technology 
 | 操作 | 范围 |
 |------|------|
 | Read | `target_project/CLAUDE.md`、`{docs_root}/analyze/`、`{docs_root}/design-docs/`、`{docs_root}/decision-log.md`、`{docs_root}/exec-plans/` |
-| Write | `{docs_root}/design-docs/[slug].md`、`{docs_root}/exec-plans/{active,completed}/[slug]-plan.md`、`{docs_root}/api-docs/[slug].md`、`{docs_root}/decision-log.md`（追加 DEC，不改已 Accepted 条目） |
+| Write | `{docs_root}/design-docs/[slug].md`、`{docs_root}/exec-plans/{active,completed}/[slug]-plan.md`、`{docs_root}/api-docs/[slug].md`、`{docs_root}/decision-log.md`（DEC 置顶 / 最新在前，不改已 Accepted 条目；不存在或为空时先写 Minimal header —— 详见 §完成后） |
 | Report to orchestrator | `log_entries:` YAML block（skill 在主会话直写其他文档；log.md 由 orchestrator 按 Step 8 flush） |
 | Forbidden | `src/*`、`tests/*`、`{docs_root}/reviews/`、`{docs_root}/testing/`、`{docs_root}/log.md` 直写、git 写操作 |
 
@@ -56,7 +56,7 @@ description: Architect role for system design, interface definition, technology 
 
 6. 写 `{docs_root}/design-docs/[slug].md`
 7. 如涉及公开 API 同时写 `{docs_root}/api-docs/[slug].md`
-8. 新决策 → 追加 `{docs_root}/decision-log.md`（DEC-xxx 编号递增）
+8. 新决策 → 追加 `{docs_root}/decision-log.md`（DEC-xxx 编号递增；**置顶 / 最新在前**；不存在或为空时先写 Minimal header —— 详见 §完成后）
 9. in-session output 末尾以 `log_entries:` YAML block 上报本轮产出（同轮多文档合并为一条 entry）
 10. 停下来请用户审阅 design-docs，按反馈微调
 
@@ -162,6 +162,22 @@ status: Active
 
 ## 完成后
 
-- 新决策 → 追加 `{docs_root}/decision-log.md`（直写；DEC 是 architect 权威源）
+- 新决策 → 追加 `{docs_root}/decision-log.md`（直写；置顶 / 最新在前；DEC 是 architect 权威源；详见下面 "decision-log 条目顺序约定"）
 - 不直接写 log.md —— `log_entries:` YAML（`prefix: analyze | design | decide | exec-plan`）上报；同轮多文档合并为一条 entry；orchestrator 按 Step 8 flush
 - 冲突时列 diff 等用户裁决，绝不默默覆盖
+
+### decision-log 条目顺序约定（DEC-011）
+
+- **位置**：新 DEC 置顶（最新在前）。锚点 = 第一个 `### DEC-` 行前（含 `\n---\n\n` 分隔）；若仅 Minimal header 无 DEC，插入到 `---` 之后
+- **初始化**：文件不存在或为空时先写 Minimal header：
+
+  ```markdown
+  # <项目名> 决策日志
+
+  > 新条目追加在顶部（最新在前）。
+  > 本文件是项目知识的权威来源。
+
+  ---
+  ```
+
+- **不回溯**：已有 DEC 顺序不动
