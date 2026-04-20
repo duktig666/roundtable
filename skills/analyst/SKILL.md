@@ -170,3 +170,5 @@ created: YYYY-MM-DD
 ## 完成后
 
 不直接写 log.md —— in-session output 末尾 `log_entries:` YAML 上报（`prefix: analyze`），orchestrator 按 Step 8 flush。
+
+**Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7 契约）+ `log_entries:` YAML（Step 8 契约）。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 会从 `created:` 路径生成用户可见 summary，skill 本层自带 summary 会与 orchestrator 生成重复。

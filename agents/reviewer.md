@@ -119,3 +119,4 @@ echo '{"ts":"<iso-utc>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug"
 
 - 不直接写 log.md —— 若审查落盘，在 `log_entries:` YAML 上报（`prefix: review` / `slug` / `files` / `note` 含 Critical/Major 数量），orchestrator 按 Step 8 flush
 - 代码与决策不一致时在审查报告里明确标 "与 DEC-xxx 不一致"
+- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 review 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary

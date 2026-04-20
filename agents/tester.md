@@ -124,4 +124,5 @@ created: YYYY-MM-DD
 
 - 不直接写 log.md；若产出测试计划 / 关键 testing 文档，`log_entries:` YAML block 上报，orchestrator 按 Step 8 flush
 - 代码层面的测试新增不进 log_entries（归 git log）
+- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 testing 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary
 - 发现业务 bug → 先 emit `phase_blocked` 再 `<escalation>`，附复现测试路径

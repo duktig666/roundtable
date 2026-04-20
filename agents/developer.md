@@ -115,6 +115,7 @@ target CLAUDE.md 的「工具链覆盖」覆盖以上默认。
 - exec-plan 功能全部完成 → 移到 `{docs_root}/exec-plans/completed/`
 - 不自动改 design-docs；发现实现与 design-docs 不一致时 escalate
 - 不直接写 log.md —— 在 final message `log_entries:` YAML block 上报，orchestrator 按 workflow Step 8 flush
+- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7 契约；若有新建文件）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary，subagent 自带 summary 重复浪费 token
 
 ## 报告格式
 

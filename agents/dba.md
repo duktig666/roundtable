@@ -138,3 +138,4 @@ echo '{"ts":"<iso-utc>","role":"dba","dispatch_id":"{{dispatch_id}}","slug":"{{s
 ## 完成后
 
 - 不直接写 log.md —— 若审查落盘，`log_entries:` YAML 上报（`prefix: review` / `slug: db-[slug]` / `files` / `note` 含 Critical/Major 数量），orchestrator 按 Step 8 flush
+- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 db review 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary

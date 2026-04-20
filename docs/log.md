@@ -14,6 +14,15 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix-rootcause | dedupe-produce-created | 2026-04-21
+- 操作者: orchestrator (inline bugfix)
+- 影响文件: skills/architect/SKILL.md (+1 行 §完成后); skills/analyst/SKILL.md (+1 行 §完成后); agents/developer.md (+1 行); agents/tester.md (+1 行); agents/reviewer.md (+1 行); agents/dba.md (+1 行); commands/workflow.md (Step 7 +1 行 "单一产出字段原则")
+- 分析: |
+    issue #29 P2 bug —— architect final message 同时输出 `产出:` 自然语言清单 + `created:` YAML 结构化清单，两者描述同一批文件路径冗余。
+    根因：5 skill/agent prompt 的 "完成后" 段仅规定 `log_entries:` / `created:` 机读契约，未禁自由文本 `产出:` 重复输出；习惯性模板导致 token 浪费 + orchestrator 解析歧义（两处来源不一致风险）。
+    修复：7 处 prompt inline 加"Final message 输出规范"条款，明示 `created:` 是唯一机读源；workflow.md Step 7 契约补"单一产出字段原则"。orchestrator 端从 `created:` 自动生成 A 类 producer-pause summary，skill/agent 不再自带。
+    验证：lint 0 命中；后续 /roundtable:workflow 派发观察 final message 应不再含 `产出:` 段。
+
 ## test-plan | phase-end-approval-gate | 2026-04-21
 - 操作者: tester (subagent, fg; critical_modules 3/3 命中 → 必落盘)
 - 影响文件: docs/testing/phase-end-approval-gate.md (new)
