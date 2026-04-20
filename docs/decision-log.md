@@ -59,7 +59,7 @@
   - **D4-C 每次 bugfix 都问**：UX 打扰严重违背轻量化；拒绝
 - **理由**: (1) D1 双轴规则用 critical_modules + 文件/模块数机械判定，复用已有心智零新判据；(2) D2 新前缀语义清晰（fix=操作 / fix-rootcause=分析）flush 机制零改动；(3) D3 Stage 4 验证后写确保 factual 准确 + developer 有最深上下文；(4) D4 半自动平衡自动化与用户主权，critical 场景零打扰；(5) 三档 tier 让 Tier 0 简单 bug 零开销对齐 DEC-010；(6) 不改 agent prompt 沿用 DEC-013 最小改动面心智
 - **相关文档**: [docs/design-docs/bugfix-rootcause-layered.md](design-docs/bugfix-rootcause-layered.md)（完整设计）、DEC-008（log.md batching 机制正交补齐）、DEC-010（轻量化心智对齐）、DEC-013（text 模式 `<decision-needed>` 复用用于 D4 灰区门）、[issue #37](https://github.com/duktig666/roundtable/issues/37)
-- **影响范围**: `commands/bugfix.md` §步骤 2/3/4 + log batching 节（~25 行）；`commands/workflow.md` §Step 7 + §Step 8 白名单与渲染（~7 行）；`docs/log.md` §前缀规范 + §条目格式（~7 行）；`docs/claude-md-template.md` 文档约定（~1 行）；`docs/INDEX.md` 新增 `bugfixes/` 分类。新建 `docs/bugfixes/` 目录（运行期按需）+ 本 design-doc。**不改** 5 agent prompt / `skills/_detect-project-context.md` / DEC-001~DEC-013 任何 Accepted 条款 / target CLAUDE.md 业务规则边界。运行时：Tier 0 bug 行为与现状一致；Tier 1/2 bug 额外产 log entry / postmortem
+- **影响范围**: `commands/bugfix.md` §步骤 2/3/4 + log batching 节；`commands/workflow.md` §Step 7 + §Step 8 白名单与渲染；`docs/log.md` §前缀规范 + §条目格式；`docs/claude-md-template.md` 文档约定；`docs/INDEX.md` 预建 `### bugfixes` 分类。新建 `docs/bugfixes/` 目录（运行期按需）+ 本 design-doc。**不改** 5 agent prompt / `skills/_detect-project-context.md` / DEC-001~DEC-013 任何 Accepted 条款 / target CLAUDE.md 业务规则边界。**post-fix 2026-04-20**：tester C1/W1/W2/W3/W4 inline 回填 design-doc —— §2 Tier 表加 LOC 维度 / §3.2 简单 bug 捷径 "≤50 字" 改 "≤3 句" 消 i18n 歧义 / §4.2-4.3 YAML schema 3 字段合并为 `analysis` 多行字段（压 5 行）/ §5.3 postmortem 硬约束新增 4 步 orchestrator 执行锚点（C1）/ §6 INDEX 预建 `### bugfixes` 分类；不新开 DEC（append-only clarification）
 
 ---
 

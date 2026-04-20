@@ -47,6 +47,7 @@
 - 操作日志 `docs/log.md`（append-only，顶部最新）
 - 变更记录写在各 doc 底部"变更记录"章节，不入 log.md
 - 主题 slug 用 kebab-case 英文，贯穿 analyze → design-docs → exec-plans → testing
+- `bugfixes/xxx.md`（Tier 2 postmortem，bug 根因+修复+复现+验证+后续，DEC-014）
 
 ## 条件触发规则（可选，按项目业务写硬性约束）
 

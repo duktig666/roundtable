@@ -32,13 +32,13 @@ decisions: [DEC-014]
 
 ## 2. 分层 Tier 定义
 
-| Tier | 产物 | 触发条件（D1=A 双轴） |
+| Tier | 产物 | 触发条件（D1=A 双轴 + LOC；post-fix W1） |
 |------|------|-----------------------|
-| **0** 对话 | 仅主会话 transcript，不落盘 | 单文件 + 单模块 + 无 critical_modules 命中 |
-| **1** log.md entry | `fix-rootcause` 前缀结构化 entry（内嵌 `root_cause` / `fix_summary` / 可选 `reproduction`） | ≥2 文件 或 跨模块，且未命中 critical_modules |
-| **2** postmortem | `{docs_root}/bugfixes/[slug].md` 简版 postmortem | critical_modules 命中 **或** 涉 DEC / 设计缺陷候选 **或** 生产事故标签 |
+| **0** 对话 | 仅主会话 transcript，不落盘 | 单文件 + 单模块 + 修改 ≤80 LOC + 无 critical hit |
+| **1** log.md entry | `fix-rootcause` 前缀结构化 entry（内嵌 `analysis` 字段） | ≥2 文件 或 跨模块 或 单文件 >80 LOC；且未命中 critical |
+| **2** postmortem | `{docs_root}/bugfixes/[slug].md` 简版 postmortem | critical_modules 命中 **或** 涉 DEC / 设计缺陷候选 **或** 生产事故（issue 带 `production-incident` label 或 issue body 显式声明 —— post-fix W2） |
 
-**Tier 2 上升条件优先级**：critical_modules > 涉 DEC > 生产事故；任一命中直接 Tier 2，不降级。
+**Tier 2 上升条件优先级**：critical_modules > 涉 DEC > 生产事故；任一命中直接 Tier 2，不降级。用户在 `/bugfix` 对话中显式说"降级到 Tier 1"可 override critical 自动门，但 orchestrator 需 emit 一次警示让用户确认（post-fix W2）。
 
 **Tier 1/2 共生**：Tier 2 的 bug **同时**写 `fix-rootcause` entry（指向 postmortem 文件），保留 `log.md` 时间线索引连续性。
 
@@ -59,7 +59,7 @@ decisions: [DEC-014]
 - ≥2 文件 或 跨模块 → Tier 1 ★
 - 涉多组件 或 行为异常（现象非局部）→ Tier 2 ★
 
-**简单 bug 捷径**：步骤 2 summary ≤50 字 且 涉及单文件 → orchestrator 可跳过 emit 直接 Tier 0（避免 UX 噪声，对齐 bugfix 轻量化）。
+**简单 bug 捷径**：步骤 2 summary ≤3 句 且 单文件 且 ≤80 LOC → orchestrator 可跳过 emit 直接 Tier 0（post-fix W3：原 "≤50 字" 改 "≤3 句" 消 i18n 歧义）。
 
 ## 4. YAML schema 扩展（D2=A）
 
@@ -73,39 +73,33 @@ analyze | design | decide | exec-plan | review | test-plan | lint | fix | fix-ro
 
 `docs/log.md` §前缀规范表同步追加一行。
 
-### 4.2 entry schema
+### 4.2 entry schema（post-fix：3 字段合并为 `analysis`）
 
-`fix-rootcause` 在 Step 8 既有 `prefix/slug/files/note` 基础上追加 3 个**可选**字段：
+`fix-rootcause` 在 Step 8 既有 `prefix/slug/files/note` 基础上追加 1 个**可选**多行字段：
 
 ```yaml
 log_entries:
   - prefix: fix-rootcause
     slug: <bug-slug>
-    files: [src/foo.rs, tests/foo_test.rs]  # 实际修复文件（与 fix entry 同源）
+    files: [src/foo.rs, tests/foo_test.rs]
     note: <一句话总结>
-    root_cause: |
-      <2-5 句根因描述；复杂 bug 可引用 docs/bugfixes/<slug>.md §根因>
-    fix_summary: |
-      <1-3 句修复方案>
-    reproduction: |              # 可选：复现步骤（已有测试覆盖则省略）
-      <步骤>
+    analysis: |
+      根因: <2-5 句>
+      修复: <1-3 句>
+      复现: <步骤；已有测试覆盖则省略本行>
 ```
 
-**合并规则**（同轮多 entry）：沿用 Step 8 已有规则 —— `files:` union / `note:` 取首条；**新规则**：`root_cause` / `fix_summary` / `reproduction` 取首条非空值（不拼接，避免 developer + reviewer 双报重复）。
+**合并规则**：`files:` union / `note:` 取首条 / `analysis:` 取首条非空值（不拼接，避免 developer+reviewer 双报重复）。
 
-### 4.3 渲染到 log.md
-
-orchestrator flush 时把扩展字段渲染为 markdown：
+### 4.3 渲染到 log.md（post-fix 精简）
 
 ```markdown
 ## fix-rootcause | [slug] | [YYYY-MM-DD]
 - 操作者: [developer / reviewer]
 - 影响文件: [path1, path2]
 - 说明: [note]
-- 根因: [root_cause]
-- 修复: [fix_summary]
-- 复现: [reproduction]            # 若省略则不渲染本行
-- 关联 postmortem: docs/bugfixes/<slug>.md   # 仅 Tier 2 才渲染
+- 分析: [analysis 原样缩进渲染]
+- 关联 postmortem: docs/bugfixes/<slug>.md   # 仅 Tier 2 才追加
 ```
 
 ## 5. Postmortem 模板（Tier 2）
@@ -156,7 +150,11 @@ related_dec: DEC-XXX                # 若触及设计决策
 
 - **时机**：`commands/bugfix.md` 步骤 4（验证）lint + test 通过之后，步骤 5（关键模块审查）之前
 - **作者**：developer（与 fix 同轮产出）；reviewer / dba 在 Stage 5 审查完成后 append §5 findings + §7 变更记录
-- **硬约束**：步骤 4 验证未通过 → 不生成 postmortem 草稿（避免 factual drift）；closeout 前 orchestrator 检查"Tier 2 bug 是否有 postmortem 文件"，缺失时阻止 closeout gate
+- **硬约束 + orchestrator 执行锚点**（post-fix C1）：
+  1. orchestrator 派发 developer 前把本轮 tier 值（0/1/2）写入 session 记忆 `{slug}.tier`
+  2. developer final message 返回后，orchestrator 按 tier 检查：`tier==2 && !exists({docs_root}/bugfixes/[slug].md)` → 回派 developer 补写 postmortem（mini-loop），否则进入步骤 5
+  3. closeout gate 前最终一次校验：任何本 session 的 `tier==2 && 缺 postmortem` 立即 block closeout 并报告用户
+  4. developer 接续补写时只读 design-doc §5.2 模板，不改其他产出
 
 ### 5.4 与 Tier 1 同源
 
@@ -169,7 +167,7 @@ Tier 2 的 developer final message **同时**上报 `fix-rootcause` log_entry（
 3. `docs/log.md` §前缀规范表新增 `fix-rootcause` 行（~1 行）；§条目格式节追加扩展字段示例（~6 行）
 4. `docs/claude-md-template.md` §文档约定列表新增 `bugfixes/`（~1 行）
 5. `docs/decision-log.md` 置顶 DEC-014
-6. `docs/INDEX.md` 新增 `docs/bugfixes/` 分类 section + 本 design-doc 条目
+6. `docs/INDEX.md` 预建 `### bugfixes` 分类 section（空占位，避免首次 auto-create 不友好；post-fix W4）+ 本 design-doc 条目
 7. `skills/_detect-project-context.md` **不改**（它只检测 docs_root，不枚举子目录）—— 对齐 issue #37 验收标准 5
 
 ## 7. 待确认项
@@ -185,3 +183,4 @@ Tier 2 的 developer final message **同时**上报 `fix-rootcause` log_entry（
 | 日期 | 改动 | 操作者 |
 |------|------|--------|
 | 2026-04-20 | 初版（issue #37 四决策 D1-D4 = A/A/A/B 锁定） | architect |
+| 2026-04-20 | post-fix tester C1/W1/W2/W3/W4 + 3 字段合并 `analysis` 压缩：§2 加 LOC 维度 / §3.2 "≤3 句" / §4.2-4.3 schema 精简 / §5.3 C1 执行锚点 / §6 INDEX 预建 | orchestrator inline |
