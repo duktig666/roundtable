@@ -219,6 +219,7 @@ status: Active
 
 - 新决策 → 追加 `{docs_root}/decision-log.md`（直写；置顶 / 最新在前；DEC 是 architect 权威源；详见下面 "decision-log 条目顺序约定"）
 - 不直接写 log.md —— `log_entries:` YAML（`prefix: analyze | design | decide | exec-plan`）上报；同轮多文档合并为一条 entry；orchestrator 按 Step 8 flush
+- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7 契约）+ `log_entries:` YAML（Step 8 契约；`log_entries.files[]` 与 `created[].path` 一致）。**禁止**在 final message 额外输出 `产出:` / `Outputs:` / 任何自然语言版文件清单 —— orchestrator 会从 `created:` 路径 + `description:` 生成用户可见的 A 类 producer-pause 3 行 summary；skill 本层自带 summary 会与 orchestrator 生成重复。
 - 冲突时列 diff 等用户裁决，绝不默默覆盖
 
 ### decision-log 条目顺序约定（DEC-011）

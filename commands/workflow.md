@@ -351,6 +351,8 @@ created:
     description: Feature X design
 ```
 
+**单一产出字段原则**（issue #29）：`created:` 是 final report 文件清单的**唯一机读源**；`log_entries.files[]` 与之一致（Step 8）。角色**禁止**在 final message 额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 从 `created:` 路径 + `description:` 生成用户可见 A 类 producer-pause summary，skill/agent 自带 summary 会与 orchestrator 生成重复。
+
 Fallback：`/roundtable:lint` 周期性审计 orphan。**角色从不自行编辑 `INDEX.md`**。
 
 ---
