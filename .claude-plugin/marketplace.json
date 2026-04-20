@@ -9,7 +9,7 @@
       "name": "roundtable",
       "source": "./",
       "description": "Multi-role AI development workflow (analyst / architect / developer / tester / reviewer / dba) with plan-then-execute discipline.",
-      "version": "0.0.4-rc1"
+      "version": "0.0.4-rc2"
     }
   ]
 }
