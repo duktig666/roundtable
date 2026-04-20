@@ -14,6 +14,21 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## test-plan | phase-end-approval-gate | 2026-04-21
+- 操作者: tester (subagent, fg; critical_modules 3/3 命中 → 必落盘)
+- 影响文件: docs/testing/phase-end-approval-gate.md (new)
+- 说明: issue #30 P1 bug 修复对抗审查 —— 2 Critical (F1 Stage 4 B 类与 exec-plan 产出决定混同 / F2 豁免理由双落点+越 architect Resource Access) + 4 Warning (F3 recommended 信号缺 / F4 fuzzy 单向降级 / F5 Q&A 循环终止边界模糊 / F6 Stage 9 A 类未覆盖) + 4 Suggestion + 2 Positive；lint 0 命中；post-fix inline 完成 F1/F2/F3/F4/F5/F6，F7-F10 列 follow-up
+
+## fix | phase-end-approval-gate | 2026-04-21
+- 操作者: orchestrator (inline post-fix)
+- 影响文件: commands/workflow.md (A 类块 F1 正交注释 + F4 fuzzy size 分岔 + F5 Q&A 边界 + F6 Stage 9 变体); skills/architect/SKILL.md (§阶段 3 F1 正交 + F2 log.md decide 落点 + F3 recommended 信号); docs/design-docs/phase-end-approval-gate.md (§1.3 非目标 F6 澄清 + §6 变更记录 post-fix 段); docs/testing/phase-end-approval-gate.md (变更记录同步)
+- 说明: tester 2 Critical + 4 Warning 合并 post-fix —— F1 明示与 Stage 4 B 类正交不再写"进 design confirmation" / F2 豁免理由落 log.md prefix decide 不回写 design-doc / F3 go-with-plan 标 ★ 推荐供 §Auto-pick / F4 fuzzy go 按 size 分岔 / F5 循环不重跑 Phase 0 + 5 轮软上限 + log_entries 跨轮合并 / F6 Stage 9 Closeout orchestrator 直接回答 FAQ；lint 0；F7-F10 nit follow-up
+
+## design | phase-end-approval-gate | 2026-04-21
+- 操作者: architect (skill, inline)
+- 影响文件: docs/design-docs/phase-end-approval-gate.md (new); commands/workflow.md (Step 6.1 A 类条款扩写); skills/architect/SKILL.md (§阶段 3 改写); skills/analyst/SKILL.md (§工作流程 step 8 改写); docs/decision-log.md (DEC-006 影响范围 post-fix 2026-04-21 追加); docs/INDEX.md (append design-docs 条目)
+- 说明: issue #30 P1 bug —— DEC-006 A 类 producer-pause 菜单穷举 + 禁 silent default + Q&A 循环 + architect `go-with-plan` / `go-without-plan: <理由>` 拆分；D1 orchestrator-only Q&A 循环落点 (A=46 vs B skill-level=32) + D2 双落点 architect SKILL 菜单 + orchestrator 校验理由落盘 (A=44 vs B orchestrator-only 二次询问=35) + D3 append-only clarification to DEC-006 (延续 DEC-013 §3.1a 先例)；auto_mode=on 全 3 决策 auto-pick recommended；不新开 DEC / 不改 DEC-006 A/B/C 三分 / 不动 4 agent / bugfix 流程无 A 类不受影响；lint 0 命中
+
 ## review | tg-forwarding-expansion | 2026-04-21
 - 操作者: reviewer (subagent, fg; critical_modules 3/3 命中 → 必落盘)
 - 影响文件: docs/reviews/2026-04-21-tg-forwarding-expansion.md (new)

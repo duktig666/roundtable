@@ -60,10 +60,19 @@ description: Architect role for system design, interface definition, technology 
 9. in-session output 末尾以 `log_entries:` YAML block 上报本轮产出（同轮多文档合并为一条 entry）
 10. 停下来请用户审阅 design-docs，按反馈微调
 
-### 阶段 3：exec-plan（按需）
+### 阶段 3：exec-plan（默认中/大任务产出 / 小任务显式豁免；issue #30）
 
-11. 跨多模块 / 分阶段 / 数据迁移 / 破坏性变更 / 用户要求 → 写 `{docs_root}/exec-plans/active/[slug]-plan.md`
-12. exec-plan 产出并入同一轮 `log_entries:` YAML
+阶段 2 结束时菜单**必须**显式列两条 option（**exec-plan 产出决定**，与 Stage 4 B 类 Accept/Modify/Reject 正交）；`text` decision_mode emit `<decision-needed>` 时 `go-with-plan` 标 `★ 推荐`（供 §Auto-pick 识别 recommended）：
+
+- `go-with-plan` ★ 推荐（why: exec-plan 承载 developer checkbox 进度 + 跨 session 续作锚点；中/大任务默认）：写 `{docs_root}/exec-plans/active/[slug]-plan.md` 后进入 Stage 4
+- `go-without-plan: <理由>`：跳过 exec-plan 直接进入 Stage 4；理由必填 1-2 句（典型：bug fix / UI 微调 / 决策全在 DEC 已闭合 / 任务足够小）
+
+用户选 `go-with-plan` → 11. 写 exec-plan → 进入 Stage 4。
+用户选 `go-without-plan: <理由>` → orchestrator 把理由落盘到 `{docs_root}/log.md` 条目（prefix `decide`；**不**回写 architect 已落盘的 design-doc，避免越 architect Resource Access Write 边界）→ 进入 Stage 4。
+
+**禁止**：architect 自行判断跳过 exec-plan 而不在菜单显示。任何豁免必须 user-driven + 落盘说理（DEC-006 §A 菜单穷举原则 / issue #30）。
+
+12. exec-plan（或豁免理由）产出并入同一轮 `log_entries:` YAML（有 plan 时 prefix `exec-plan`；豁免时 prefix `decide`）
 
 ## AskUserQuestion 使用要点
 
