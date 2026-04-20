@@ -186,6 +186,7 @@ agent 的 final report 出现 `<escalation>` block 时 orchestrator 必须：
 2. **按 `decision_mode` 分支**（DEC-013）：
    - `modal` → 调 `AskUserQuestion` 带 options；每选项 description 含 `rationale` + `tradeoff`；`recommended: true` 用 `★` 标记附 `why_recommended`
    - `text` → 渲染 `<decision-needed id="esc-<slug>-<n>">` 块到对话流（canonical schema 见 design-doc §3.1）；options 行 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`（无推荐省 `（★ 推荐）`）；渲染前校验 option 必填字段，缺失时用 `(未提供)` 占位不静默丢弃；**多 escalation 串行 emit**（§3.1.1）；emit 后 pause 等用户自由文本回复；orchestrator LLM fuzzy 解析（`A` / `选 A` / `go with A` / `选 B 但加 X` 皆可），歧义按 §3.6 层级澄清
+     - **Active channel forwarding**（DEC-013 §3.1a）：若本 session inbound prompt 含 `<channel source="<plugin>:<name>" chat_id="..." ...>` 标签，或该 channel 的 reply 工具在本 session 内曾调用过（sticky 语义，不按轮次窗口衰减），每次 emit `<decision-needed>` 块**必须**同步调该 channel reply 工具把**字节等价**的同一块体转发过去（同 `id` / `question` / `options`，纯文本即可，不重排、不重生成 `id`、不缩略）；终端 stdout emit 保留供 orchestrator fuzzy parse 与日志回放。检测不到远程 channel（纯终端 session）→ 不调 reply，行为与现状一致。只在 emit `<decision-needed>` 时触发，普通对话 / phase summary / FAQ 不在本规则范围（out of scope，另议）。
 3. **用户回答后**：决策事实注入 prompt 重派**同一个** agent，scope 限 `remaining_work`
 4. **绝不替用户决策**；agent 未给 recommended 时不擅自选
 

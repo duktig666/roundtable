@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix | dec013-active-channel-forwarding | 2026-04-20
+- 操作者: developer (inline) / tester (subagent, fg; critical_modules 多命中 → 必评审) / orchestrator
+- 影响文件: commands/workflow.md (Step 5 text 分支加 sub-bullet); skills/architect/SKILL.md (decision_mode text 段加 sub-bullet); skills/analyst/SKILL.md (decision_mode text 段加 sub-bullet); docs/design-docs/decision-mode-switch.md (新增 §3.1a + §10 变更记录追加); docs/decision-log.md (DEC-013 entry 追加 post-fix 2026-04-20 注记)
+- 说明: issue #38 P0 修复 —— DEC-013 text 模式 orchestrator/skill emit `<decision-needed>` 时必须同步调 active MCP channel (TG/Slack/CI) reply 工具转发字节等价块体；append-only clarification (§3.1a，不新开 DEC)；采纳 sticky channel 语义 + id/内容守恒 + out-of-scope 边界明言（tester H1/H2/M1/L1/L2 round-2 applied）；lint 0 命中；不改 4 agent prompt / DEC-013 决定 8 边界 / target CLAUDE.md
+
 ## merge | bugfix-rootcause-layered + claude-md-issue-rules | 2026-04-20
 - 操作者: orchestrator / 用户
 - 影响文件: main 分支 squash merge (PR #39 b55a201 + PR #42 49fc2be); 分支 feat/37-bugfix-rootcause-layered + feat/41-claude-md-issue-rules 已删
