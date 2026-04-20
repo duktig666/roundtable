@@ -14,6 +14,26 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | dispatch-mode-strategy | 2026-04-20
+- 操作者: architect
+- 影响文件: docs/design-docs/dispatch-mode-strategy.md, docs/decision-log.md
+- 说明: issue #19 —— DEC-012 Accepted：方向 1 规则补齐（保留 DEC-004/007/008）+ D2 并行度判据（单发 fg / 并行批 bg）+ D4 两级逃生门（per-session @声明 + per-dispatch AskUserQuestion）；不抬 CLAUDE.md 配置；DEC-008 正交补齐保留；#20 scope 边界声明；P8 dogfood bug 由 D2 自动修复；3 项决策量化评分；DEC-012 置顶 dogfood DEC-011 约定
+
+## fix | dispatch-mode-strategy | 2026-04-20
+- 操作者: developer (inline)
+- 影响文件: commands/workflow.md (+16 行 §Step 3.4), commands/bugfix.md (Step 0.5 加 1 句), docs/INDEX.md (+1 条)
+- 说明: DEC-012 落地 —— workflow.md 新增 §Step 3.4 Dispatch Mode Selection（3 层 fallback：per-session → D2 并行度 → per-dispatch AskUserQuestion）；bugfix.md 引用；lint 0 命中；reviewer W-01 section-number 统一 §3.4.5→§3.4（6 处）+ W-03 前置顺序声明 + S-01 补 2 条 @声明等价模式 + S-02 testing anchor 一并 post-fix
+
+## review | dispatch-mode-strategy | 2026-04-20
+- 操作者: reviewer subagent (critical_modules 多命中 → 必落盘；orchestrator relay)
+- 影响文件: docs/reviews/2026-04-20-dispatch-mode-strategy.md (new, orchestrator 代写 —— reviewer agent 自声明 prompt 约束不允许 Write .md report，冲突于其 RA matrix，另记 issue)
+- 说明: DEC-012 终审 Approve-with-caveats（0 Critical / 3 Warning / 2 Suggestion）；W-01 section-number 贯穿 4 文档不一致 + W-03 Step 4 前置顺序 + S-01 @声明列表 + S-02 testing anchor 全部 post-fix；DEC-001~DEC-011 逐项对齐
+
+## analyze | dispatch-mode-strategy | 2026-04-20
+- 操作者: analyst
+- 影响文件: docs/analyze/dispatch-mode-strategy.md
+- 说明: issue #19 前台/后台派发选择策略调研 —— 确认根因（workflow.md/bugfix.md/5 agent 零规则，Task `run_in_background` 由 orchestrator 自由心证）；3 选项对比（规则补齐 / 删 Monitor 全前台 / 强制全后台）+ 5 场景 × 3 选项矩阵 + 判据候选 D1-D4；8 事实层开放问题 P1-P8 交 architect（P7 标注 #19/#20 耦合）；FAQ Q1 补 orchestrator 概念解释
+
 ## design | decision-log-entry-order | 2026-04-20
 - 操作者: architect
 - 影响文件: docs/design-docs/decision-log-entry-order.md, docs/decision-log.md

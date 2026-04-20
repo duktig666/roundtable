@@ -87,6 +87,20 @@ closeout  → 汇总 reviewer / dba findings
 
 ---
 
+## Step 3.4: Dispatch Mode Selection
+
+每次 `Task` 派发前按序评估 `run_in_background`（第一匹配胜出）：
+
+1. **用户声明**：prompt 含 `@roundtable:<role> bg|fg` / "后台派 <role>" / "前台派 <role>" 等中英文等价 → 按声明
+2. **并行度**：本 assistant message 内 Task 调用数
+   - 单发 → `false`（对齐 Claude Code 默认）
+   - 并行批 ≥2 → 全部 `true`
+3. **模糊兜底** → `AskUserQuestion` fg / bg 两选
+
+前置：Step 4 并行判定必须先行，其结论是步骤 2 的输入。选完进入 §3.5.0 gate。
+
+---
+
 ## Step 3.5: Progress Monitor Setup（DEC-004；触发 DEC-008）
 
 每个 `run_in_background: true` 的 `Task` 派发配一次 `Monitor` 调用，让用户实时看 phase 级进度。
