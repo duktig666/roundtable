@@ -7,6 +7,7 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 - **语言**：代码英文、注释中文、文档中文、回答中文
 - **Plugin prompt 文件本体**（`skills/*.md` / `agents/*.md` / `commands/*.md`）**以中文为主，关键专有名词保留英文**（工具名、字段名、DEC-xxx、env var、`Task` / `Monitor` / `AskUserQuestion` 等 Claude Code / plugin 术语不翻译）—— 约定 2026-04-19 更新，见 `feedback_roundtable_prompt_language`
 - **用户产出文档**（`docs/design-docs/` / `docs/decision-log.md` / `docs/log.md`）保持**中文**
+- **GitHub Issue / PR 标题**：英文；body / 评论可中英混合
 - **架构决策需确认**：任何影响 DEC-001（D1-D9）的改动必须走 DEC-xxx Superseded 流程
 
 ---
@@ -46,3 +47,5 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 - 修改 `_detect-project-context.md` → 必须同步 review 所有 5 个调用方（`commands/workflow.md` / `commands/bugfix.md` / `commands/lint.md` / `skills/architect.md` / `skills/analyst.md`）
 - 新增或修改 Phase Matrix 的 stages → 必须同步更新 `commands/workflow.md` §Step 3 artifact chain 和 `docs/INDEX.md` 的 6 类 orphan 扫描清单
 - 新增用户产出文档类别（如 `benchmarks/`）→ 必须同步更新 Step 7 Index Maintenance 的 "identify category" 列表
+- 创建 issue（`gh issue create`）→ 必须加 `P0/P1/P2/P3` 标签（P0 阻塞全流程/数据损坏；P1 主干缺陷/UX 中断；P2 质量缺陷/功能缺口；P3 优化/长期议题）
+- 评估 issue 执行顺序 → 优先按 priority 排序（P0 → P1 → P2 → P3），同优先级内再看依赖 / dogfood 串联
