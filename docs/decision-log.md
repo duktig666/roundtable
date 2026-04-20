@@ -35,6 +35,36 @@
 
 ---
 
+### DEC-015 workflow auto-execute mode（orchestrator 读 `--auto` / `ROUNDTABLE_AUTO` 批量预授权 A/B 类 gate，自动采纳 recommended option）
+- **日期**: 2026-04-20
+- **状态**: Accepted
+- **上下文**: [issue #33](https://github.com/duktig666/roundtable/issues/33) —— `/roundtable:workflow` 默认高交互：A 类 producer-pause 等用户 `go` / B 类 approval-gate 等点选 / 内部决策点逐个阻塞。批量 dogfood / CI 非交互 / 信任型自消耗 / #43 batch 多 issue 并行依赖链下，交互成本远大于决策价值。用户已熟悉决策模板时 `recommended` 选项可直接采纳。P2 阻塞积压消化 + 解锁 #43。
+- **决定**:
+  1. **路径 B（加 flag）**（D1）：在 `/roundtable:workflow` 加 `--auto` 布尔开关，不新建独立 command；违反 DEC-010 精简心智 / 2x prompt 同步 / skill caller 感知成本的 A 方案否决
+  2. **三级优先链对齐 DEC-013**（D2）：CLI `--auto` > env `ROUNDTABLE_AUTO` > default=false；**不做**每阶段粒度 `ROUNDTABLE_AUTO=analyst,architect`（YAGNI / v1 避免组合爆炸）
+  3. **Recommended 缺失 fallback = 强停**（D3）：真 tie-break 打断，emit 审计行 `🔴 auto-halt: no recommended option at <decision_id>` 并沿用 manual 渲染路径（modal / text 按 decision_mode）；对齐 DEC-006 B 类 approval-gate 语义；拒绝"选第一个"（静默错决策）/"报错退出"（摧毁已完成 phase 产出）
+  4. **Exec-plan 策略 in auto = 按任务体量探测**（D4）：沿用 Step 1 中/大任务启发式，auto 只节约"问用户 exec-plan 要不要"的交互不改判据
+  5. **#30 / #33 顺序 = 先 #33 再 #30**（D5）：auto 豁免 A 类 gate，#30 补强 manual 路径；两 issue 正交无 merge 冲突
+  6. **Phase Matrix category 不变**（DEC-006 守约）：auto 只是 A/B 类 gate 的"批量预授权"，category 映射不变；C 类 verification-chain 现状已自动不变
+  7. **4 agent prompt 零改动**：orchestrator 读 flag 后自动采纳 recommended，agent/skill 零感知
+  8. **不抬 target CLAUDE.md**：对齐 DEC-011 / DEC-012 "dispatch mode 是 orchestrator 内部策略非项目业务规则"边界
+  9. **不豁免打断路径**：tester hard regression `<escalation>` / lint 或 test 失败 / format 解析错 / subagent escalation 无 recommended —— 这些打断路径 auto 模式零侵入保持
+  10. **Audit trail 4 事件**：`🟢 auto-go` (A 类) / `🟢 auto-accept` (B 类) / `🟢 auto-pick` (内部决策) / `🔴 auto-halt` (fallback)；归 C 类 verification-chain
+  11. **modal + auto 组合已知约束**：skill 的 `AskUserQuestion` 由 Claude Code runtime 执行，orchestrator 无法拦截返回；modal 下 skill 弹窗照常，auto 对 skill AskUserQuestion 无效；文档明示推荐搭配 `decision_mode=text` 使用
+- **备选**:
+  - **D1-A 新 command `/roundtable:autoworkflow`**：2x prompt 维护 + skill caller 感知；拒绝
+  - **D2-C 每阶段粒度 `ROUNDTABLE_AUTO=analyst,architect`**：无实际需求，YAGNI；拒绝
+  - **D3-B 选第一个**：静默错决策风险；拒绝
+  - **D3-C 报错退出**：摧毁已完成 phase 产出；拒绝
+  - **D4-A 默认写 exec-plan**：小任务浪费；拒绝
+  - **D4-B 默认跳 exec-plan**：大任务追溯成本；拒绝
+  - **D5-B 先 #30 再 #33**：#30 不在 #43 关键路径；优先级错；拒绝
+- **理由**: (1) D1 加法而非重复符合 DEC-010 精简心智；(2) D2 三级链复用 DEC-013 心智无新抽象；(3) D3 强停守住真 tie-break 不绕 DEC-006 B 类语义；(4) D4 auto 不改判据只改交互；(5) D5 解锁 #43 并行编排器依赖链；(6) Phase Matrix 不变保 DEC-006 正交；(7) 4 agent 零感知 + skill 零改动 = 最小改动面；(8) 不抬 CLAUDE.md 对齐 DEC-011/012；(9) 打断路径零侵入保障事故可召回；(10) Audit trail 让 auto 决策可事后追溯不失透明
+- **相关文档**: [docs/design-docs/workflow-auto-execute-mode.md](design-docs/workflow-auto-execute-mode.md)（完整设计 + D1 量化评分 / 决策矩阵 / 业务逻辑矩阵）、DEC-013（`decision_mode` 三级链模式同源）、DEC-006（Phase Matrix A/B/C 语义守约）、DEC-010（token 节约心智延伸）、DEC-011 / DEC-012（dispatch mode 不抬 CLAUDE.md 边界）、DEC-001（D8 / 4 agent 边界）、[issue #33](https://github.com/duktig666/roundtable/issues/33)、[issue #30](https://github.com/duktig666/roundtable/issues/30)（正交 follow-up）、[issue #43](https://github.com/duktig666/roundtable/issues/43)（下游依赖 batch 编排器）
+- **影响范围**: `commands/workflow.md` 顶部新增 Step -0 Auto Mode Bootstrap (~6 行) + Step 5 Escalation 加 `auto_mode` 分支 (~5 行) + Step 6 A 类 + B 类 phase gating 加 auto 分支 (~8 行) + Step 1 / Step 6b 加 auto 注记 (~3 行)；`commands/bugfix.md` 通过 Step -1 ref workflow.md 自动继承 (~2 行)；`docs/design-docs/workflow-auto-execute-mode.md` + `docs/exec-plans/active/workflow-auto-execute-mode-plan.md` 新建；`docs/decision-log.md` 本条置顶；`docs/INDEX.md` + `docs/log.md` 追加。**不改** 4 agent prompt / `skills/architect/SKILL.md` / `skills/analyst/SKILL.md` / `skills/_detect-project-context.md` / `skills/_progress-content-policy.md` / `README.md` / `README-zh.md` / target CLAUDE.md。**不改** DEC-001 ~ DEC-014 任何 Accepted 条款 / Phase Matrix / Step 4 并行判定树 / critical_modules 机械触发。运行时：批量 dogfood / CI / 信任场景无阻塞跑完；真 tie-break / escalation / tester hard regression / lint+test failure 依然打断保留事故可召回。
+
+---
+
 ### DEC-014 bugfix 根因分层落盘（Tier 0 对话 / Tier 1 log.md fix-rootcause entry / Tier 2 docs/bugfixes postmortem）
 - **日期**: 2026-04-20
 - **状态**: Accepted

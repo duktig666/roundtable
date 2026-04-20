@@ -61,6 +61,7 @@
 - [dispatch-mode-strategy.md](design-docs/dispatch-mode-strategy.md) — issue #19 subagent 派发 run_in_background 选择策略（方向 1 规则补齐 + D2 并行度判据 + D4 两级逃生门；DEC-008 正交补齐），DEC-012 Accepted
 - [decision-mode-switch.md](design-docs/decision-mode-switch.md) — issue #31 orchestrator 可切换决策模式 modal \| text（最小改动：agent 零改动 + orchestrator 渲染分支 + skill 条件分支；支持 TG / CI / 日志回放远程前端），DEC-013 Accepted
 - [bugfix-rootcause-layered.md](design-docs/bugfix-rootcause-layered.md) — issue #37 bugfix 根因分层落盘（Tier 0 对话 / Tier 1 log.md fix-rootcause entry / Tier 2 docs/bugfixes postmortem；D1-D4 锁定；C1 执行锚点 4 条 + W1-W4 post-fix），DEC-014 Accepted
+- [workflow-auto-execute-mode.md](design-docs/workflow-auto-execute-mode.md) — issue #33 `/roundtable:workflow --auto` 批量预授权 A/B 类 gate 自动采纳 recommended（CLI+env 两级优先链 / recommended 缺失强停 / #30 正交 / 4 agent 零改动），DEC-015 Accepted
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -71,6 +72,7 @@
 
 - active/
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
+  - [workflow-auto-execute-mode-plan.md](exec-plans/active/workflow-auto-execute-mode-plan.md) — issue #33 DEC-015 auto 模式实施计划（P0 bootstrap → P1 Step 5 Escalation → P2 Step 6 A/B gating → P3-P4 inline + bugfix ref → P5-P6 tester/reviewer → P7 dogfood E2E → P8 PR）
 - completed/
   - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构（DEC-009 + DEC-010 Accepted；tree 2708→1672 / -38%；PR #17 merged）
   - [subagent-progress-and-execution-model-plan.md](exec-plans/completed/subagent-progress-and-execution-model-plan.md) — issue #7 + DEC-004/005/008（26 checkbox 全勾；PR #16 merged）
