@@ -36,37 +36,64 @@ description: Analyst role for research, competitive analysis, feasibility assess
 
 **`decision_mode` 分支**（orchestrator 注入 context prefix；DEC-013）：
 
-- `modal`（默认）→ 调 `AskUserQuestion(question, options)`，不变
+- `modal`（默认）→ 调 `AskUserQuestion({questions: [...]})`，schema 见下方 §AskUserQuestion Option Schema
 - `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 DEC-013 / design-doc §3.1）；options 行 `<letter>：<label> — <fact> / <tradeoff>`（analyst 用 `fact` 替 `rationale`）；**禁用 `★ 推荐`**（停事实层，推荐归 architect）；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
 
 **后续追问**：报告写完后接受追问，以 FAQ 形式追加到报告。
 
 ## AskUserQuestion Option Schema
 
-每个 option 必填：`label` + `fact`（带 source URL / `file:line` / 图表）+ `tradeoff`（客观 cost / 排除项）。
+**真实工具 schema**（Claude Code `AskUserQuestion`）：
 
-**`recommended` 字段禁用** —— analyst 停事实层，推荐是 architect 职责。
+```
+AskUserQuestion({
+  questions: [{
+    header: "<≤12 字符短标题>",
+    question: "<1 句完整问题>",
+    multiSelect: false,
+    options: [
+      {label: "<≤30 字符>", description: "<打包了 fact + tradeoff 的 1–3 句>"},
+      ...
+    ]
+  }]
+})
+```
+
+**内部字段契约**（analyst 推理时用；**调工具前必须打包进 `description`**）：
+
+- `fact`（带 source URL / `file:line` / 图表）
+- `tradeoff`（客观 cost / 排除项）
+- **`recommended` 字段禁用** —— analyst 停事实层，推荐是 architect 职责
+
+**打包格式**：`"Fact: <fact>. Tradeoff: <tradeoff>."`（一串句子，不要用伪 JSON / 不要引入非 schema 字段）。
 
 示例（scope 界定）：
 
 ```
-AskUserQuestion(
-  question: "Research scope for X data-source evaluation",
-  options: [
-    {label: "Only official API",
-     fact: "x.com/developers 2026-02 changed new accounts to PPU; legacy Basic $100/mo = 10k reads.",
-     tradeoff: "Excludes third-party / scraping / RSS alternatives."},
-    {label: "Official API + third-party",
-     fact: "Rettiwt-API active (v6.0.5); public Nitter instances mostly offline.",
-     tradeoff: "Longer research; mixes compliance categories."},
-    {label: "Only compliant options",
-     fact: "Official API + first-party RSS where publishers offer.",
-     tradeoff: "Narrower coverage."}
-  ]
-)
+AskUserQuestion({
+  questions: [{
+    header: "Research scope",
+    question: "Research scope for X data-source evaluation?",
+    multiSelect: false,
+    options: [
+      {
+        label: "Only official API",
+        description: "Fact: x.com/developers 2026-02 changed new accounts to PPU; legacy Basic $100/mo = 10k reads. Tradeoff: Excludes third-party / scraping / RSS alternatives."
+      },
+      {
+        label: "Official API + third-party",
+        description: "Fact: Rettiwt-API active (v6.0.5); public Nitter instances mostly offline. Tradeoff: Longer research; mixes compliance categories."
+      },
+      {
+        label: "Only compliant options",
+        description: "Fact: Official API + first-party RSS where publishers offer. Tradeoff: Narrower coverage."
+      }
+    ]
+  }]
+})
 ```
 
-规则：每次恰好问一个调研决策；options 是事实上不同的选择，不是"哪个更好"。
+规则：每次恰好问一个调研决策；options 是事实上不同的选择，不是"哪个更好"；`questions` 数组只 1 项（analyst 不批量问）。
 
 ## 命名约定
 

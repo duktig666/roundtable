@@ -74,29 +74,69 @@ description: Architect role for system design, interface definition, technology 
 
 **`decision_mode` 分支**（orchestrator 注入 context prefix；DEC-013）：
 
-- `modal`（默认）→ 调 `AskUserQuestion(question, options)`，不变
+- `modal`（默认）→ 调 `AskUserQuestion({questions: [...]})`，schema 见下方 §AskUserQuestion Option Schema
 - `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 DEC-013 / design-doc §3.1）；options 行 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`；≤1 个 option 可标 `★ 推荐`；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
 
 ## AskUserQuestion Option Schema
 
-每个 option 必填：`label`（≤30 字符）+ `rationale`（1–2 句）+ `tradeoff`（key cost/risk）+ `recommended`（恰好 0 或 1 个 option 设 true；若设附 `why_recommended`）。Options 在 scope 内必须互斥。architect 无偏好时全 `recommended: false`，`question` 写明"no preference, seeking input"。
+**真实工具 schema**（Claude Code `AskUserQuestion`）：
+
+```
+AskUserQuestion({
+  questions: [{
+    header: "<≤12 字符短标题>",
+    question: "<1 句完整问题>",
+    multiSelect: false,
+    options: [
+      {label: "<≤30 字符>", description: "<打包了 rationale + tradeoff + ★ 推荐的 1–3 句>"},
+      ...
+    ]
+  }]
+})
+```
+
+**内部字段契约**（architect 推理时用；**调工具前必须打包进 `description`**）：
+
+- `label`（≤30 字符）
+- `rationale`（1–2 句）
+- `tradeoff`（key cost/risk）
+- `recommended`（恰好 0 或 1 个 option 标 true；若设附 `why_recommended`）
+- Options 在 scope 内互斥；architect 无偏好时全 `recommended: false`，`question` 写明 "no preference, seeking input"
+
+**打包格式**（`description` 字段）：
+
+- 非推荐选项：`"Rationale: <rationale>. Tradeoff: <tradeoff>."`
+- 推荐选项（附 `★`）：`"★ Recommended: <why_recommended>. Rationale: <rationale>. Tradeoff: <tradeoff>."`
+
+不要引入非 schema 字段（如 `rationale` / `tradeoff` / `recommended` 作为顶级 key）—— 真实工具只认 `{label, description}`，其它字段会触发 `Invalid tool parameters`。
 
 示例（存储层）：
 
 ```
-AskUserQuestion(
-  question: "Persistence layer choice for <module>",
-  options: [
-    {label: "Embedded SQL (SQLite)", rationale: "Single-process local; zero infra.",
-     tradeoff: "No concurrent writer; migration cost if scope grows to multi-node.",
-     recommended: true, why_recommended: "Matches single-machine constraint in DEC-xxx."},
-    {label: "Server DB (Postgres / MySQL)", rationale: "Future-proofs multi-node; richer replication.",
-     tradeoff: "Adds infra dependency; overkill at current scope.", recommended: false},
-    {label: "Plain files (JSON / CSV)", rationale: "Zero deps; fastest ship.",
-     tradeoff: "No index; hard to scale past few thousand rows.", recommended: false}
-  ]
-)
+AskUserQuestion({
+  questions: [{
+    header: "Persistence",
+    question: "Persistence layer choice for <module>?",
+    multiSelect: false,
+    options: [
+      {
+        label: "Embedded SQL (SQLite)",
+        description: "★ Recommended: Matches single-machine constraint in DEC-xxx. Rationale: Single-process local; zero infra. Tradeoff: No concurrent writer; migration cost if scope grows to multi-node."
+      },
+      {
+        label: "Server DB (Postgres/MySQL)",
+        description: "Rationale: Future-proofs multi-node; richer replication. Tradeoff: Adds infra dependency; overkill at current scope."
+      },
+      {
+        label: "Plain files (JSON/CSV)",
+        description: "Rationale: Zero deps; fastest ship. Tradeoff: No index; hard to scale past few thousand rows."
+      }
+    ]
+  }]
+})
 ```
+
+**规则**：每次恰好问一个决策；`questions` 数组只 1 项（架构决策不批量）；option 数 2–4 个。
 
 ## design-docs 模板
 

@@ -14,6 +14,16 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix | fix-analyst-askuserquestion-params | 2026-04-20
+- 操作者: developer (inline)
+- 影响文件: skills/analyst/SKILL.md, skills/architect/SKILL.md
+- 说明: issue #25 —— 两处 SKILL.md 的 AskUserQuestion Option Schema 章节重写；展示真实 Claude Code 工具 schema `{questions: [{header, question, multiSelect, options: [{label, description}]}]}`；内部字段 rationale/tradeoff/recommended/fact/why_recommended 打包进 description 字符串；示例代码块同步；显式告警"不要引入非 schema 字段，否则触发 Invalid tool parameters"；modal 分支行从 `AskUserQuestion(question, options)` 改成 `AskUserQuestion({questions: [...]})`；lint_cmd 0 命中
+
+## test-plan | fix-analyst-askuserquestion-params | 2026-04-20
+- 操作者: tester
+- 影响文件: docs/testing/fix-analyst-askuserquestion-params.md
+- 说明: 对抗性验证 issue #25 修复 —— 6 类反例（wrapper 多层/LLM 照搬伪字段/multiSelect 误 string/questions 传单 object/长度超限/漏必填）均无法击穿新 prompt；grep 静态扫描 skills+agents+commands 0 命中残留伪字段；docs/ 4 处叙述性残留属合法引用；产出 schema 新旧对比表 + 4 条手动 dogfood 验收场景（analyst/architect × modal/text）+ 未来 lint 扩展建议；结论 PASS
+
 ## merge | decision-mode-switch | 2026-04-20
 - 操作者: orchestrator / 用户
 - 影响文件: exec-plan active/ → completed/ (archive), docs/INDEX.md (active 条目移除 + completed 补入)
