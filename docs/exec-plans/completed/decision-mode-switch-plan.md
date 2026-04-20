@@ -2,8 +2,11 @@
 slug: decision-mode-switch
 source: docs/design-docs/decision-mode-switch.md
 created: 2026-04-20
-status: Active
+completed: 2026-04-20
+status: Completed
 decisions: [DEC-013]
+pr: https://github.com/duktig666/roundtable/pull/34
+merge_commit: f76a740
 ---
 
 # 可切换决策模式 执行计划

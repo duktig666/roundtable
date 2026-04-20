@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## merge | decision-mode-switch | 2026-04-20
+- 操作者: orchestrator / 用户
+- 影响文件: exec-plan active/ → completed/ (archive), docs/INDEX.md (active 条目移除 + completed 补入)
+- 说明: PR #34 squash-merge to main（merge commit f76a740）；issue #31 auto-closed via fixes ref；branch feat/decision-mode-switch deleted；exec-plan 归档 completed/；剩 6/7 acceptance 等 plugin reload E2E
+
 ## design | decision-mode-switch | 2026-04-20
 - 操作者: architect
 - 影响文件: docs/design-docs/decision-mode-switch.md, docs/exec-plans/active/decision-mode-switch-plan.md, docs/decision-log.md

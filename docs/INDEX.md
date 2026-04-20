@@ -69,11 +69,11 @@
 
 - active/
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
-  - [decision-mode-switch-plan.md](exec-plans/active/decision-mode-switch-plan.md) — issue #31 DEC-013 可切换决策模式执行计划（P0.1-P0.4 developer 已完成；P0.5-P0.7 tester / reviewer / lint 待执行）
 - completed/
   - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构（DEC-009 + DEC-010 Accepted；tree 2708→1672 / -38%；PR #17 merged）
   - [subagent-progress-and-execution-model-plan.md](exec-plans/completed/subagent-progress-and-execution-model-plan.md) — issue #7 + DEC-004/005/008（26 checkbox 全勾；PR #16 merged）
   - [progress-content-policy-plan.md](exec-plans/completed/progress-content-policy-plan.md) — issue #14 DEC-007（P0.1-P0.4 完成；PR #16 merged；归档时补勾 18 checkbox）
+  - [decision-mode-switch-plan.md](exec-plans/completed/decision-mode-switch-plan.md) — issue #31 DEC-013（P0.1-P0.7 全完成；PR #34 merged 2026-04-20；剩 6/7 acceptance 待 plugin reload 后 E2E 实跑）
 
 ### testing
 
