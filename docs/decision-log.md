@@ -35,6 +35,42 @@
 
 ---
 
+### DEC-016 batch orchestrator 设计阶段 only MVP（`/roundtable:batch` 新 command，general-purpose subagent + isolation:worktree + inline-only workflow + post-hoc DEC 重编号 + 扩 design-doc slug 冲突预检）
+- **日期**: 2026-04-20
+- **状态**: Accepted
+- **上下文**: [issue #43 P2](https://github.com/duktig666/roundtable/issues/43) —— `/roundtable:workflow` 单 issue/单会话绑定；积压多个 P2/P3 dogfood issue 时交互成本线性放大。前置 #33 (DEC-015 auto mode) + #38 (DEC-013 §3.1a 转发) 已合入；新开 #48 (P1 phase summary TG 转发) 强耦合但独立实施。 **Analyst 深度分析 (525 行 9 维度 + 7 开放问题)** + **DEC-003 3 路并行 research (Q4 subagent_type / Q5 API rate limit / Q7 Stage 4 bg 行为)** 发现 Claude Code 官方硬约束 "**Subagents cannot spawn other subagents**"，使 issue #43 原始架构（子 agent 跑完整 /roundtable:workflow --auto）**不可行**。架构必须基于该约束重塑。
+- **决定**:
+  1. **D2 Scope = 设计阶段 only MVP (v1)**（量化 36 vs 17/25/29）：`/roundtable:batch` v1 **只跑 analyst + architect 两 skill（inline 形态）+ commit + draft PR**；developer/tester/reviewer/dba 均 subagent-only（违反 DEC-001 4 agent 边界 + Claude Code 硬约束），v1 不覆盖。实施阶段由用户在主会话 review PR 批准后跑 `/roundtable:workflow`。v2 议题：扩 tester/reviewer/dba 到 inline 形态 (DEC-005 follow-up) 或等 Claude Code 放宽嵌套 / agent teams 稳定
+  2. **D1 命令形态 = 新 `commands/batch.md` 独立命令**（量化 48 vs 35）：不扩展 workflow.md（避免双心智重载 + 单 issue 用户额外 token 负担）；新增 ~300 行
+  3. **D3 DEC 编号竞争 = post-hoc renumber with `DEC-NEW-<uuid8>` 占位**（量化 41 vs 37/23）：子 agent 写占位 `DEC-NEW-$(openssl rand -hex 4)`；主会话 fan-in 按完成时序 sed 替换为 `DEC-(MAX+k)`；sanity `grep -r "DEC-NEW-" docs/` 必须 0 命中；替换 scope = docs/ 全部类别；单 issue workflow 路径沿用 MAX+1 递增
+  4. **D4 冲突预检 = 启发式扫 DEC + prompt path + 扩 docs/design-docs/slug**（量化 27 vs 20/22/18）：3 粒度正则；Union-Find 分组；真阳率从 54.5% 提升到估算 65-70%；worktree 隔离作为合并期兜底
+  5. **D5 Worktree 生命周期 = Claude Code 原生**：有变更保留 / 无变更回收；不覆盖；用户负责 `git worktree prune`
+  6. **D6 并发默认 = model-aware**（量化 18 vs 14/10）：Opus 4.7 → 3（GitHub #44481 实测 5 agent 即 429）；Sonnet 4.6 → 5（Tier 3 ITPM 充足）；`--concurrency N` 覆盖
+  7. **D7 Subagent type = `general-purpose`**（量化 51 vs 32/38）：Candidate B (CLI-defined ephemeral) 根本不可用（plugin command runtime 无法动态 `--agents` 注册）；Candidate C (新增 plugin batch-worker) 的 skills 预加载优势不抵 permissionMode 受限 + 新 agent 触达 DEC-001 D1-D9 边界；A 的 skills 不继承劣势由 prompt inline 注入内容解决
+  8. **D8 Stage 4 approval-gate 在 bg subagent = text + auto + recommended → auto-accept；否则 emit `<decision-needed>` bubble to final message → batch 主会话 relay TG**：复用 DEC-013/015 组合；不发明新行为；v1 不自动 SendMessage relay 回子 agent（需 EXPERIMENTAL_AGENT_TEAMS=1，v2 议题）；用户手动 `cd <worktree>` 续跑
+  9. **D9 MCP TG forwarding = 主会话一层转发**：子 agent session inbound 无 `<channel>` 标签，DEC-013 §3.1a sticky 语义不成立；主会话 fan-in 后统一汇总转发；子 agent 不负责转发
+  10. **D10 失败终态 = 8 类**（扩 issue body 3 类）：✅ Design-success / 🟡 Decision-pending / 🟡 Auto-halt no recommended / 🔴 Skill AskUserQuestion failure / 🔴 Crash-maxTurns / 🔴 Conflict grouping trap / 🔴 Main session 中断 / 🔴 API 429；每类检测方法 + worktree 状态 + 处理规则
+  11. **架构 skill 唯一改点**：`skills/architect.md` 加 2 条件分支（`inline_only: true` 禁 DEC-003 fan-out + `batch_mode: true` 用 DEC-NEW 占位），总 ~12 行；4 agent prompt + analyst skill + workflow.md / bugfix.md / lint.md 本体 / 4 helper 本体 **零改动**
+  12. **不启用 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`**：SendMessage resume 需要；v1 以稳定为先
+  13. **TG 转发依赖 #48**：#48 未实施时 batch 命令内嵌显式 reply 调用（手动转发）；#48 实施后可删除该逻辑
+  14. **不抬 target CLAUDE.md**：对齐 DEC-011/012/013/015 "批量调度是 orchestrator 内部策略"边界
+- **备选**:
+  - **D2-B 全阶段 batch**（含 developer/tester/...）：量化 17；违反 DEC-001 + 命中 Claude Code subagents-cannot-spawn 硬约束；需 tester/reviewer/dba 大规模 inline 改造；拒绝
+  - **D2-C 全阶段 + EXPERIMENTAL_AGENT_TEAMS=1**：量化 25；实验标志 + 已知 agent teams 限制（session resumption / shutdown 等）；v2 议题；拒绝
+  - **D2-D `--scope=design/impl` 双模式**：量化 29；增复杂度；design-only 足以覆盖用户 PR-first review 意图；拒绝
+  - **D1-B 扩展 workflow.md**：量化 35；双心智重载；拒绝
+  - **D3-A 中心锁预分配**：crash 空洞 + 跨 agent 锁复杂度；拒绝
+  - **D3-C 主会话统一写 DEC**：违反 DEC-001 D8 architect Resource Access；拒绝
+  - **D4-A 无预检**：合并期痛转嫁用户；拒绝
+  - **D4-D AST 级依赖分析**：工程量失衡；拒绝
+  - **D7-B CLI ephemeral subagent**：根本不可用（runtime 无法动态注册）；拒绝
+  - **D7-C 新 plugin subagent**：触达 DEC-001 边界 + permissionMode 不支持；拒绝
+- **理由**: (1) D2 MVP 阶段化承认 Claude Code 硬约束的不可绕过性，用户 "PR-first review" 意图与 design-only 天然对齐，快速落地后 v2 基于实战数据迭代；(2) D1 独立命令避免 workflow.md 臃肿传播到所有单 issue 调用，对齐 DEC-010 精简心智；(3) D3 post-hoc renumber 零协调 / 高容错 / 低复杂度；(4) D4 启发式 + 扩粒度真阳率 +10-15% 不显著增复杂度；(5) D6 model-aware 基于实测 issue #44481 数据；(6) D7 general-purpose 复用 Claude Code 原生能力零维护新增；(7) D8 复用 DEC-013/015 组合不发明新行为；(8) D9 主会话一层转发避免三层嵌套协议不明确的复杂度；(9) D10 终态穷举便于未来 v2 扩展；(10) architect skill 唯一改点 (12 行) + 4 agent 零改动 对齐 DEC-010 最小改动面
+- **相关文档**: [docs/design-docs/batch-orchestrator.md](design-docs/batch-orchestrator.md)（完整设计 700+ 行 / 10 决策量化评分 / 8 终态表 / 数据流图）、[docs/exec-plans/active/batch-orchestrator-plan.md](exec-plans/active/batch-orchestrator-plan.md)（P0-P5 实施）、[docs/analyze/batch-orchestrator.md](analyze/batch-orchestrator.md)（525 行 analyst 报告 + 9 维度 + 7 开放问题）、DEC-015 (auto mode 前置)、DEC-013 (text mode 前置 + §3.1a TG forwarding 复用)、DEC-011 (DEC 顺序约定沿用 + 置顶规则)、DEC-006 (phase gating 不新增类别)、DEC-005 (developer 双形态 v2 扩展议题)、DEC-003 (research fan-out 本次设计派发 Q4/Q5/Q7 三路)、DEC-001 (4 agent 边界 + critical_modules 语义守约)、[issue #43](https://github.com/duktig666/roundtable/issues/43)、[issue #48](https://github.com/duktig666/roundtable/issues/48) (强耦合 follow-up)、[issue #33](https://github.com/duktig666/roundtable/issues/33) (DEC-015 前置)、[issue #38](https://github.com/duktig666/roundtable/issues/38) (DEC-013 §3.1a 前置)
+- **影响范围**: 新建 `commands/batch.md`（~300 行）+ `docs/design-docs/batch-orchestrator.md` + `docs/exec-plans/active/batch-orchestrator-plan.md` + `docs/testing/batch-orchestrator.md`（P5 tester 补）；修改 `skills/architect.md` 加 2 条件分支（~12 行）；`docs/decision-log.md` 本条置顶；`docs/INDEX.md` + `docs/log.md` 追加。**不改** 4 agent prompt / `skills/analyst.md` / `skills/_detect-project-context.md` / `skills/_progress-content-policy.md` / `commands/workflow.md` / `commands/bugfix.md` / `commands/lint.md` 本体 / `commands/_progress-monitor-setup.md` / README / target CLAUDE.md。**不改** DEC-001 ~ DEC-015 任何 Accepted 条款 / Phase Matrix / Step 4 并行判定树 / critical_modules 机械触发。运行时：`/roundtable:batch` 新入口；子 agent 强制 `auto=true + decision_mode=text + inline_only=true + batch_mode=true`；DEC 重编号仅 batch 路径（单 issue 沿用递增）；v1 仅设计阶段，v2+ 扩展议题。**critical_modules 命中** `skills/architect.md` 修改触发 P1 末派 tester（P5）。
+
+---
+
 ### DEC-015 workflow auto-execute mode（orchestrator 读 `--auto` / `ROUNDTABLE_AUTO` 批量预授权 A/B 类 gate，自动采纳 recommended option）
 - **日期**: 2026-04-20
 - **状态**: Accepted
