@@ -14,6 +14,21 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | decision-log-entry-order | 2026-04-20
+- 操作者: architect
+- 影响文件: docs/design-docs/decision-log-entry-order.md, docs/decision-log.md
+- 说明: issue #18 —— DEC-011 Accepted：SKILL.md 补插入位置规则 + Minimal header（3 行）初始化 + 锚点 = "第一个 `### DEC-` 行"；template L46 同步；DEC-011 自身置顶 dogfood
+
+## fix | decision-log-entry-order | 2026-04-20
+- 操作者: developer (inline)
+- 影响文件: skills/architect/SKILL.md (+~13 行), docs/claude-md-template.md (L46 改 1 行), docs/INDEX.md (+1 条)
+- 说明: DEC-011 落地 SKILL.md L19 / L59 / L165 + §完成后 新增 "### decision-log 条目顺序约定" 小节；lint 0 命中；reviewer W-01（"仅 header 无 DEC" fallback）+ Suggestion 1/2 + 用户精简诉求一并 post-fix 合并
+
+## review | decision-log-entry-order | 2026-04-20
+- 操作者: reviewer subagent (critical_modules "Skill prompt 本体" 命中 → 必落盘)
+- 影响文件: docs/reviews/2026-04-20-decision-log-entry-order.md (new)
+- 说明: DEC-011 终审 Approve with 1 Warning（0 Critical / 1 Warning / 3 Suggestion）；DEC-002 / DEC-006 / DEC-009 决定 10 / DEC-010 全对齐；影响范围 7 行 ≤ 10 合规；W-01 + Suggestion 1/2 已 post-fix
+
 ## analyze | lightweight-review | 2026-04-19
 - 操作者: analyst
 - 影响文件: docs/analyze/lightweight-review.md

@@ -77,6 +77,30 @@
 
 ---
 
+### DEC-011 decision-log 条目顺序约定传导到目标项目（SKILL.md 补插入位置规则 + Minimal header 初始化）
+- **日期**: 2026-04-20
+- **状态**: Accepted
+- **上下文**: issue #18 —— roundtable 自家 `docs/decision-log.md` L4 声明"新条目追加在顶部（最新在前）"，但该约定未传导到 architect 写入的目标项目 `decision-log.md`。某目标项目（memo CLI demo）走 `/roundtable:workflow` 后呈现 DEC-001 在上、DEC-002 在下（升序），与约定相反。根因三条：(a) `skills/architect/SKILL.md` L19 Resource Access Write 行 + L59 §阶段 2 第 8 步 + L165 §完成后 只说"追加 `decision-log.md`（DEC-xxx 编号递增）"，未规定追加**位置**；(b) `docs/claude-md-template.md:46` 只说"追加 DEC-xxx，不删旧条目"，与 L47 `log.md（append-only，顶部最新）` 的"顶部最新"不对称；(c) 目标项目新建的 `decision-log.md` 无 header 声明约定，architect 默认 Edit/Write 到文件末尾
+- **决定**:
+  1. **`skills/architect/SKILL.md` 补插入位置规则**：L19 Resource Access `Write` 行、L59 §阶段 2 第 8 步、L165 §完成后 各自后面补"（置顶 / 最新在前；无文件则先写 Minimal header）"；在 §完成后 新增 ### decision-log 条目顺序约定 小节，详述锚点规则（"第一个 `### DEC-` 行"通用锚点）+ Minimal header 模板
+  2. **Minimal header 模板**（3 行引言，~5 行含 `---` 分隔）：`# <项目名> 决策日志\n\n> 新条目追加在顶部（最新在前）。\n> 本文件是项目知识的权威来源。\n\n---` —— 不复制 roundtable 自家的条目格式表 / 状态说明表 / 铁律表（~36 行开销），只固化最关键的"顺序约定"声明
+  3. **`docs/claude-md-template.md` L46 文档约定补一行**：把 `决策日志 docs/decision-log.md（追加 DEC-xxx，不删旧条目）` 改为 `决策日志 docs/decision-log.md（新条目置顶，最新在前；追加 DEC-xxx，不删旧条目）`，与 L47 `log.md（append-only，顶部最新）` 对称
+  4. **插入锚点 = "第一个 `### DEC-` 行"**：通用锚点，空文件 / 仅 header / 已有 N 个 DEC 三种状态均能单一规则定位；拒绝固定行偏移（脆弱）和显式 sentinel 注释（引入新约定成本）
+  5. **不回溯**：已有用户项目既有 DEC 顺序保持不动；本约定仅影响新写入
+  6. **本 DEC dogfood**：DEC-011 写入 roundtable 自家 `docs/decision-log.md` 置于 DEC-010 之前（最新在前）
+  7. **边界纪律**：本约定属 architect 内部规则，不抬到 target CLAUDE.md §critical_modules / §条件触发规则层；不改 5 个 agent prompt；不改 `commands/workflow.md` / `commands/bugfix.md`（它们不直写 decision-log）
+- **备选**:
+  - **Full header (~36 行 meta section)**：评分 44 vs Minimal 51；每个目标项目重复 ~36 行开销，meta 过厚；拒绝
+  - **No header，仅 SKILL.md 规则约束**：评分 38；目标项目用户打开 decision-log 看不到约定声明，未来非 architect 路径手改易违约；拒绝
+  - **固定行偏移锚点**：header 行数变动即破；拒绝
+  - **显式 sentinel 注释锚点**（`<!-- new DEC goes below this line -->`）：引入新约定成本，本项目 dogfood 也要改；拒绝
+  - **改 5 agent prompt 统一 decision-log 写约定**：agent 在 Resource Access 里对 decision-log.md 无 Write 权限（DEC 是 architect 权威源 —— DEC-002 / L165 确立），改 agent 越权；拒绝
+- **理由**: (1) Minimal header 成本最低，直接解决 issue #18 根因 3（目标项目 decision-log 无约定 header）；(2) "第一个 `### DEC-` 行"通用锚点对所有状态单一规则定位，无边界情况；(3) 约定通过文件自身 header 固化，比纯靠 SKILL.md 规则约束更 robust（非 architect 路径手改也能看到约定）；(4) architect 是 decision-log 唯一 Writer，规则落点单一 —— 改 SKILL.md 即完全覆盖；(5) 与 log.md 的"顶部最新"表述对称，用户心智一致
+- **相关文档**: docs/design-docs/decision-log-entry-order.md（设计主文档 + 决策量化评分）、issue #18、DEC-002（Resource Access 权限声明上游 —— architect 是 decision-log 唯一 Writer）
+- **影响范围**: `skills/architect/SKILL.md` 补 +12 行（L19 / L59 / L165 各补一句，§完成后 新增 ### decision-log 条目顺序约定 小节）；`docs/claude-md-template.md` L46 改 1 行；`docs/decision-log.md` 新增本条目（置顶）；`docs/design-docs/decision-log-entry-order.md` 新建。不改 DEC-001 ~ DEC-010；不改 5 个 agent prompt；不改 `commands/workflow.md` / `commands/bugfix.md`；不改 target CLAUDE.md 业务规则边界。运行时：下次 `/roundtable:workflow` 在目标项目写新 DEC 时置顶（最新在前），首次创建则先写 Minimal header
+
+---
+
 ### DEC-010 矫正 DEC-009 决定 1：revert helper 抽取 + 激进 inline 精简（运行期 token 真减）
 - **日期**: 2026-04-19
 - **状态**: Accepted
