@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix | step7-relay-write-failure-ux | 2026-04-21
+- 操作者: developer (inline)
+- 影响文件: commands/workflow.md (§Step 7 Relay contract bullet 6 新增)
+- 说明: issue #66 P3 enhancement —— DEC-017 §5 Q2 "走常规 error handling" UX 细化：orchestrator relay Write 失败时 fail-fast（无自动重试），final summary 顶部明示 ⚠️ + path + reason，subagent 原文附响应末尾作 fallback，人工救场路径提示；log_entries 追加 fix 审计条目。Append-only refinement under DEC-017 §Step 7 authority，不新增 DEC
+
 ## decide | DEC-018 | 2026-04-21
 - 操作者: developer (inline, orchestrator relay)
 - 影响文件: docs/decision-log.md (DEC-018 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.4 表注 + §3.5 新增 + 变更记录); commands/workflow.md (Step 5 text §3.1a 改写 + Step 4b 批量段追加); skills/architect/SKILL.md (text §3.1a 改写); skills/analyst/SKILL.md (text §3.1a 改写); docs/INDEX.md (design-docs 条目追注)
