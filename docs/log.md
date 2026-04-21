@@ -19,6 +19,31 @@
 - 影响文件: docs/decision-log.md (DEC-018 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.4 表注 + §3.5 新增 + 变更记录); commands/workflow.md (Step 5 text §3.1a 改写 + Step 4b 批量段追加); skills/architect/SKILL.md (text §3.1a 改写); skills/analyst/SKILL.md (text §3.1a 改写); docs/INDEX.md (design-docs 条目追注)
 - 说明: issue #63 方案 X —— DEC-013 §3.1a `<decision-needed>` 转发从"字节等价" raw YAML 松弛为"语义等价" pretty markdownv2（保 `id` / `question` / `option label` 三字段不改写）；终端 stdout 保留原 YAML 供 orchestrator fuzzy parse；TG/remote channel 只收人类可读渲染。Refines DEC-013 §3.1a 非 Supersede；sticky 语义、触发条件、§Step 5b 5 类事件全保留；orchestrator response -50% / TG payload -50% / UX 显著提升
 
+## design | step7-relay-contract-tightening | 2026-04-21
+- 操作者: architect (inline)
+- 影响文件: docs/design-docs/step7-relay-contract-tightening.md (new); docs/decision-log.md (DEC-019 置顶)
+- 说明: issue #65 P2 bug —— DEC-017 落地后 tester（A2/A3/A4/A5/A7）+ reviewer（Warning 1/2）identified §Step 7 三处契约模糊；DEC-019 Refines DEC-017 收紧 W1 frontmatter 剥离 + W2 Critical/归档 trigger 白名单 + W3 tester 布尔优先级
+
+## decide | DEC-019 | 2026-04-21
+- 操作者: architect (inline)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-019 Step 7 Relay Write 契约收紧 Accepted；6 条决定（W1 frontmatter 剥离 / W2 Critical finding 识别规则 / W2 归档白名单 + subagent 自述不触发 / W3 tester 布尔优先级括号显式 / Refines DEC-017 非 Supersede / 不改 agent prompt 本体）
+
+## exec-plan | step7-relay-contract-tightening | 2026-04-21
+- 操作者: architect + developer (inline) + orchestrator (Step 7 relay)
+- 影响文件: docs/exec-plans/completed/step7-relay-contract-tightening.md (new, completed)
+- 说明: P0 architect 定稿 / P1 developer Step 7 文本补丁 / P2 decision-log + exec-plan 落盘 / P3 reviewer 自审 Approve
+
+## fix | step7-relay-contract-tightening | 2026-04-21
+- 操作者: developer (inline)
+- 影响文件: commands/workflow.md (§Step 7 触发条件 bullet 2/3/4 + Relay contract bullet 1 收紧)
+- 说明: issue #65 实施 DEC-019；diff ≤ 20 行；不触碰 agent prompt 本体
+
+## review | step7-relay-contract-tightening | 2026-04-21
+- 操作者: orchestrator (relay for reviewer)
+- 影响文件: docs/reviews/2026-04-21-step7-relay-contract-tightening.md (new, orchestrator relay)
+- 说明: DEC-019 自审 Approve（0 Critical / 1 Warning non-blocking / 2 Suggestion）；critical_modules 2 项命中（workflow.md §Step 7 hot-path / DEC-006 落盘契约）；reviewer 工具 Write=0，orchestrator 按 Step 7 代写 (orchestrator relay)
+
 ## design | reviewer-write-harness-override | 2026-04-21
 - 操作者: architect (skill, inline)
 - 影响文件: docs/design-docs/reviewer-write-harness-override.md (new); docs/decision-log.md (DEC-017 置顶)

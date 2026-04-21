@@ -65,6 +65,22 @@
 - **影响范围**: `docs/log.md`（白名单 +1 行 `db-review`）；`commands/workflow.md §Step 7` bullet 4（`review for dba` → `db-review for dba`）；历史 log 条目保持原 prefix 不回溯改写
 - **相关文档**: [issue #67](https://github.com/duktig666/roundtable/issues/67)、DEC-017 D6
 
+### DEC-019 Step 7 Relay Write 契约收紧（frontmatter 剥离 + trigger 白名单 + tester 布尔优先级）
+- **日期**: 2026-04-21
+- **状态**: Accepted
+- **上下文**: [issue #65](https://github.com/duktig666/roundtable/issues/65) —— DEC-017 落地后 tester（A2/A3/A4/A5/A7）与 reviewer（Warning 1/2）identified 3 处 `commands/workflow.md §Step 7` 契约模糊：W1 frontmatter 剥离未规定（subagent 自造 frontmatter → orchestrator 拼接产生双 frontmatter）；W2 `Critical finding` / 用户归档意图 trigger 缺白名单，LLM run-to-run 判定易漂移；W3 tester 触发条件"critical_modules 命中 或 size=medium/large 且需产出测试计划"布尔优先级不明
+- **决定**:
+  1. **W1 frontmatter 剥离**：Relay contract bullet 1 追加规则——若 subagent final message body 以 `---\n` 开头且含闭合 `\n---\n` frontmatter block，剥离后再作为 body；orchestrator 自造 frontmatter 为权威
+  2. **W2 Critical finding 识别规则**：`## Critical` section 非空（至少一条 bullet，排除 `无。` / `(无)` / `(空)` 占位）OR 正文同段/相邻段 emoji `🔴` + 单词 `critical`（case-insensitive）；自然语言散文引用不触发
+  3. **W2 用户归档白名单**：zh `归档` / `落盘` / `sink`；en `archive`；匹配源仅限**用户派发 prompt 正文**，subagent 自述不触发；显式声明"subagent 自述不触发 relay"为判定源硬约束
+  4. **W3 tester 触发布尔优先级定稿**：`critical_modules 命中 OR (size ∈ {medium, large} AND 需产出测试计划)` —— critical_modules 命中始终 relay（无论 size）；非命中时仅 medium/large + 测试计划产出 relay
+  5. **Refines DEC-017 非 Supersede**：DEC-017 主路径反转决定本体保持 Accepted；本 DEC 只收紧 §Step 7 文本
+  6. **不改**：`agents/{reviewer,tester,dba}.md` 本体（scope 严格限 workflow.md §Step 7 文本）；log_entries prefix 命名（#67 follow-up 处理）；relay Write 失败 UX（#66 follow-up 处理）；critical_modules 机制 / Phase Matrix / architect/analyst/developer Write 路径
+- **备选**: A 维持 DEC-017 原文本（评分低：LLM 漂移已实测）；B 把规则下沉到 agent prompt（scope 漂移，与 DEC-017 D3 契约反转冲突）
+- **理由**: 规则来自 DEC-017 实测 tester 对抗 + reviewer 审计 findings，非空想；workflow.md §Step 7 是契约单一权威节，收紧点内聚；diff ≤ 20 行保小改动审阅成本；Refines 纪律保 decision-log append-only
+- **相关文档**: [docs/design-docs/step7-relay-contract-tightening.md](design-docs/step7-relay-contract-tightening.md)、DEC-017（主路径反转，本 DEC Refines）、`docs/testing/reviewer-write-harness-override.md`（W1-W3 原始 findings）、`docs/reviews/2026-04-21-reviewer-write-harness-override.md`（Warning 1/2 复核）
+- **影响范围**: `commands/workflow.md` §Step 7 触发条件 + Relay contract bullet 1；`docs/decision-log.md` 本条置顶；`docs/design-docs/step7-relay-contract-tightening.md` 新建；`docs/exec-plans/completed/step7-relay-contract-tightening.md` 新建。**不改**：DEC-001~017 任何 Accepted 条款；agent prompt 本体
+
 ---
 
 ### DEC-017 reviewer/tester/dba 落盘契约反转（orchestrator relay 升主路径，subagent 不再尝试 Write 归档 .md）
