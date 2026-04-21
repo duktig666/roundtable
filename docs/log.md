@@ -29,6 +29,21 @@
 - 影响文件: docs/analyze/subagent-coldstart-overhead-20.md (new); docs/INDEX.md (analyze 条目追)
 - 说明: issue #20 P3 调研 —— DEC-005 强制 tester/reviewer/dba subagent 在小任务场景的冷启开销权衡；3 选项客观代价表 + 6 事实层开放问题；analyst 不选型留 architect
 
+## design | dec016-auto-halt-text-render | 2026-04-21
+- 操作者: architect (inline)
+- 影响文件: docs/design-docs/dec016-auto-halt-text-render.md (new); docs/decision-log.md (DEC-020 置顶); docs/INDEX.md (design-docs 条目追注)
+- 说明: issue #61 P3 —— DEC-016 §3.3 auto_mode 与 text mode 交叉路径 Tester S-03 identified 3 未定义点；DEC-020 Refines DEC-016 锁定：render 顺序 audit-first / 转发 1 audit + N blocks / fallback 块 id `batch-<slug>-<n>-q<m>`（D3=A 用户延迟 auto-pick ★）；clarification 1+2 自明采纳
+
+## decide | DEC-020 | 2026-04-21
+- 操作者: architect (inline)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-020 DEC-016 auto-halt text-mode render 形态命名 Accepted；3 决定（audit-first render 顺序 / 1 audit + N blocks 转发 fan-out / fallback id `batch-<slug>-<n>-q<m>`）；Refines DEC-016 §3.3 非 Supersede；DEC-016 其他 D1-D3 / max_concurrent=3 / DEC-013 / DEC-018 全保留
+
+## implement | dec020-auto-halt-text-render | 2026-04-21
+- 操作者: developer (inline, orchestrator relay)
+- 影响文件: commands/workflow.md (§Step 4b Auto_mode 段 +3 clarification 子句; §Step 5b 事件类 e 表格行扩写 auto-halt case)
+- 说明: DEC-020 落地到 workflow.md 规则本体 —— §Step 4b 新增 `Auto-halt text-mode fallback 渲染` 三点子句（render 顺序 audit-first / 转发 1+N / id `batch-<slug>-<n>-q<m>`）；§Step 5b 事件类 e 格式列追加 `DEC-020 auto-halt text fallback` 注记；4 agent prompt 本体 0 改动
+
 ## decide | DEC-018 | 2026-04-21
 - 操作者: developer (inline, orchestrator relay)
 - 影响文件: docs/decision-log.md (DEC-018 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.4 表注 + §3.5 新增 + 变更记录); commands/workflow.md (Step 5 text §3.1a 改写 + Step 4b 批量段追加); skills/architect/SKILL.md (text §3.1a 改写); skills/analyst/SKILL.md (text §3.1a 改写); docs/INDEX.md (design-docs 条目追注)

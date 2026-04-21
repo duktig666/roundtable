@@ -71,6 +71,7 @@
 - [parallel-decisions.md](design-docs/parallel-decisions.md) — issue #28 orchestrator decision parallelism（D1=B 中等 scope / D2=A 新 §Step 4b 判定树 / D3=A per-decision 失败 / max_concurrent=3 硬编码 / text mode 多块同 response emit），DEC-016 Accepted
 - [reviewer-write-harness-override.md](design-docs/reviewer-write-harness-override.md) — issue #59 DEC-017 reviewer/tester/dba 落盘契约反转：orchestrator relay 升主路径（3 agent 不 Write 归档 .md；Step 7 从兜底升主路径；sentinel 协议废除；Refines DEC-006 非 Supersede），DEC-017 Accepted
 - [step7-relay-contract-tightening.md](design-docs/step7-relay-contract-tightening.md) — issue #65 DEC-019 Step 7 relay 契约收紧：W1 frontmatter 剥离 + W2 Critical/归档 trigger 白名单 + W3 tester 触发布尔优先级（Refines DEC-017），DEC-019 Accepted
+- [dec016-auto-halt-text-render.md](design-docs/dec016-auto-halt-text-render.md) — issue #61 P3 DEC-016 follow-up：`decision_mode=text` + `auto_mode=true` batch auto-halt 渲染形态命名（render 顺序 audit-first / 转发 1 audit + N blocks / fallback 块 id `batch-<slug>-<n>-q<m>`；Refines DEC-016 §3.3），DEC-020 Accepted
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 

@@ -35,6 +35,25 @@
 
 ---
 
+### DEC-020 DEC-016 auto-halt text-mode render 形态命名（Refines DEC-016 §3.3）
+- **日期**: 2026-04-21
+- **状态**: Accepted（Refines DEC-016 §3.3，非 Supersede）
+- **上下文**: [issue #61](https://github.com/duktig666/roundtable/issues/61) P3 —— Tester S-03（PR #58 `docs/testing/parallel-decisions.md`）identified：`decision_mode=text` + `auto_mode=true` + batch 任一 question 缺 `recommended` 的 auto-halt 路径下，audit 行与 N 个 fallback `<decision-needed>` 块的 render 顺序 / 转发 fan-out / 块 id 格式三点未定义
+- **决定**:
+  1. **Render 顺序 audit-first**（自明采纳）：先 emit audit 行（`🔴 auto-halt batch-<id>: no recommended option at [q_k, ...]`），后 emit N 个 fallback `<decision-needed>` 块；块间沿用 DEC-013 §3.1.1 多块串行语义
+  2. **转发 fan-out 1 audit + N blocks**（自明采纳）：Active channel sticky 下 audit 按 §Step 5b 事件类 e 单条 `markdownv2` 粗体 reply；N 个 `<decision-needed>` 块按 DEC-013 §3.1a（DEC-018 pretty 松弛）逐块独立 pretty markdownv2 reply，保留 `id` / `question` / `option label` 三字段不改写；共 `1 + N` 条 reply
+  3. **Fallback 块 id 格式 `batch-<slug>-<n>-q<m>`**（D3=A 用户授权 auto-pick ★）：保留 batch id 根部（hyphen-suffix 风格），`<m>` 为 batch 内 question 索引；`batch-<slug>-<n>-` 可单 grep 拉齐整组；与现行 batch id `batch-<slug>-<n>` 无歧义前后缀关系
+  4. **`commands/workflow.md` 落点**：§Step 4b Auto_mode 段 append 3 clarification 子句；§Step 5b 事件类 e 表格行扩写 auto-halt case
+  5. **Refines DEC-016 §3.3 非 Supersede**：DEC-016 其他 Accepted 决定（D1=B / D2=A / D3=A 失败处理 / max_concurrent=3）全保留
+  6. **不改**：DEC-013 §3.1a / DEC-018 pretty 松弛 / §Step 5b 事件类 a-d 格式 / 4 agent prompt 本体 / Phase Matrix / critical_modules / target CLAUDE.md
+- **备选**（仅 clarification 3）:
+  - **A 本决定 hyphen-suffix `batch-<slug>-<n>-q<m>`**：★ 推荐；grep 对齐、无转义负担、语义明确
+  - **B slash-path `batch-<slug>-<n>/q<m>`**：可读性高但 `/` 与路径语义冲突、grep 正则须转义
+  - **C 退化 single `<slug>-<n>-q<m>`**：丢 batch 归属、grep 无法区分单问 escalation 与 batch 降级
+- **理由**: (1) clarification 1/2 自明采纳——audit-first 符合因果语序、1+N fan-out 与 §Step 4b 既有批量规则同构；(2) clarification 3 选 A：保 batch id 根部 + grep 友好 + 无特殊字符转义；(3) Refines 非 Supersede 保 DEC-016 append-only 语义；(4) 全部改动 inline 为 workflow.md 规则子句，agent prompt 本体 0 改动
+- **相关文档**: [docs/design-docs/dec016-auto-halt-text-render.md](design-docs/dec016-auto-halt-text-render.md)、DEC-016 §3.3（本 DEC Refines）、DEC-013 §3.1.1 / §3.1a、DEC-018、[issue #61](https://github.com/duktig666/roundtable/issues/61)、PR #58 Tester S-03
+- **影响范围**: `commands/workflow.md` §Step 4b Auto_mode 段（+3 clarification 子句）+ §Step 5b 事件类 e 表格行（扩写 auto-halt case）；`docs/design-docs/dec016-auto-halt-text-render.md`（new）；`docs/decision-log.md`（本条置顶）；`docs/INDEX.md`（design-docs 条目追注）；`docs/log.md`（architect + developer 条目）。**不改**：4 agent prompt / Phase Matrix / critical_modules / DEC-016 其他决定 / DEC-013 / DEC-018。运行时：`decision_mode=text` + `auto_mode=true` + batch 缺 recommended 路径 stdout emit 1 audit + N `<decision-needed id="batch-<slug>-<n>-q<m>">` 块，active channel sticky 下 1+N reply
+
 ### DEC-018 TG `<decision-needed>` 转发松弛（§3.1a 字节等价 → 语义等价 pretty markdownv2；raw YAML 仅终端 stdout）
 - **日期**: 2026-04-21
 - **状态**: Accepted
