@@ -24,6 +24,11 @@
 - 影响文件: commands/workflow.md (§Step 8 YAML 契约 analysis 可选字段注释); commands/bugfix.md (§步骤 2 Tier 表 LOC 脚注 + override 警示 decision_mode 引用; §步骤 4 Postmortem 锚点 1 跨 session 边界说明); docs/design-docs/bugfix-rootcause-layered.md (§7 待确认项 5 条全部勾选)
 - 说明: issue #40 DEC-014 follow-up nits —— W5/S1 workflow.md analysis 可选字段显式化 / S2 Tier LOC 计量口径 / S3 override 警示 decision_mode 渲染路径 / S4 session 边界说明 / S5 §7 闭环项打 ✅；不改 DEC 本体，纯 clarification
 
+## analyze | subagent-coldstart-overhead-20 | 2026-04-21
+- 操作者: analyst (skill, inline)
+- 影响文件: docs/analyze/subagent-coldstart-overhead-20.md (new); docs/INDEX.md (analyze 条目追)
+- 说明: issue #20 P3 调研 —— DEC-005 强制 tester/reviewer/dba subagent 在小任务场景的冷启开销权衡；3 选项客观代价表 + 6 事实层开放问题；analyst 不选型留 architect
+
 ## decide | DEC-018 | 2026-04-21
 - 操作者: developer (inline, orchestrator relay)
 - 影响文件: docs/decision-log.md (DEC-018 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.4 表注 + §3.5 新增 + 变更记录); commands/workflow.md (Step 5 text §3.1a 改写 + Step 4b 批量段追加); skills/architect/SKILL.md (text §3.1a 改写); skills/analyst/SKILL.md (text §3.1a 改写); docs/INDEX.md (design-docs 条目追注)

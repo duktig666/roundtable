@@ -44,6 +44,7 @@
 
 ### analyze
 
+- [subagent-coldstart-overhead-20.md](analyze/subagent-coldstart-overhead-20.md) — issue #20 DEC-005 强制 subagent 小任务冷启开销调研（3 选项代价表；6 事实层开放问题交 architect）
 - [parallel-research.md](analyze/parallel-research.md) — architect 派发 parallel research subagent 能力的对标调研（CrewAI / LangGraph / Claude Code sub-agents，12 事实层开放问题交 architect）
 - [subagent-progress-and-execution-model.md](analyze/subagent-progress-and-execution-model.md) — subagent 进度可见性 + 执行模型选择 5 路径对比（Claude Code/SDK/Monitor + CrewAI/AutoGen/LangGraph；8 事实层开放问题交 architect，解 issue #7）
 - [phase-transition-rhythm.md](analyze/phase-transition-rhythm.md) — issue #10 workflow phase transition 节奏对标研究（git/terraform/apt/kubectl/Make/CrewAI/AutoGen/LangGraph/Claude Code 9 种 CLI/orchestrator UX；6 事实层开放问题交 architect）
