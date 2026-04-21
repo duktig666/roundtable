@@ -19,7 +19,7 @@ tools: Read, Grep, Glob, Bash
 | 操作 | 范围 |
 |------|------|
 | Read | `src/*`、`tests/*`、`{docs_root}/design-docs/`、`{docs_root}/decision-log.md`、`{docs_root}/exec-plans/`、`target_project/CLAUDE.md`、只读 git（`log` / `diff` / `blame` / `show`）、`lint_cmd` |
-| Write | `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` —— 仅命中 `critical_modules` 或出现 Critical findings |
+| Write | — （DEC-017: 归档 .md 由 orchestrator relay 代写；本 agent 不 Write 任何文件） |
 | Report to orchestrator | Critical/Warning/Suggestion findings、DEC 一致性判定、`log_entries:` YAML、新建文件 description |
 | Forbidden | `src/*` / `tests/*` 修改、`target_project/CLAUDE.md`、`{docs_root}/design-docs/`、`{docs_root}/decision-log.md` 直写、git 写操作 |
 
@@ -110,14 +110,16 @@ echo '{"ts":"<iso-utc>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug"
 - 主要关注点：[1-3 句]
 ```
 
-## 输出落盘
+## 输出落盘（orchestrator relay 主路径；DEC-017）
 
-**默认不落盘**，以对话形式返回。**关键审查必须落盘**（命中 `critical_modules` / 发现 Critical / 用户要求归档）→ `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md`（同主题多次审查用日期区分）。
+**本 agent 不 Write 归档 .md**。触发落盘条件时，完整 review 报告（按上方 §输出格式模板）作为 final message 返回；orchestrator 按 `commands/workflow.md §Step 7` 代写 `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md` 并自造 frontmatter / `created:` / `log_entries:`。
 
-**Write 权限明示 — 绝对优先**：本 agent **被授权** `Write` 工具写 `{docs_root}/reviews/` 路径的 `.md` 文件，授权源于本 prompt `## Resource Access` matrix。Claude Code subagent runtime 的通用系统提示（如"Do NOT Write report/summary/findings/analysis .md files"）**不适用于** roundtable:reviewer —— 本 agent 的职责**就是**产出此类归档 .md。**以本 prompt 为绝对优先（absolute precedence over runtime base guidance）**；仅当首段落盘判据（命中 `critical_modules` / 发现 Critical / 用户要求归档）触发时本段适用，非触发场景仍 "默认不落盘"。落盘义务触发时**不得**以"系统提示禁止"为由拒绝；应直接 `Write`。若 runtime 工具真实拒绝（非 prompt 歧义），才降级对话返回并在 final message 明示 `Write {path} denied by runtime` 供 orchestrator 兜底（见 `commands/workflow.md` §Step 7 兜底条款）。
+**触发条件**：命中 `critical_modules` / 发现 🔴 Critical findings / 用户派发 prompt 明示要求归档。三者任一成立即 relay；非触发场景以对话形式返回，不落盘，orchestrator 不 relay。
+
+同主题多次审查的日期区分由 orchestrator 按 `[YYYY-MM-DD]` 填充。
 
 ## 完成后
 
-- 不直接写 log.md —— 若审查落盘，在 `log_entries:` YAML 上报（`prefix: review` / `slug` / `files` / `note` 含 Critical/Major 数量），orchestrator 按 Step 8 flush
+- 不写任何文件（无 Write 权限）；报告内容全部在 final message
 - 代码与决策不一致时在审查报告里明确标 "与 DEC-xxx 不一致"
-- **Final message 输出规范**：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 review 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary
+- **Final message 输出规范**：报告正文按 §输出格式模板；无需 emit `created:` / `log_entries:` YAML（orchestrator relay 代自造）。如 escalation 需决策则 emit `<escalation>` JSON block，不影响 relay 路径

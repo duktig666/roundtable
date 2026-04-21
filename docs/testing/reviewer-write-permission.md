@@ -92,11 +92,11 @@ critical_modules_hit:
 
 | # | 项 | 严重度 | 映射 findings |
 |---|---|---|---|
-| 1 | 可执行性措辞 | 🟡 Warning | F1 |
-| 2 | denial 信号边界 | 🟡 Warning | F3 + F2 |
-| 3 | 兜底 INDEX + log_entries 分工 | 🔴 Critical | F4 |
-| 4 | 与 DEC-002 冲突 | 🟡 Warning | F3 |
-| 5 | 默认不落盘 vs 授权冲突 | 🟡 Warning | F5 |
+| 1 | 可执行性措辞 | ✅ resolved (DEC-017) | F1 |
+| 2 | denial 信号边界 | ✅ resolved (DEC-017) | F3 + F2 |
+| 3 | 兜底 INDEX + log_entries 分工 | ✅ resolved (issue #23 post-fix + DEC-017 主路径化) | F4 |
+| 4 | 与 DEC-002 冲突 | ✅ resolved (DEC-017) | F3 |
+| 5 | 默认不落盘 vs 授权冲突 | ✅ resolved (DEC-017) | F5 |
 | 6 | lint 0 命中 | ✅ | Positive 9 |
 | 7 | critical_modules 命中 → 必落盘 | ✅ | Positive 7 + S3 |
 | 8 | 3 agent 措辞一致性 | 🔵 Suggestion | F6 |
@@ -105,3 +105,10 @@ critical_modules_hit:
 
 - 2026-04-21：初版，issue #23 P2 bug fix 对抗审查，critical_modules 3/3 命中必落盘
 - 2026-04-21 post-fix（orchestrator inline）：F4 Critical + F1/F5 Warning 合并修复 —— Step 7 兜底 contract 补 3 sub-bullet（content 源 / log_entries 归因 / INDEX description fallback）；3 agent prompt "Write 权限明示" 标题改"绝对优先"并 anchor 到判据；F3 sentinel vs escalation 双通道留 follow-up；F5 措辞锚点已加
+- 2026-04-21 post-fix（issue #59 / DEC-017 relay 主路径化）：F1 / F2 / F3 三项 findings 事实消解。反转契约后 reviewer/tester/dba 不再尝试 Write 归档 .md，故：
+  - **F1**（LLM 偏差抗性未验证）：无 Write 尝试即无"runtime base prompt vs agent prompt 冲突"稳定性问题，findings 关闭
+  - **F2**（denial 信号格式未规约）：sentinel 协议废除（`Write {path} denied by runtime` 字符串不再使用），findings 关闭
+  - **F3**（Escalation 通道绕过 / 双通道）：subagent 无 Write failure 事件，无需 sentinel vs escalation 分流，DEC-002 单通道自洽，findings 关闭
+  - **F4**（兜底 contract 缺失）：issue #23 post-fix 时已修；DEC-017 把兜底升主路径后 contract 移至 `commands/workflow.md §Step 7 Orchestrator Relay Write`，承继原 sub-bullet，findings 保持 closed
+  - **F5**（默认不落盘覆盖风险）：subagent 不 Write 即无"积极落盘偏移"风险，findings 关闭
+  - **对抗清单回响表**：F1 / F2 / F3 行改 `✅ resolved (DEC-017)`；F4 保 `✅ resolved (issue #23 post-fix + DEC-017 主路径化)`；F5 改 `✅ resolved (DEC-017)`

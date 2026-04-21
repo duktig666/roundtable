@@ -453,11 +453,20 @@ created:
 
 Fallback：`/roundtable:lint` 周期性审计 orphan。**角色从不自行编辑 `INDEX.md`**。
 
-**Orchestrator 兜底 Write**：若 subagent（reviewer / tester / dba）在**命中 critical_modules 或 Critical findings** 场景下应落盘但 final message 声称 `Write <path> denied by runtime` 或直接返回对话不落盘，orchestrator **必须代写**对应 artifact：
-1. **Content 源**：subagent final message **去除** 工具调用 / 进度行 / `log_entries:` YAML / `<escalation>` block 之外的正文（findings + 判定 + rationale）作为 artifact body；frontmatter 由 orchestrator 补（slug / source / created / reviewer=subagent-type）
-2. **log_entries 归因**：orchestrator 自造 `prefix: review`（或 `test-plan` / `review` for dba）`note` 末尾加 `(orchestrator relay due to subagent Write failure)`；files 填代写路径
-3. **INDEX.md description fallback**：优先用 subagent 在 final message 明示的 one-liner；缺失时 orchestrator 从 body 第一段提取
-4. **不兜底**：**非** critical_modules 且 subagent 判定对话返回即可的正常场景
+**Orchestrator Relay Write（主路径；DEC-017）**：reviewer / tester / dba 不 Write 归档 .md；orchestrator 按触发条件**代写**对应 artifact。
+
+**触发条件**（任一成立即 relay）：
+- reviewer / dba subagent 派发命中 `critical_modules`
+- subagent final message 出现 🔴 Critical finding
+- 用户派发 prompt 明示要求归档
+- tester 中/大任务（critical_modules 命中 或 size=medium/large 且需产出测试计划）
+
+**Relay contract**：
+1. **Content 源**：subagent final message 正文（去除 `<escalation>` block）作为 artifact body；frontmatter 由 orchestrator 补（`slug` / `source` / `created: YYYY-MM-DD` / `reviewer` 或 `tester` 字段）
+2. **Path**：reviewer → `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md`；tester → `{docs_root}/testing/[slug].md`；dba → `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md`
+3. **自造 `created:` YAML**：orchestrator 生成 INDEX.md 条目时使用；description 取报告 `## 总结` / `## 审查结论` 首句，缺失则用 `[slug] review/testing (orchestrator relay)`
+4. **自造 `log_entries:` YAML**：`prefix: review`（或 `test-plan` / `review` for dba）；`操作者: orchestrator (relay for <role>)`；`files: [relay artifact path]`；`note` 末尾加 `(orchestrator relay)`
+5. **不触发**：非 critical_modules 且 subagent 判定对话返回即可的常规场景 → subagent 对话返回，orchestrator 不 relay
 
 ---
 
