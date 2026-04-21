@@ -19,6 +19,11 @@
 - 影响文件: commands/workflow.md (§Step 7 Relay contract bullet 6 新增)
 - 说明: issue #66 P3 enhancement —— DEC-017 §5 Q2 "走常规 error handling" UX 细化：orchestrator relay Write 失败时 fail-fast（无自动重试），final summary 顶部明示 ⚠️ + path + reason，subagent 原文附响应末尾作 fallback，人工救场路径提示；log_entries 追加 fix 审计条目。Append-only refinement under DEC-017 §Step 7 authority，不新增 DEC
 
+## docs | dec014-nits-40 | 2026-04-21
+- 操作者: developer (inline, lane-β)
+- 影响文件: commands/workflow.md (§Step 8 YAML 契约 analysis 可选字段注释); commands/bugfix.md (§步骤 2 Tier 表 LOC 脚注 + override 警示 decision_mode 引用; §步骤 4 Postmortem 锚点 1 跨 session 边界说明); docs/design-docs/bugfix-rootcause-layered.md (§7 待确认项 5 条全部勾选)
+- 说明: issue #40 DEC-014 follow-up nits —— W5/S1 workflow.md analysis 可选字段显式化 / S2 Tier LOC 计量口径 / S3 override 警示 decision_mode 渲染路径 / S4 session 边界说明 / S5 §7 闭环项打 ✅；不改 DEC 本体，纯 clarification
+
 ## decide | DEC-018 | 2026-04-21
 - 操作者: developer (inline, orchestrator relay)
 - 影响文件: docs/decision-log.md (DEC-018 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.4 表注 + §3.5 新增 + 变更记录); commands/workflow.md (Step 5 text §3.1a 改写 + Step 4b 批量段追加); skills/architect/SKILL.md (text §3.1a 改写); skills/analyst/SKILL.md (text §3.1a 改写); docs/INDEX.md (design-docs 条目追注)

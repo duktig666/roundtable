@@ -506,6 +506,7 @@ log_entries:
     slug: [slug]
     files: [docs/path/..., ...]
     note: [一句话]
+    # optional: analysis (仅 fix-rootcause 前缀；多行根因+修复+复现；见 `commands/bugfix.md` 及 `docs/log.md` §条目格式)
 ```
 
 一次 dispatch 可 0~N 条。前缀必在 `{docs_root}/log.md` §前缀规范 表内。

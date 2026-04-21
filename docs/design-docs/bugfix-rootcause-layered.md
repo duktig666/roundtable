@@ -172,11 +172,11 @@ Tier 2 的 developer final message **同时**上报 `fix-rootcause` log_entry（
 
 ## 7. 待确认项
 
-- [ ] design-doc 通过用户审阅
-- [ ] developer 实施（改 bugfix.md / workflow.md / log.md / claude-md-template.md）
-- [ ] tester 覆盖 critical_modules 命中：prompt 本体 + schema 扩展 + `_detect-project-context.md` 不受影响
-- [ ] reviewer 终审（critical_modules 命中必落盘）
-- [ ] 一轮 dogfood bugfix（#37 自身 commit 即 dogfood）
+- [x] design-doc 通过用户审阅
+- [x] developer 实施（改 bugfix.md / workflow.md / log.md / claude-md-template.md）
+- [x] tester 覆盖 critical_modules 命中：prompt 本体 + schema 扩展 + `_detect-project-context.md` 不受影响
+- [x] reviewer 终审（critical_modules 命中必落盘）
+- [x] 一轮 dogfood bugfix（#37 自身 commit 即 dogfood）
 
 ## 8. 变更记录
 
