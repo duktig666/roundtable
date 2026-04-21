@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix | prune-dec-refs | 2026-04-21
+- 操作者: orchestrator (inline bugfix) / tester (subagent) / reviewer (subagent)
+- 影响文件: commands/workflow.md (-11 title labels + inline refs); commands/bugfix.md (-2 title + inline); skills/architect/SKILL.md (-1 title); skills/analyst/SKILL.md (-0 inline); agents/{developer,tester,reviewer,dba,research}.md (-inline issue labels); docs/testing/prune-dec-refs.md (new tester report)
+- 说明: issue #22 P3 runtime prompt DEC-xxx / issue #N 标签精简；parenthesized labels 52→12 (-77%)；issue #N labels 18→0 (-100%)；Phase Matrix Stage 9 cell 保留 (A) 类型信号 (M2 post-fix)；M1 (跨 prompt label 对称) + M3 (DEC-014 进一步瘦身) 列 follow-up；lint 0 命中；DEC-010 north star 尊重 (docs/ 内 DEC 溯源全保留)；_progress-content-policy.md 6 schema anchor 保留；DEC-013 §3.1a 3× 契约 anchor 保留；cross-doc 详见 ref 全保留
+
 ## design | closeout-spec | 2026-04-21
 - 操作者: architect (skill, inline; bugfix-scope)
 - 影响文件: docs/design-docs/closeout-spec.md (new); commands/workflow.md (Step 6.1 A 类 Stage 9 变体 + §Auto-pick 例外); commands/bugfix.md (+1 行 ref); docs/decision-log.md (DEC-006 影响范围 post-fix #26); docs/INDEX.md (append design-docs)

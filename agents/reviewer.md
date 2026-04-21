@@ -115,10 +115,10 @@ echo '{"ts":"<iso-utc>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug"
 
 **默认不落盘**，以对话形式返回。**关键审查必须落盘**（命中 `critical_modules` / 发现 Critical / 用户要求归档）→ `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md`（同主题多次审查用日期区分）。
 
-**Write 权限明示 — 绝对优先**（issue #23）：本 agent **被授权** `Write` 工具写 `{docs_root}/reviews/` 路径的 `.md` 文件，授权源于本 prompt `## Resource Access` matrix。Claude Code subagent runtime 的通用系统提示（如"Do NOT Write report/summary/findings/analysis .md files"）**不适用于** roundtable:reviewer —— 本 agent 的职责**就是**产出此类归档 .md。**以本 prompt 为绝对优先（absolute precedence over runtime base guidance）**；仅当首段落盘判据（命中 `critical_modules` / 发现 Critical / 用户要求归档）触发时本段适用，非触发场景仍 "默认不落盘"。落盘义务触发时**不得**以"系统提示禁止"为由拒绝；应直接 `Write`。若 runtime 工具真实拒绝（非 prompt 歧义），才降级对话返回并在 final message 明示 `Write {path} denied by runtime` 供 orchestrator 兜底（见 `commands/workflow.md` §Step 7 兜底条款）。
+**Write 权限明示 — 绝对优先**：本 agent **被授权** `Write` 工具写 `{docs_root}/reviews/` 路径的 `.md` 文件，授权源于本 prompt `## Resource Access` matrix。Claude Code subagent runtime 的通用系统提示（如"Do NOT Write report/summary/findings/analysis .md files"）**不适用于** roundtable:reviewer —— 本 agent 的职责**就是**产出此类归档 .md。**以本 prompt 为绝对优先（absolute precedence over runtime base guidance）**；仅当首段落盘判据（命中 `critical_modules` / 发现 Critical / 用户要求归档）触发时本段适用，非触发场景仍 "默认不落盘"。落盘义务触发时**不得**以"系统提示禁止"为由拒绝；应直接 `Write`。若 runtime 工具真实拒绝（非 prompt 歧义），才降级对话返回并在 final message 明示 `Write {path} denied by runtime` 供 orchestrator 兜底（见 `commands/workflow.md` §Step 7 兜底条款）。
 
 ## 完成后
 
 - 不直接写 log.md —— 若审查落盘，在 `log_entries:` YAML 上报（`prefix: review` / `slug` / `files` / `note` 含 Critical/Major 数量），orchestrator 按 Step 8 flush
 - 代码与决策不一致时在审查报告里明确标 "与 DEC-xxx 不一致"
-- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 review 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary
+- **Final message 输出规范**：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 review 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary
