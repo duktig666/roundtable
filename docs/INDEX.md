@@ -66,6 +66,7 @@
 - [tg-forwarding-expansion.md](design-docs/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 转发语义扩展到 5 类 orchestrator-emitted 事件（context / producer-pause / role digest / C handoff / auto_mode audit；orchestrator-only 落点；markdownv2 结构化 TG 可读性增强），append-only clarification
 - [phase-end-approval-gate.md](design-docs/phase-end-approval-gate.md) — issue #30 phase-end approval gate 统一协议（A 类 producer-pause 菜单穷举 + Q&A 循环 + architect `go-with-plan` / `go-without-plan: <理由>` 拆分；orchestrator + 2 skill 落点），DEC-006 §A append-only clarification
 - [faq-sink-protocol.md](design-docs/faq-sink-protocol.md) — issue #27 FAQ 沉淀协议（orchestrator 启发式触发 + `{docs_root}/faq.md` 全局落点 + 70% 词重叠去重 + 📚 回复标注；与 slug 级 FAQ 互补）
+- [closeout-spec.md](design-docs/closeout-spec.md) — issue #26 Stage 9 Closeout 用户驱动流程规范（closeout bundle：commit msg + PR body + follow-up issues 3 section；`go-all`/`go-commit`/`skip-*`；memory `feedback_no_auto_*` 硬边界）
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
