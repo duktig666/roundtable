@@ -82,7 +82,7 @@ architect skill (main session)
 - **name**: `research`
 - **description**: 标明"architect-dispatched only, NOT user-triggered"避免 auto-delegation 冲突
 - **tools**: `Read, Grep, Glob, WebFetch, WebSearch`（禁 Bash / Write / Edit / git）
-- **model**: `sonnet`（事实聚合不需要深推理；成本优先）
+- **model**: 继承主会话模型（2026-04-21 更新：原 pin `sonnet` 已移除，改由用户通过 `/model` 或 `settings.json` 统一控制；初衷"事实聚合成本优先"仍成立，用户自行取舍）
 
 ### 3.2 上下文注入约定
 
