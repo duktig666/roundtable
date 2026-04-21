@@ -3,7 +3,7 @@ slug: tg-forwarding-expansion
 source: 原创（issue #48）
 created: 2026-04-21
 status: Draft
-decisions: [DEC-013 §3.1a append-only clarification]
+decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation]
 ---
 
 # DEC-013 §3.1a Active Channel Forwarding 事件范围扩展 设计文档
@@ -153,11 +153,30 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 
 | 事件 | 规则归属 | 触发点 |
 |------|---------|--------|
-| `<decision-needed>` block | DEC-013 §3.1a（现行） | Step 5 Escalation / skill in-phase 决策 |
+| `<decision-needed>` block | DEC-013 §3.1a（DEC-018 松弛为语义等价 pretty markdownv2） | Step 5 Escalation / skill in-phase 决策 |
 | 5 新类（context / producer-pause / role digest / C handoff / auto audit） | 本扩展 | Step 0 / A 类 gate / 角色返回 / C 类 transition / auto_mode §Auto-pick |
 | 普通对话 / FAQ / 调试 echo | **不转发** | —— |
 
 两类规则**并存不冲突**：`<decision-needed>` 独立强制转发；5 新类独立强制转发；普通 text 默认不转发。
+
+### 3.5 §3.1a 字节等价 → 语义等价 松弛（DEC-018，issue #63）
+
+**背景**：原 §3.1a 要求 `<decision-needed>` 转发到 TG 时"字节等价"——与终端 stdout 完全一致的 raw YAML 文本。2026-04-21 dogfood 反馈：TG 上 raw YAML 可读性差；而 orchestrator fuzzy parse 读的是**自身对话历史终端 stdout**，TG 上的 raw 块对 parse 无贡献（仅对称镜像）。
+
+**松弛为"语义等价"**：TG channel 收 pretty 渲染 markdownv2，保留 `id` / `question` / `option label` 三字段不改写（防 LLM 漂移）；raw YAML 仅终端 stdout emit。
+
+**渲染模板**（markdownv2）：
+
+- 粗体 question 标题
+- A / B / C 选项行，`★` 标记 recommended（architect only；analyst 禁用）
+- `rationale` / `tradeoff`（analyst 用 `fact`）缩进 bullet
+- 末尾小字 `id` footer（用户不需看；debug / 人工锚点用）
+
+**收益**：orchestrator response 输出 -50%，TG payload -50%，用户体验显著提升。用户在 TG 回复 "A" / "选 A" 已足够决策锚点，★ + A/B/C label 清晰呈现。
+
+**风险缓解**：用户若习惯回复 option id 字面（`esc-foo-1:A`）——pretty 末尾仍附 id footer 可见；当前实证操作皆 "A" / "选 A" 无冲突。
+
+**并行决策批量形态**：`decision_mode=text` + §Step 4b 批量多块 emit 时，每块独立 pretty reply 转发（不合并单 payload，与 sticky 语义一致）。
 
 ## 4. 影响文件清单
 
@@ -198,6 +217,7 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 ## 6. 变更记录
 
 - 2026-04-21 初版（issue #48，Draft）
+- 2026-04-21 追加 §3.5（issue #63，DEC-018 §3.1a 字节等价松弛为语义等价 pretty markdownv2）
 
 ## 7. 待确认项
 
