@@ -35,6 +35,16 @@
 
 ---
 
+### DEC-017 Amendment (issue #67, 2026-04-21) dba relay prefix 拆分 `review` → `db-review`
+- **日期**: 2026-04-21
+- **状态**: Accepted（Refines DEC-017 D6，非 Supersede）
+- **上下文**: DEC-017 D6 规定 dba relay `log_entries` 沿用 `prefix: review`（与 reviewer 同前缀），实际 grep 习惯下无法 `^review` 区分 reviewer/dba 条目，dba 仅靠 `slug: db-<slug>` 区分可读性差
+- **决定**: dba relay 前缀从 `review` 改为 `db-review`；`docs/log.md §前缀规范` 白名单新增 `db-review` 行；`commands/workflow.md §Step 7` Relay contract bullet 4 同步；DEC-017 D6 文本不回改（append-only）但以本 Amendment 生效
+- **影响范围**: `docs/log.md`（白名单 +1 行 `db-review`）；`commands/workflow.md §Step 7` bullet 4（`review for dba` → `db-review for dba`）；历史 log 条目保持原 prefix 不回溯改写
+- **相关文档**: [issue #67](https://github.com/duktig666/roundtable/issues/67)、DEC-017 D6
+
+---
+
 ### DEC-017 reviewer/tester/dba 落盘契约反转（orchestrator relay 升主路径，subagent 不再尝试 Write 归档 .md）
 - **日期**: 2026-04-21
 - **状态**: Accepted
