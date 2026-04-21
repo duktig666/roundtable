@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | closeout-spec | 2026-04-21
+- 操作者: architect (skill, inline; bugfix-scope)
+- 影响文件: docs/design-docs/closeout-spec.md (new); commands/workflow.md (Step 6.1 A 类 Stage 9 变体 + §Auto-pick 例外); commands/bugfix.md (+1 行 ref); docs/decision-log.md (DEC-006 影响范围 post-fix #26); docs/INDEX.md (append design-docs)
+- 说明: issue #26 P2 enhancement —— Stage 9 Closeout 结构化流程 spec；D1 Conventional Commits `<type>(<scope>): <summary> (#N)` + D2 本批 5 PR 稳定 PR body 模板 + D3 follow-up issues 从 tester/reviewer/dba non-blocking findings 提取草稿 P2/P3 label + D4 `go → bundle → go-all/go-commit/skip-*` 二次驱动；memory `feedback_no_auto_push` / `feedback_no_auto_pr` 硬边界优先于 auto_mode §Auto-pick；不新开 DEC append-only clarification to DEC-006；不改 5 agent / 2 skill prompt / target CLAUDE.md
+
 ## fix-rootcause | dedupe-produce-created | 2026-04-21
 - 操作者: orchestrator (inline bugfix)
 - 影响文件: skills/architect/SKILL.md (+1 行 §完成后); skills/analyst/SKILL.md (+1 行 §完成后); agents/developer.md (+1 行); agents/tester.md (+1 行); agents/reviewer.md (+1 行); agents/dba.md (+1 行); commands/workflow.md (Step 7 +1 行 "单一产出字段原则")
