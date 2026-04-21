@@ -68,7 +68,7 @@ argument-hint: <task description>
 
 > **位置说明**（C1 修复）：本 step 虽按编号紧随 Step 0，但语义上是 **session 生命期常驻规则**，而非"执行一次"的 bootstrap。`{docs_root}` / `target_project` 必须由 Step 0 先填充，本 step 在**首次用户机制提问**到达时才激活；Step 0 完成前的任何提问**延后 sink**（先回答，等 Step 0 完成后再追加）。
 
-用户**直接提问**（非 `<escalation>` / 非 A 类菜单 `问:` / 非 skill 阶段调研）涉及 roundtable 机制时，orchestrator 回答后**自动追加** Q&A 到 `{docs_root}/faq.md`（不存在则创建 minimal header；`<project>` 字面值 = `basename(target_project)`，例如 `/data/rsw/roundtable` → `roundtable`）：
+用户**直接提问**（非 `<escalation>` / 非 A 类菜单 `问:` / 非 skill 阶段调研）涉及 roundtable 机制时，orchestrator 回答后**自动追加** Q&A 到 `{docs_root}/faq.md`（不存在则创建 minimal header；`<project>` 字面值 = `basename(target_project)`，例如 `target_project=/path/to/myapp` → `myapp`）：
 
 ```
 # <project> FAQ

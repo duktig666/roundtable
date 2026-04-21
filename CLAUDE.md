@@ -35,7 +35,7 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 - **lint_cmd**: `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/`（target-project 名 / 外部路径硬编码扫描，应 0 命中。**DEC-00X 引用本就合法**，不再扫 —— 过去误把 DEC-003/004/005 当"未完成 DEC 泄漏"是规则 bug）
 - **test_cmd**: dogfood run —— `/roundtable:workflow` 在 target 项目跑一轮做 E2E 验证（见 `docs/testing/p4-self-consumption.md` 样例）
 - **build_cmd**: N/A
-- **dev_cmd**: `claude --plugin-dir /data/rsw/roundtable`（本地测试 plugin）
+- **dev_cmd**: `claude --plugin-dir <path-to-roundtable-clone>`（本地测试 plugin；将 `<path-to-roundtable-clone>` 替换为本地仓库绝对路径）
 
 ## 条件触发规则
 
