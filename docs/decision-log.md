@@ -35,6 +35,36 @@
 
 ---
 
+### DEC-016 orchestrator decision parallelism（Step 1 size / Step 3.4 dispatch mode / Step 6b developer form 合并为单次 multi-question AskUserQuestion；新增 §Step 4b Decision parallelism judgment）
+- **日期**: 2026-04-21
+- **状态**: Accepted
+- **上下文**: [issue #28](https://github.com/duktig666/roundtable/issues/28) —— `commands/workflow.md` orchestrator 串行决策（Step 1 size → Step 3.4 dispatch mode → Step 6b developer form）带来 3 次用户阻塞。`AskUserQuestion` 工具原生支持 `questions: []` 数组，但现有约定"架构决策不批量"一刀切禁止。串行锁让 #43 batch orchestrator（多 issue 并行编排）前置依赖不闭合。DEC-013 §3.1.1 "多 escalation / 多决策串行 emit" 的 rationale 是 architect 跨决策隐含依赖 + escalation 是 blocking signal cognitive load 高，不等于 orchestrator 顶层无依赖 fuzzy 决策
+- **决定**:
+  1. **D1 scope=B 中等**：允许 orchestrator 合并 2+ 无依赖 fuzzy 决策为单次 multi-question AskUserQuestion；覆盖 Size / Dispatch mode / Developer form 三点；**不改** architect skill 阶段 1 单问（DEC-013 §3.1.1 保留）/ Step 5 escalation serial / DEC-006 B 类 / DEC-006 A 类菜单
+  2. **D2 judgment tree=A**：新增 §Step 4b "Decision parallelism judgment"（置于 Step 4 后、Step 5 前）复用 Step 4 四条件结构；决策语义版 4 条件：(1) INPUT INDEPENDENT (2) OPTION SPACE DISJOINT (3) RESPONSE PARSABLE SEPARATELY (4) NO HIDDEN ORDER LOCK；默认串行，全 4 条件满足**且**同轮待决 ≥2 才升并行
+  3. **D3 failure=A Per-decision**：用户答部分 / 模糊部分 → 已答推进，未答降级单独重问；orchestrator per-question label 匹配；**不回滚已答决策**（与 DEC-006 "不静默替决策" 一致）
+  4. **max_concurrent_decisions=3 硬编码常量**：复用 DEC-003 ≤4 fan-out 心智减 1（人脑 working memory 上限）；非 env / 非 CLAUDE.md 配置（内部策略不抬项目业务规则，对齐 DEC-011/012 边界）
+  5. **auto_mode 交互**：batch 中每 question 独立走 §Auto-pick；全部 recommended → 合并批量 auto-pick 审计（单 ``` 围栏多事件）；任一缺 recommended → 整组 halt（拒部分 auto-pick / 部分 halt 混合）
+  6. **text mode 批量形态**：`decision_mode=text` 下 batch 渲染为**多个 `<decision-needed>` 块**同 orchestrator response 一次 emit，每块独立 id；§3.1a 每块同步 TG reply（非合并单 payload）
+  7. **DEC-013 §3.1.1 保留**：multi-escalation / architect skill 跨决策串行 emit 规则不动（两者有隐含 dependency / blocking cognitive load，本 DEC scope 不覆盖）
+  8. **不改** 5 agent prompt / 2 skill prompt 本体 / 任何 DEC-001~015 Accepted 条款 / Phase Matrix / Step 4 本体 / critical_modules 机械触发 / target CLAUDE.md
+  9. **DEC-003 关系**：architect research fan-out（2-4 research subagent 并行）与本 DEC 正交 —— DEC-003 是 subagent 派发并行（与 Step 4 同层），DEC-016 是用户决策并行（与 Step 5/6 同层）；两者共存
+- **备选**:
+  - **D1-A 窄**（只覆盖 #43 batch pre-dispatch 场景）：评分 36 vs B 39；常态 single-issue 无收益
+  - **D1-C 宽**（Supersede §3.1.1）：评分 28；cognitive load 激增 + Supersede 成本大
+  - **D1-D 不做**：#43 依赖链不解
+  - **D2-B 扩 Step 4 单树**：评分 27；双语义解释复杂
+  - **D2-C 无判定树**：评分 19；易漂移 + critical_modules audit 无据
+  - **D3-B All-or-nothing**：24；白问已答
+  - **D3-C Fail-fast halt**：18；过度保守 + auto_mode 冲突
+  - **max_concurrent_decisions=env / CLAUDE.md**：违反 DEC-011/012 边界
+  - **auto_mode 部分 auto-pick**：audit 难读
+- **理由**: (1) scope=B 胜在零 DEC Supersede + 常态场景可达（量化评分 39）；(2) 新 §Step 4b 语义清晰且为 critical_modules audit 提供形式化依据；(3) Per-decision 失败降级与 DEC-006 "用户驱动 / 不静默" 心智一致；(4) max_concurrent=3 硬编码保守 + 复用既有 fan-out 心智；(5) auto_mode 全或全无避免部分 auto-pick 审计混乱；(6) text mode 多块 emit 保 §3.1a 每块独立字节等价；(7) 不改任何现存 DEC / agent / skill prompt 本体 → 改动面最小
+- **相关文档**: [docs/design-docs/parallel-decisions.md](design-docs/parallel-decisions.md)（完整设计 + 3 决策量化评分 + 4 FAQ）、DEC-013（§3.1.1 多块串行 emit 边界 / Option Schema 沿用）、DEC-006（A/B/C phase gating 守约）、DEC-015（auto_mode §Auto-pick 交互规范）、DEC-003（research fan-out 并行心智减 1 到 3）、DEC-011 / DEC-012（内部策略不抬 CLAUDE.md 边界）、[issue #28](https://github.com/duktig666/roundtable/issues/28)、[issue #43](https://github.com/duktig666/roundtable/issues/43)（下游依赖 batch 编排器）
+- **影响范围**: `commands/workflow.md` 新增 §Step 4b Decision parallelism judgment (~15 行) + Step 1 / 3.4 / 6b 各加一行 "同轮 ≥2 fuzzy 时走 §Step 4b" ref (~3 行) + Step 6.9 §Auto-pick 表补 batch 行 (~2 行) + Step 5b 事件类 e 批量围栏注记 (~1 行)；`docs/design-docs/parallel-decisions.md` + `docs/exec-plans/active/parallel-decisions-plan.md` 新建；`docs/decision-log.md` 本条置顶；`docs/INDEX.md` + `docs/log.md` 追加。**不改** 5 agent prompt / 2 skill prompt 本体 / target CLAUDE.md / DEC-001~015 任何 Accepted 条款 / Phase Matrix / Step 4 本体 / critical_modules 触发机制 / DEC-013 §3.1.1 serial emit 条款 / DEC-006 A/B/C 三分 / Escalation JSON schema。运行时：同轮 ≥2 fuzzy orchestrator 决策合并为单次 AskUserQuestion；auto_mode 下批量 auto-pick 审计合一围栏；#43 batch orchestrator 前置依赖闭合
+
+---
+
 ### DEC-015 workflow auto-execute mode（orchestrator 读 `--auto` / `ROUNDTABLE_AUTO` 批量预授权 A/B 类 gate，自动采纳 recommended option）
 - **日期**: 2026-04-20
 - **状态**: Accepted

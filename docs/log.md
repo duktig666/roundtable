@@ -14,6 +14,31 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | parallel-decisions | 2026-04-21
+- 操作者: architect (skill, inline) + developer (subagent, fg) + tester (subagent, fg) + reviewer (subagent, fg; Write harness-denied → orchestrator relay)
+- 影响文件: docs/design-docs/parallel-decisions.md (new); docs/decision-log.md (DEC-016 置顶); docs/exec-plans/active/parallel-decisions-plan.md (new); commands/workflow.md (+§Step 4b + 3 refs + §6.9 batch 行 + §5b e 批注 + post-fix W-01/W-02/W-05 + R-W-01 overflow 行为); docs/testing/parallel-decisions.md (new tester); docs/reviews/2026-04-21-parallel-decisions.md (new, orchestrator relay); CLAUDE.md critical_modules item 6 文字升级; docs/INDEX.md (4 条目追加)
+- 说明: issue #28 P2 enhancement —— orchestrator 独立决策批量化。D1 scope=B 中等（合并 Size / Dispatch mode / Developer form 三点为 multi-question AskUserQuestion）+ D2 judgment=A 新增 §Step 4b 决策并行判定树（4 条件：INPUT INDEPENDENT / OPTION SPACE DISJOINT / RESPONSE PARSABLE SEPARATELY / NO HIDDEN ORDER LOCK）+ D3 failure=A per-decision 降级重问 + max_concurrent=3 硬编码（复用 DEC-003 fan-out 心智）+ auto_mode 全或全无 batch auto-pick 审计 + text mode 多块同 response emit；不改 5 agent / 2 skill prompt 本体 / DEC-001~015 / Phase Matrix / Step 4 本体 / DEC-013 §3.1.1 serial emit 条款 / DEC-006 A/B/C 三分；tester W-01~W-05 全 inline post-fix（auto_mode runtime cancel 半句 / 跨问聚合回复规则 / §3.4 TG 限流 rationale 方向修正 / CLAUDE.md critical_modules 文字升级 / §3.1.1 vs §3.4 cross-note）；reviewer Approve-with-nits 0 Critical / 2 Warning / 3 Nit，R-W-01 overflow 行为（>3 → 前 3 批量第 4+ 串行）inline fix，R-W-02 ambiguity retry cap follow-up；Step 7 兜底第三次 dogfood（reviewer Write harness-denied，#23 fix 未完全生效 follow-up）
+
+## decide | DEC-016 | 2026-04-21
+- 操作者: architect (skill, inline)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-016 orchestrator decision parallelism Accepted；不 Supersede 任何既存 DEC；scope B 量化评分 39 胜 A=36 / C=28 / D=现状；judgment tree A=新 §Step 4b 评分 34 胜 B=扩 Step 4 27 / C=无判定树 19；failure A 评分 34 胜 B=all-or-nothing 24 / C=fail-fast 18
+
+## exec-plan | parallel-decisions | 2026-04-21
+- 操作者: architect (skill) + developer (subagent)
+- 影响文件: docs/exec-plans/active/parallel-decisions-plan.md
+- 说明: P0 §Step 4b 新增 / P1 3 处 ref / P2 §Auto-pick batch 行 / P3 §5b e 批注；P0/P1 checkbox 全 [x]；P2/P3 无 explicit checkbox 但内容实现
+
+## review | parallel-decisions | 2026-04-21
+- 操作者: reviewer (subagent, fg; critical_modules 命中 → 必落盘；Write harness-denied → orchestrator relay — Step 7 兜底第三次 dogfood)
+- 影响文件: docs/reviews/2026-04-21-parallel-decisions.md (new, orchestrator relay)
+- 说明: issue #28 DEC-016 终审 Approve-with-nits —— 0 Critical / 2 Warning (R-W-01 overflow 行为已 inline / R-W-02 retry cap follow-up) / 3 Nit；DEC-001~015 coherent；自举 dogfood 发现 #23 reviewer Write 绝对优先级 fix 未完全生效
+
+## test-plan | parallel-decisions | 2026-04-21
+- 操作者: tester (subagent, fg)
+- 影响文件: docs/testing/parallel-decisions.md
+- 说明: issue #28 DEC-016 §Step 4b 对抗性测试 —— 0 Critical / 5 Warning W-01~W-05 / 4 Suggestion；14 dogfood 场景；4 条件对 7 决策点分类 100% 与 DEC-016 一致；W-01~W-05 orchestrator inline fix 全闭合
+
 ## fix | prune-dec-refs | 2026-04-21
 - 操作者: orchestrator (inline bugfix) / tester (subagent) / reviewer (subagent)
 - 影响文件: commands/workflow.md (-11 title labels + inline refs); commands/bugfix.md (-2 title + inline); skills/architect/SKILL.md (-1 title); skills/analyst/SKILL.md (-0 inline); agents/{developer,tester,reviewer,dba,research}.md (-inline issue labels); docs/testing/prune-dec-refs.md (new tester report)

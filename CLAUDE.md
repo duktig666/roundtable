@@ -23,7 +23,7 @@ roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analys
 - **Escalation Protocol JSON schema**：格式改错导致 orchestrator 无法解析，subagent 决策 relay 失效
 - **`_detect-project-context` 4 步检测逻辑**：错了整个 workflow 链路起不来，所有 target_project 识别失败
 - **AskUserQuestion Option Schema**：schema 偏差让弹窗选项失去 rationale / tradeoff / recommended，用户难以决策
-- **workflow command Phase Matrix + 并行判定树 + phase gating taxonomy (DEC-006)**：编排状态、并行安全性、phase transition 节奏（producer-pause / approval-gate / verification-chain）的核心
+- **workflow command Phase Matrix + Step 4 Task 并行判定树 + Step 4b 决策并行判定树（DEC-016） + phase gating taxonomy (DEC-006)**：编排状态、Task 派发 / 决策批量化的并行安全性、phase transition 节奏（producer-pause / approval-gate / verification-chain）的核心
 - **Progress event JSON schema (DEC-004)**：所有 subagent 的进度 emit 依赖此 schema；schema 偏差让 orchestrator Monitor / jq 解析失败、主会话失去实时感知
 - **Developer execution-form switching rules (DEC-005)**：切换规则（per-session @声明 / per-project `developer_form_default` / per-dispatch AskUserQuestion）错位会导致 inline/subagent 选择错位，UX 与 context 风险同时受影响
 
