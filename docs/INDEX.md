@@ -69,6 +69,7 @@
 - [closeout-spec.md](design-docs/closeout-spec.md) — issue #26 Stage 9 Closeout 用户驱动流程规范（closeout bundle：commit msg + PR body + follow-up issues 3 section；`go-all`/`go-commit`/`skip-*`；memory `feedback_no_auto_*` 硬边界）
 - [parallel-decisions.md](design-docs/parallel-decisions.md) — issue #28 orchestrator decision parallelism（D1=B 中等 scope / D2=A 新 §Step 4b 判定树 / D3=A per-decision 失败 / max_concurrent=3 硬编码 / text mode 多块同 response emit），DEC-016 Accepted
 - [reviewer-write-harness-override.md](design-docs/reviewer-write-harness-override.md) — issue #59 DEC-017 reviewer/tester/dba 落盘契约反转：orchestrator relay 升主路径（3 agent 不 Write 归档 .md；Step 7 从兜底升主路径；sentinel 协议废除；Refines DEC-006 非 Supersede），DEC-017 Accepted
+- [step7-relay-contract-tightening.md](design-docs/step7-relay-contract-tightening.md) — issue #65 DEC-019 Step 7 relay 契约收紧：W1 frontmatter 剥离 + W2 Critical/归档 trigger 白名单 + W3 tester 触发布尔优先级（Refines DEC-017），DEC-019 Accepted
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -83,6 +84,7 @@
   - [parallel-decisions-plan.md](exec-plans/active/parallel-decisions-plan.md) — issue #28 DEC-016 §Step 4b 决策并行化 P0-P3 实施（§Step 4b 新增 + 3 处 ref + §Auto-pick batch 行 + §5b e 批注；P0/P1 checkbox 已 [x]）
 - completed/
   - [reviewer-write-harness-override-plan.md](exec-plans/completed/reviewer-write-harness-override-plan.md) — issue #59 DEC-017 4-phase 实施（P0 3 agent prompt / P1 workflow.md Step 7 / P2 testing post-fix / P3 E1+E2 dogfood 验证通过 2/2；lint 2/2）
+  - [step7-relay-contract-tightening.md](exec-plans/completed/step7-relay-contract-tightening.md) — issue #65 DEC-019 P0-P3 实施（architect 定稿 → developer Step 7 文本补丁 → decision-log + exec-plan 落盘 → reviewer 自审）
   - [lightweight-review-plan.md](exec-plans/completed/lightweight-review-plan.md) — issue #9 轻量化重构（DEC-009 + DEC-010 Accepted；tree 2708→1672 / -38%；PR #17 merged）
   - [subagent-progress-and-execution-model-plan.md](exec-plans/completed/subagent-progress-and-execution-model-plan.md) — issue #7 + DEC-004/005/008（26 checkbox 全勾；PR #16 merged）
   - [progress-content-policy-plan.md](exec-plans/completed/progress-content-policy-plan.md) — issue #14 DEC-007（P0.1-P0.4 完成；PR #16 merged；归档时补勾 18 checkbox）
@@ -121,6 +123,7 @@
 - [2026-04-21-faq-sink-protocol.md](reviews/2026-04-21-faq-sink-protocol.md) — issue #27 FAQ sink protocol 终审 (Approve-with-caveats；C1 Step 0.2→0.5 位置修复 + W1-W5 inline / S2/S4 inline；W3/S1/S3 follow-up；自举 dogfood Step 7 兜底 ×2)
 - [2026-04-21-parallel-decisions.md](reviews/2026-04-21-parallel-decisions.md) — issue #28 DEC-016 §Step 4b 终审 (Approve-with-nits；0 Critical / 2 Warning R-W-01 R-W-02 / 3 Nit；R-W-01 overflow 行为 inline fix + R-W-02 retry cap follow-up；自举 dogfood Step 7 兜底：reviewer Write 被 harness override → orchestrator relay；#23 fix 未完全生效 follow-up issue)
 - [2026-04-21-reviewer-write-harness-override.md](reviews/2026-04-21-reviewer-write-harness-override.md) — issue #59 DEC-017 终审 Approve（0 Critical / 2 Warning non-blocking / 4 Suggestion；DEC-017 决定 1-8 全落地；sentinel 协议完整删除；Refines DEC-006 纪律保持；E2 dogfood 通过 reviewer Write=0 + orchestrator relay）
+- [2026-04-21-step7-relay-contract-tightening.md](reviews/2026-04-21-step7-relay-contract-tightening.md) — issue #65 DEC-019 Approve（0 Critical / 1 Warning non-blocking / 2 Suggestion；W1/W2/W3 全落地；Refines DEC-017 非 Supersede；diff ≤ 20 行；orchestrator relay 落盘）
 
 ### bugfixes
 

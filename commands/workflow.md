@@ -453,16 +453,16 @@ created:
 
 Fallback：`/roundtable:lint` 周期性审计 orphan。**角色从不自行编辑 `INDEX.md`**。
 
-**Orchestrator Relay Write（主路径；DEC-017）**：reviewer / tester / dba 不 Write 归档 .md；orchestrator 按触发条件**代写**对应 artifact。
+**Orchestrator Relay Write（主路径；DEC-017；触发与 frontmatter 规则收紧 DEC-019）**：reviewer / tester / dba 不 Write 归档 .md；orchestrator 按触发条件**代写**对应 artifact。
 
-**触发条件**（任一成立即 relay）：
+**触发条件**（任一成立即 relay；判定源 = 派发 context 与 subagent final message 字面匹配，**不**采 subagent 自述升级）：
 - reviewer / dba subagent 派发命中 `critical_modules`
-- subagent final message 出现 🔴 Critical finding
-- 用户派发 prompt 明示要求归档
-- tester 中/大任务（critical_modules 命中 或 size=medium/large 且需产出测试计划）
+- subagent final message 出现 **Critical finding**（识别规则：`## Critical` section 非空——至少一条 bullet，排除纯 `无。` / `(无)` / `(空)` 占位 **OR** 正文同段/相邻段出现 emoji `🔴` + 单词 `critical`（大小写不敏感）；纯自然语言散文引用 `critical` 不触发）
+- 用户派发 prompt 明示要求归档（白名单 OR 匹配：zh `归档` / `落盘` / `sink`；en `archive`；匹配源仅限**用户 prompt 正文**，subagent 自述"应归档 / 建议归档 / 本次是关键改动"**不**触发）
+- tester 触发：`critical_modules 命中 OR (size ∈ {medium, large} AND 需产出测试计划)` —— critical_modules 命中时始终 relay（无论 size）；非命中时仅在 medium/large 且有测试计划产出时 relay
 
 **Relay contract**：
-1. **Content 源**：subagent final message 正文（去除 `<escalation>` block）作为 artifact body；frontmatter 由 orchestrator 补（`slug` / `source` / `created: YYYY-MM-DD` / `reviewer` 或 `tester` 字段）
+1. **Content 源**：subagent final message 正文（去除 `<escalation>` block）作为 artifact body；**若正文以 `---\n` 开头且含闭合 `\n---\n` frontmatter block，先剥离该 block 再作 body**（避免双 frontmatter）；frontmatter 由 orchestrator 补并为权威（`slug` / `source` / `created: YYYY-MM-DD` / `reviewer` 或 `tester` 字段）
 2. **Path**：reviewer → `{docs_root}/reviews/[YYYY-MM-DD]-[slug].md`；tester → `{docs_root}/testing/[slug].md`；dba → `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md`
 3. **自造 `created:` YAML**：orchestrator 生成 INDEX.md 条目时使用；description 取报告 `## 总结` / `## 审查结论` 首句，缺失则用 `[slug] review/testing (orchestrator relay)`
 4. **自造 `log_entries:` YAML**：`prefix: review`（或 `test-plan` for tester / `db-review` for dba，issue #67 DEC-017 修订）；`操作者: orchestrator (relay for <role>)`；`files: [relay artifact path]`；`note` 末尾加 `(orchestrator relay)`
