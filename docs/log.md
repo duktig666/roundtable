@@ -337,7 +337,8 @@
 | `design` | architect 产出/更新设计文档 | `design \| roundtable \| 2026-04-17` |
 | `decide` | 新增或变更设计决策 (DEC-xxx) | `decide \| DEC-001 \| 2026-04-17` |
 | `exec-plan` | 产出或完成执行计划 | `exec-plan \| some-slug completed \| 2026-04-17` |
-| `review` | reviewer/dba 完成关键审查（落盘的） | `review \| some-slug \| 2026-04-17` |
+| `review` | reviewer 完成关键审查（落盘的） | `review \| some-slug \| 2026-04-17` |
+| `db-review` | dba 完成关键 DB 审查（落盘的；issue #67 从 `review` 拆分） | `db-review \| some-slug \| 2026-04-21` |
 | `test-plan` | tester 产出测试计划 | `test-plan \| some-slug \| 2026-04-17` |
 | `lint` | 健康检查发现的问题及处理 | `lint \| 3 issues found \| 2026-04-17` |
 | `fix` | 裁决冲突后的修复 | `fix \| DEC-xxx updated \| 2026-04-17` |
