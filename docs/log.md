@@ -14,6 +14,36 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | reviewer-write-harness-override | 2026-04-21
+- 操作者: architect (skill, inline)
+- 影响文件: docs/design-docs/reviewer-write-harness-override.md (new); docs/decision-log.md (DEC-017 置顶)
+- 说明: issue #59 P2 bug —— PR #53 (#23 fix) prompt 层 "绝对优先" 措辞 3/3 失败（#27/#23/#28 dogfood 实证）；方向 C 契约反转：reviewer/tester/dba 不 Write 归档 .md，Step 7 orchestrator 兜底升主路径。Refines DEC-006 非 Supersede（DEC-006 Phase Gating 三分类全保留）；design-doc §4.1 量化评分 C=50 > A=27 / B=27 / D=35
+
+## decide | DEC-017 | 2026-04-21
+- 操作者: architect (skill, inline)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-017 reviewer/tester/dba 落盘契约反转 Accepted；8 条决定（D1 契约反转 / D2 触发条件三条件不变 / D3 Resource Access 调整 / D4 sentinel 协议废除 / D5 Step 7 末段改写 / D6 orchestrator 自造 created+log_entries / D7 Refines DEC-006 非 Supersede / D8 不改 DEC-001~016）；不 Supersede 任何既存 DEC
+
+## exec-plan | reviewer-write-harness-override | 2026-04-21
+- 操作者: architect (skill) + developer (inline) + orchestrator (Step 7 relay)
+- 影响文件: docs/exec-plans/completed/reviewer-write-harness-override-plan.md (new, completed after E1+E2 dogfood pass)
+- 说明: P0 3 agent prompt 契约反转 / P1 workflow.md Step 7 主路径化 / P2 testing/reviewer-write-permission.md F1-F5 close 追加 / P3 lint 2/2 + E1 tester dogfood 通过 + E2 reviewer dogfood 通过；所有 checkbox [x]
+
+## fix | reviewer-write-harness-override | 2026-04-21
+- 操作者: developer (inline)
+- 影响文件: agents/reviewer.md (Write 列 →`—` / §输出落盘整段重写); agents/tester.md (Write 列 保`tests/*` 移除 testing/*.md / §测试计划模板首段重写); agents/dba.md (Write 列 →`—` / §输出落盘整段重写); commands/workflow.md (§Step 7 `兜底 Write` → `Relay Write 主路径` + 触发条件 + 5 sub-bullet); docs/testing/reviewer-write-permission.md (§变更记录追加 DEC-017 post-fix 条目 + 对抗清单回响表 5 行 🟡→✅)
+- 说明: issue #59 方向 C 实施 —— 3 agent prompt Resource Access + §输出落盘重写为 "orchestrator relay 主路径"；sentinel 协议 `Write ... denied by runtime` 整段删除；lint 2/2 通过（硬编码扫描 + 残留措辞扫描 0 命中）
+
+## test-plan | reviewer-write-harness-override | 2026-04-21
+- 操作者: tester (subagent, fg; DEC-017 E1 dogfood — Write=0, orchestrator relay)
+- 影响文件: docs/testing/reviewer-write-harness-override.md (new, orchestrator relay)
+- 说明: DEC-017 relay 主路径首次 dogfood；tester 工具调用 Read/Grep/Bash only，Write=0；final message 完整测试计划 orchestrator 按 Step 7 代写；12 A 类对抗用例 + 3 E2E 场景；findings 0 Critical / 3 Warning (W1 frontmatter 剥离 / W2 触发白名单 / W3 tester 条件歧义) / 3 Suggestion / 5 Positive；critical_modules 4 项命中 (orchestrator relay)
+
+## review | reviewer-write-harness-override | 2026-04-21
+- 操作者: reviewer (subagent, fg; DEC-017 E2 dogfood — Write=0, orchestrator relay)
+- 影响文件: docs/reviews/2026-04-21-reviewer-write-harness-override.md (new, orchestrator relay)
+- 说明: issue #59 DEC-017 终审 Approve；reviewer 工具调用 Read/Grep/Bash only，Write=0；DEC-017 决定 1-8 逐条对照全部落地；sentinel 协议完整删除（本体 0 残留）；Refines DEC-006 非 Supersede 纪律保持；3 agent 对称；0 Critical / 2 Warning (W1 派发模板 absolute path / W2 tester 触发 bullet 排版) non-blocking / 4 Suggestion follow-up；relay 路径 2/2 (tester + reviewer) 通过 (orchestrator relay)
+
 ## design | parallel-decisions | 2026-04-21
 - 操作者: architect (skill, inline) + developer (subagent, fg) + tester (subagent, fg) + reviewer (subagent, fg; Write harness-denied → orchestrator relay)
 - 影响文件: docs/design-docs/parallel-decisions.md (new); docs/decision-log.md (DEC-016 置顶); docs/exec-plans/active/parallel-decisions-plan.md (new); commands/workflow.md (+§Step 4b + 3 refs + §6.9 batch 行 + §5b e 批注 + post-fix W-01/W-02/W-05 + R-W-01 overflow 行为); docs/testing/parallel-decisions.md (new tester); docs/reviews/2026-04-21-parallel-decisions.md (new, orchestrator relay); CLAUDE.md critical_modules item 6 文字升级; docs/INDEX.md (4 条目追加)

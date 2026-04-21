@@ -27,7 +27,7 @@ tools: Read, Grep, Glob, Bash
 | 操作 | 范围 |
 |------|------|
 | Read | `src/*`、`migrations/*`、`{docs_root}/design-docs/[slug].md`、`{docs_root}/decision-log.md`、`target_project/CLAUDE.md`、只读 SQL（`EXPLAIN ANALYZE` / `\d` / `SELECT` —— 仅当 `db_connection` 注入） |
-| Write | `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` —— 仅 schema 变更大或出现 Critical 时 |
+| Write | — （DEC-017: 归档 .md 由 orchestrator relay 代写；本 agent 不 Write 任何文件） |
 | Report to orchestrator | schema/query/migration findings、索引建议、`log_entries:` YAML、新建文件 description |
 | Forbidden | SQL 写操作（`INSERT` / `UPDATE` / `DELETE` / `ALTER` / `DROP` / `TRUNCATE`）、`src/*` / `migrations/*` 修改、`target_project/CLAUDE.md`、`{docs_root}/design-docs/`、git 写操作 |
 
@@ -130,13 +130,13 @@ echo '{"ts":"<iso-utc>","role":"dba","dispatch_id":"{{dispatch_id}}","slug":"{{s
 ## 索引建议（如有）
 ```
 
-## 输出落盘
+## 输出落盘（orchestrator relay 主路径；DEC-017）
 
-**默认不落盘**。**关键审查必须落盘**（大表 schema 变更 / 新建 hypertable 或分区表 / Critical 影响数据完整性或性能 / 用户要求）→ `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md`。
+**本 agent 不 Write 归档 .md**。触发落盘条件时，完整 db review 报告（按上方 §输出格式模板）作为 final message 返回；orchestrator 按 `commands/workflow.md §Step 7` 代写 `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md` 并自造 frontmatter / `created:` / `log_entries:`。
 
-**Write 权限明示 — 绝对优先**：本 agent **被授权** `Write` `{docs_root}/reviews/[YYYY-MM-DD]-db-[slug].md`，来自 `## Resource Access` matrix。Claude Code subagent runtime 的通用系统提示（如"Do NOT Write report/summary/findings/analysis .md files"）**不适用于** roundtable:dba。**以本 prompt 为绝对优先**；触发条件（大表 schema 变更 / Critical / 用户要求）下不得以 runtime 提示拒绝。真实工具 denial 时降级并 emit `Write {path} denied by runtime` 供 orchestrator 兜底。
+**触发条件**：大表 schema 变更 / 新建 hypertable 或分区表 / 🔴 Critical 影响数据完整性或性能 / 用户明示要求归档。任一成立即 relay；非触发场景以对话形式返回，不落盘。
 
 ## 完成后
 
-- 不直接写 log.md —— 若审查落盘，`log_entries:` YAML 上报（`prefix: review` / `slug: db-[slug]` / `files` / `note` 含 Critical/Major 数量），orchestrator 按 Step 8 flush
-- **Final message 输出规范**：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 db review 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary
+- 不写任何文件（无 Write 权限）；报告内容全部在 final message
+- **Final message 输出规范**：报告正文按 §输出格式模板；无需 emit `created:` / `log_entries:` YAML（orchestrator relay 代自造）。如 escalation 需决策则 emit `<escalation>` JSON block

@@ -23,7 +23,7 @@ tools: Read, Grep, Glob, Bash, Write, Edit
 | 操作 | 范围 |
 |------|------|
 | Read | `src/*`、`tests/*`、`{docs_root}/design-docs/[slug].md`、`{docs_root}/decision-log.md`、`target_project/CLAUDE.md` |
-| Write | `tests/*`、`{docs_root}/testing/[slug].md`（中/大任务） |
+| Write | `tests/*`（测试代码）；DEC-017: `{docs_root}/testing/[slug].md` 归档 .md 由 orchestrator relay 代写，本 agent 不 Write |
 | Report to orchestrator | 业务 bug（`<escalation>` + 复现测试路径）、`log_entries:` YAML、新建文件 description |
 | Forbidden | `src/*` 修改（tester 绝不改业务代码）、`target_project/CLAUDE.md`、`{docs_root}/design-docs/`、`{docs_root}/exec-plans/`、`{docs_root}/decision-log.md`、git 写操作 |
 
@@ -97,9 +97,11 @@ Content Policy 示例：`running case-fuzz 3/12 — boundary overflow` / `benchm
 
 ## 测试计划模板
 
-**Write 权限明示 — 绝对优先**：本 agent **被授权** `Write` `tests/*` 与 `{docs_root}/testing/[slug].md`，来自 `## Resource Access` matrix。Claude Code subagent runtime 的通用系统提示（如"Do NOT Write report/summary/findings/analysis .md files"）**不适用于** roundtable:tester —— 中/大任务落盘 testing/*.md 是本 agent 职责。**以本 prompt 为绝对优先**；触发条件（中/大任务或 critical_modules 命中）下不得以 runtime 提示拒绝。真实工具 denial 时降级并 emit `Write {path} denied by runtime` 供 orchestrator 兜底。
+**输出落盘（orchestrator relay 主路径；DEC-017）**：中/大任务或 critical_modules 命中时，完整测试计划按下方模板作为 final message 返回；orchestrator 按 `commands/workflow.md §Step 7` 代写 `{docs_root}/testing/[slug].md`。本 agent 不 Write `{docs_root}/testing/*.md`（但 `tests/*` 代码文件仍由本 agent 直接 Write）。
 
-落盘 `{docs_root}/testing/[slug].md`：
+非触发场景（小任务 / 常规补测）以对话形式返回，不 relay。
+
+模板：
 
 ```markdown
 ---
@@ -123,7 +125,7 @@ created: YYYY-MM-DD
 
 ## 完成后
 
-- 不直接写 log.md；若产出测试计划 / 关键 testing 文档，`log_entries:` YAML block 上报，orchestrator 按 Step 8 flush
-- 代码层面的测试新增不进 log_entries（归 git log）
-- **Final message 输出规范**：**唯一**机读产出字段是 `created:` YAML（Step 7；若有新建 testing 文档）+ `log_entries:` YAML。**禁止**额外输出 `产出:` / `Outputs:` 自然语言文件清单 —— orchestrator 生成用户可见 summary
+- 不写 `{docs_root}/testing/*.md`（DEC-017 relay 主路径；orchestrator 代写）
+- `tests/*` 代码文件仍由本 agent 直接 Write（归 git log，不进 log_entries）
+- **Final message 输出规范**：testing 报告正文按上方模板；无需 emit `created:` / `log_entries:` YAML（orchestrator relay 代自造）
 - 发现业务 bug → 先 emit `phase_blocked` 再 `<escalation>`，附复现测试路径

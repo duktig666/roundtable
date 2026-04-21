@@ -35,6 +35,29 @@
 
 ---
 
+### DEC-017 reviewer/tester/dba 落盘契约反转（orchestrator relay 升主路径，subagent 不再尝试 Write 归档 .md）
+- **日期**: 2026-04-21
+- **状态**: Accepted
+- **上下文**: [issue #59](https://github.com/duktig666/roundtable/issues/59) —— PR #53 (#23 fix) 在 reviewer/tester/dba 三 agent prompt §输出落盘段加"Write 权限明示 — 绝对优先"措辞，期望压过 Claude Code subagent runtime 通用 system prompt（`Do NOT Write report/summary/findings/analysis .md files`）。实测 3 次失败：#27 FAQ sink / #23 fix 自审 / #28 DEC-016 dogfood，最近一次 reviewer final message 明示 "harness-level override ... This is explicit and overrides"。prompt-layer 加强措辞方向已证伪；Step 7 兜底路径 3/3 工作
+- **决定**:
+  1. **契约反转**：reviewer/tester/dba 3 subagent **不再尝试 Write** `{docs_root}/reviews/` / `{docs_root}/testing/` 归档 .md；完整报告（`## Critical / Warning / Suggestion / 总结`）作为 final message 返回；Step 7 orchestrator relay 从"兜底"升"主路径"
+  2. **触发条件不变**：critical_modules 命中 OR Critical finding OR 用户要求归档 → orchestrator relay 代写；其他场景仍对话返回
+  3. **Resource Access 调整**：移除 reviewer/dba 的 Write 列；tester 的 Write 列保留 `tests/*` 代码路径，移除 `{docs_root}/testing/[slug].md`
+  4. **sentinel 协议废除**：`Write {path} denied by runtime` 字符串整段删除；subagent 不 Write 即无 denial 事件
+  5. **Step 7 末段改写**：`Orchestrator 兜底 Write` → `Orchestrator Relay Write`，触发条件从"subagent 声称 denied"改为上述 3 条件；4 sub-bullet 保持精简
+  6. **orchestrator 自造产出字段**：`created:` YAML 由 orchestrator 填（path + description = 报告 `## 总结` 首句）；`log_entries:` YAML 由 orchestrator 填（`prefix: review` / `test-plan` / `review`，`note` 末尾 `(orchestrator relay)`）
+  7. **Refines DEC-006 非 Supersede**：DEC-006 §4 "critical_modules 机械触发归 C" / §5 "reviewer 完成归 C" 都只规定 phase gating 类别，不规定"subagent 必须自己 Write"。本 DEC 是实现契约细化；DEC-006 全文保持 Accepted
+  8. **不改**：critical_modules 触发机制 / Phase Matrix / Write artifact 内容模板（`## Critical/Warning/Suggestion/总结`）/ architect/analyst/developer Write 路径（实测正常）/ DEC-001~016 任何 Accepted 条款
+- **备选**:
+  - **A 继续加强 prompt 措辞**：已 3/3 失败；评分 27 vs C 50
+  - **B Harness frontmatter `permissionMode: write-allowed`**：未验证 Claude Code agent frontmatter 是否支持；即便支持需等待 plugin spec 演进；评分 27
+  - **D Status quo**：评分 35；文档与实现不符的审计债长期存在
+- **理由**: (1) C 的实际可行性 10/10（Step 7 兜底已 3/3 工作），直接主路径化等于把 edge case 收编为 happy path；(2) 整体复杂度**下降**（删 denial sentinel / 移除失效的"绝对优先"措辞）；(3) 审计可追溯最强（log_entries 统一 `(orchestrator relay)` 注）；(4) 非 Supersede DEC-006 保 decision-log append-only；(5) 不触碰 architect/analyst/developer 的 Write 路径（实测正常，本 DEC scope 严格限 reviewer/tester/dba 归档 .md）
+- **相关文档**: [docs/design-docs/reviewer-write-harness-override.md](design-docs/reviewer-write-harness-override.md)、DEC-006（phase gating 守约，本 DEC Refines 非 Supersede）、DEC-002（Escalation Protocol，sentinel 协议废除后不再需要 regex 旁路）、[docs/testing/reviewer-write-permission.md](testing/reviewer-write-permission.md)（issue #23 fix testing；F1/F2/F3 findings 本 DEC 落地后事实消解）
+- **影响范围**: `agents/reviewer.md` §Resource Access Write 列 + §输出落盘整段（critical_modules 命中，需 tester 必跑）；`agents/tester.md` §Resource Access Write 列（保 `tests/*`） + §输出落盘整段；`agents/dba.md` §Resource Access Write 列 + §输出落盘整段；`commands/workflow.md` §Step 7 末段标题 + 触发条件 + 4 sub-bullet 重组；`docs/decision-log.md` 本条置顶；`docs/design-docs/reviewer-write-harness-override.md` 新建；`docs/testing/reviewer-write-permission.md` 追加 §post-fix close F1/F2/F3；`docs/INDEX.md` + `docs/log.md` 追加。**不改**：DEC-001~016 / Phase Matrix / critical_modules / Write 内容模板 / architect/analyst/developer Write 路径。运行时：critical_modules 命中 reviewer/tester/dba 派发 → subagent 不 Write + orchestrator relay 代写；去除 denial sentinel 失败模式
+
+---
+
 ### DEC-016 orchestrator decision parallelism（Step 1 size / Step 3.4 dispatch mode / Step 6b developer form 合并为单次 multi-question AskUserQuestion；新增 §Step 4b Decision parallelism judgment）
 - **日期**: 2026-04-21
 - **状态**: Accepted
