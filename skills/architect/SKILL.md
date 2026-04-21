@@ -70,7 +70,7 @@ description: Architect role for system design, interface definition, technology 
 用户选 `go-with-plan` → 11. 写 exec-plan → 进入 Stage 4。
 用户选 `go-without-plan: <理由>` → orchestrator 把理由落盘到 `{docs_root}/log.md` 条目（prefix `decide`；**不**回写 architect 已落盘的 design-doc，避免越 architect Resource Access Write 边界）→ 进入 Stage 4。
 
-**禁止**：architect 自行判断跳过 exec-plan 而不在菜单显示。任何豁免必须 user-driven + 落盘说理（DEC-006 §A 菜单穷举原则 / issue #30）。
+**禁止**：architect 自行判断跳过 exec-plan 而不在菜单显示。任何豁免必须 user-driven + 落盘说理（DEC-006 §A 菜单穷举原则）。
 
 12. exec-plan（或豁免理由）产出并入同一轮 `log_entries:` YAML（有 plan 时 prefix `exec-plan`；豁免时 prefix `decide`）
 
@@ -219,10 +219,10 @@ status: Active
 
 - 新决策 → 追加 `{docs_root}/decision-log.md`（直写；置顶 / 最新在前；DEC 是 architect 权威源；详见下面 "decision-log 条目顺序约定"）
 - 不直接写 log.md —— `log_entries:` YAML（`prefix: analyze | design | decide | exec-plan`）上报；同轮多文档合并为一条 entry；orchestrator 按 Step 8 flush
-- **Final message 输出规范**（issue #29）：**唯一**机读产出字段是 `created:` YAML（Step 7 契约）+ `log_entries:` YAML（Step 8 契约；`log_entries.files[]` 与 `created[].path` 一致）。**禁止**在 final message 额外输出 `产出:` / `Outputs:` / 任何自然语言版文件清单 —— orchestrator 会从 `created:` 路径 + `description:` 生成用户可见的 A 类 producer-pause 3 行 summary；skill 本层自带 summary 会与 orchestrator 生成重复。
+- **Final message 输出规范**：**唯一**机读产出字段是 `created:` YAML（Step 7 契约）+ `log_entries:` YAML（Step 8 契约；`log_entries.files[]` 与 `created[].path` 一致）。**禁止**在 final message 额外输出 `产出:` / `Outputs:` / 任何自然语言版文件清单 —— orchestrator 会从 `created:` 路径 + `description:` 生成用户可见的 A 类 producer-pause 3 行 summary；skill 本层自带 summary 会与 orchestrator 生成重复。
 - 冲突时列 diff 等用户裁决，绝不默默覆盖
 
-### decision-log 条目顺序约定（DEC-011）
+### decision-log 条目顺序约定
 
 - **位置**：新 DEC 置顶（最新在前）。锚点 = 第一个 `### DEC-` 行前（含 `\n---\n\n` 分隔）；若仅 Minimal header 无 DEC，插入到 `---` 之后
 - **初始化**：文件不存在或为空时先写 Minimal header：
