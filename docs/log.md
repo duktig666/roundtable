@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## decide | DEC-018 | 2026-04-21
+- 操作者: developer (inline, orchestrator relay)
+- 影响文件: docs/decision-log.md (DEC-018 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.4 表注 + §3.5 新增 + 变更记录); commands/workflow.md (Step 5 text §3.1a 改写 + Step 4b 批量段追加); skills/architect/SKILL.md (text §3.1a 改写); skills/analyst/SKILL.md (text §3.1a 改写); docs/INDEX.md (design-docs 条目追注)
+- 说明: issue #63 方案 X —— DEC-013 §3.1a `<decision-needed>` 转发从"字节等价" raw YAML 松弛为"语义等价" pretty markdownv2（保 `id` / `question` / `option label` 三字段不改写）；终端 stdout 保留原 YAML 供 orchestrator fuzzy parse；TG/remote channel 只收人类可读渲染。Refines DEC-013 §3.1a 非 Supersede；sticky 语义、触发条件、§Step 5b 5 类事件全保留；orchestrator response -50% / TG payload -50% / UX 显著提升
+
 ## design | reviewer-write-harness-override | 2026-04-21
 - 操作者: architect (skill, inline)
 - 影响文件: docs/design-docs/reviewer-write-harness-override.md (new); docs/decision-log.md (DEC-017 置顶)

@@ -35,6 +35,28 @@
 
 ---
 
+### DEC-018 TG `<decision-needed>` 转发松弛（§3.1a 字节等价 → 语义等价 pretty markdownv2；raw YAML 仅终端 stdout）
+- **日期**: 2026-04-21
+- **状态**: Accepted
+- **上下文**: [issue #63](https://github.com/duktig666/roundtable/issues/63) —— DEC-013 §3.1a（issue #38 post-fix）要求 `<decision-needed>` 转发 TG 为"字节等价" raw YAML，与人类可读性耦合。#58 dogfood session 用户反馈 TG 上 YAML 块可读性差。关键洞察：orchestrator fuzzy parse 读取的是**自身对话历史终端 stdout**，TG 上的 raw 块对 parse 无贡献——仅对称镜像；去掉后 orchestrator response 输出 -50% / TG payload -50% / 用户体验显著提升。当前实证用户回复均 "A" / "选 A"，★ + A/B/C label 已足够决策锚点
+- **决定**:
+  1. **§3.1a 措辞松弛**：`<decision-needed>` 转发从"字节等价（bytes-equivalent）"改为"语义等价（semantic-equivalent）"——保留 `id` / `question` / `option label` 三字段不改写（防 LLM 漂移）
+  2. **TG/remote channel 仅收 pretty 渲染**：markdownv2 结构化——粗体 question 标题 / A-B-C option 行含 `★` 推荐标识（architect only，analyst 禁用）/ `rationale` (`fact`) / `tradeoff` 缩进 bullet / 末尾小字 id footer（debug / 人工锚点用）
+  3. **终端 stdout 零改**：保留现行 `<decision-needed id="esc-<slug>-<n>">` YAML 块——orchestrator 由此 fuzzy parse + 日志回放；TG 不再同步 raw YAML
+  4. **并行决策批量**（§Step 4b `decision_mode=text` 多块 emit）：每块独立 pretty reply 转发；不合并单 payload（与 sticky 语义一致）
+  5. **三处 prompt 本体同步更新**：`commands/workflow.md` Step 5 text 分支 §3.1a 段、`skills/architect/SKILL.md` text 段、`skills/analyst/SKILL.md` text 段；Step 4b 批量文字 mode 同步
+  6. **design-doc `docs/design-docs/tg-forwarding-expansion.md` §3.5 追加松弛描述**；frontmatter `decisions:` 追加 DEC-018
+  7. **Refines DEC-013 §3.1a 非 Supersede**：DEC-013 决定 8 "展现与接收解耦"边界、sticky 语义、触发条件全保留；仅"字节等价"这一措辞收窄为"语义等价 pretty markdownv2"
+  8. **不改**：DEC-013 任何其他 Accepted 决定 / sticky channel 语义 / §Step 5b Phase & audit forwarding 5 类事件 / 4 agent prompt / Phase Matrix / critical_modules 触发机制 / target CLAUDE.md
+  9. **Lint guard**（YAGNI fallback）：本 DEC 不强制引入新 lint 工具；pretty 渲染中 option label 与 id 字段由 orchestrator/skill prompt 文字约束"保留不改写"兜底；若后续 dogfood 发现漂移再补独立 lint
+- **备选**:
+  - **A 现状（保 raw YAML 转发）**：TG 阅读体验持续差；用户反馈已实证
+  - **B 双发（raw + pretty 两条 reply）**：payload +100%、TG 限流风险、信息冗余；拒绝
+  - **C 纯 pretty + 强 lint（option label ≡ YAML 字面）**：lint 工具 scope 蔓延，超出 issue #63 本轮范围；留待后续按需开 issue
+- **理由**: (1) orchestrator fuzzy parse 依赖**自身终端 stdout**，TG raw 块对 parse 无贡献（关键事实）；(2) 用户体验断层实证（message #58 dogfood）；(3) payload / output 双 -50% 低成本高收益；(4) Refines 非 Supersede 保 DEC-013 append-only 语义；(5) 末尾 id footer 兜底 debug 锚点用例
+- **相关文档**: [docs/design-docs/tg-forwarding-expansion.md §3.5](design-docs/tg-forwarding-expansion.md)、DEC-013 §3.1a（本 DEC Refines）、DEC-016（§Step 4b 批量决策 text mode 转发同步松弛）、memory `feedback_tg_decision_needed_codeblock` / `feedback_tg_forwarding_format`、[issue #63](https://github.com/duktig666/roundtable/issues/63)
+- **影响范围**: `commands/workflow.md` Step 5 text 分支 §3.1a 段（~1 行改写）+ §Step 4b text mode 批量段（追加 1 行转发注记）；`skills/architect/SKILL.md` text Active channel forwarding 段（~1 行改写）；`skills/analyst/SKILL.md` text Active channel forwarding 段（~1 行改写）；`docs/design-docs/tg-forwarding-expansion.md` frontmatter + §3.4 表格注 + 新 §3.5 + 变更记录；`docs/decision-log.md` 本条置顶；`docs/INDEX.md` + `docs/log.md` 追加。**不改**：DEC-013 任何其他 Accepted 决定 / sticky 语义 / §Step 5b 5 类事件 / 4 agent prompt / Phase Matrix / critical_modules / target CLAUDE.md。运行时：TG channel emit `<decision-needed>` 时只收 pretty markdownv2；终端 stdout 仍 emit raw YAML 供 orchestrator parse
+
 ### DEC-017 Amendment (issue #67, 2026-04-21) dba relay prefix 拆分 `review` → `db-review`
 - **日期**: 2026-04-21
 - **状态**: Accepted（Refines DEC-017 D6，非 Supersede）
