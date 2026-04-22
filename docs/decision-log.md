@@ -9,13 +9,13 @@
 ```markdown
 ### DEC-[编号] [标题]
 - **日期**: YYYY-MM-DD
-- **状态**: Proposed | Accepted | Superseded by DEC-xxx | Rejected
+- **状态**: 见下方「状态说明」（仅枚举字面值，≤60 字符；附加说明放正文）
 - **上下文**: 为什么需要做这个决策
 - **决定**: 最终选择
 - **备选**: 考虑过但未采用的方案
 - **理由**: 为什么这么选（关键权衡）
 - **相关文档**: design-docs/xxx.md 等
-- **影响范围**: 哪些部分受影响
+- **影响范围**: 哪些部分受影响（≤10 行硬约束；超出移到 `design-docs/[slug].md ## 影响文件清单`）
 ```
 
 ## 状态说明
@@ -23,15 +23,147 @@
 | 状态 | 含义 |
 |------|------|
 | Proposed | 已提出，待确认 |
+| Provisional | 已落盘但处于冷却窗（DEC-025）：≥7 日未被修订 OR 首次 dogfood run 通过后转 Accepted；期内允许直接修订正文 |
 | Accepted | 已确认采纳，正在执行或已落地 |
-| Superseded by DEC-xxx | 被新决策取代（保留原文不删，标注取代者） |
+| Superseded by DEC-xxx | 被新决策完全或部分取代（保留原文不删；部分取代时附"决定 N"定位） |
+| Refined by DEC-xxx | 被新决策细化但主决定不变（父 DEC 状态行追加引用，不降级 Accepted） |
 | Rejected | 讨论后否决 |
+
+状态行硬约束：仅使用上述 6 种字面值 + 可选 `(决定 N)` / `(§X.Y)` 定位标注；**不在状态行内嵌长段中文叙述**，附加上下文放正文。`Provisional` 状态由 DEC-025 引入；转正路径由 `commands/lint.md` §6.1 告警辅助判定。
 
 ## 铁律
 
 1. **不删除旧条目**：被取代的条目标记为 Superseded，不删除
 2. **冲突报 diff**：新决策与旧决策冲突时，必须在新条目中引用旧条目编号
 3. **编号递增**：DEC 编号只增不减，不复用
+4. **clarification 不开新 DEC**（自 2026-04-22 起）：落盘后发现的 tester/reviewer findings / 文本补丁 / 边角场景 id 格式等细化 → **inline append 父 DEC 末尾**并注日期（形如 `**post-fix YYYY-MM-DD（issue #N）**：...`），不新开 DEC 也不另立 Amendment 小节。仅当改动引入新 tradeoff / 新备选评估 / 跨 DEC 语义重构时才开新 DEC
+5. **影响范围 ≤10 行**（自 DEC-009 决定 10 立，本纪律不回溯 DEC-013~020）：超出移到关联 design-doc；运行时行为变化与"不改"清单例外项放正文末段即可
+6. **默认不改清单**（自 2026-04-22 起）：以下为 roundtable 架构稳定边界，新 DEC 默认不改，**仅在破例时显式声明**「改 X」，无需每条重复"不改"声明：
+   - DEC-001 D1-D9（plugin 分发 / 双形态 / 零 userConfig / scope=user / 目标项目识别）
+   - 5 agent prompt 本体（developer / tester / reviewer / dba / research）
+   - 2 skill prompt 本体（architect / analyst）
+   - `commands/workflow.md` Phase Matrix / Step 4 并行判定树 / Step 4b 决策并行判定树 / Step 5b 事件类 a-d 格式
+   - critical_modules 机械触发机制
+   - target CLAUDE.md 业务规则边界（对齐 DEC-011 / DEC-012：dispatch mode / decision mode / form default 等内部策略不抬 CLAUDE.md）
+   - DEC-002 Escalation JSON schema / DEC-004 Progress event schema / DEC-006 Phase Matrix A/B/C 三分
+   
+   新 DEC 影响范围段若未提及上述项，默认视为"不改"
+7. **归档占位**（DEC-025，**本轮立规不执行**）：当某 DEC 同时满足以下 4 触发条件时，进入归档候选：
+   a. 状态为 `Superseded by DEC-xxx` 或 `Rejected`
+   b. Superseded 状态已持续 ≥ **90 天**
+   c. 后继 DEC 已 `Accepted` 且 ≥ **30 天** 无新 `Refined by` / `Superseded by`
+   d. 无其他 `Accepted` DEC 在"相关文档"段引用本条作为**主依据**
+
+   **归档位置**：`docs/archive/decision-log-YYYY-QN.md`（按季度分文件，永不动）；主文件保留 ≤5 行 stub：
+
+   ```markdown
+   ### DEC-NNN [标题]
+   - **状态**: Superseded by DEC-MMM（决定 N）
+   - **归档**: [archive/decision-log-YYYY-QN.md#dec-nnn](archive/decision-log-YYYY-QN.md#dec-nnn)
+   ```
+
+   **精简纪律**：仅允许 a) 归档 stub 化，b) 同一父 DEC 多段 post-fix 合并（保时间戳前缀）。**禁改** Accepted 正文 / 删备选段 / 压理由段（revisionist history）。
+
+   **本轮不执行**：2026-04-22 时 20 条已 Accepted / Refined / 仅 DEC-009 部分 Superseded 但 < 90 天，无可归档对象。`commands/lint.md` §6.1 归档候选告警触发时再季度执行。
+
+## 开立门槛（DEC-025）
+
+新 DEC 开立前自问：**是否属 5 类必开**（正例）且**不踩 Red Flags**（负例）？若否，走对应其他路径。
+
+### 5 类必开（正例）
+
+1. **跨模块接口 / 协议**（schema / JSON 通道 / IPC / 新 prompt 契约字段）
+2. **改变 DEC-001 D1-D9 任一条**（plugin 分发 / 双形态 / 零 userConfig / scope / 目标项目识别）
+3. **引入新依赖**（外部库 / Claude Code 新 API / plugin 新 skill / 新 subagent 角色）
+4. **推翻或细化已有 Accepted DEC 的决定条款**（走 `Superseded by` / `Refined by`）
+5. **技术选型 / 数据模型**的方向性选择（存储 / 并发模型 / 一致性取向）
+
+### Red Flags（负例反模式）
+
+新 DEC 开立前必须自检以下反模式，**命中任一即停手**，走其他路径：
+
+| 反模式 | 实证或解释 | 正确落点 |
+|---|---|---|
+| "这看起来很重要所以该开 DEC" | importance ≠ architectural significance；重要的 UX 偏好仍是 UX | feedback memory / settings |
+| "影响了 3 个文件所以开" | touch file 数不是门槛（lint 扫 ≤10 行硬约束已涵盖规模判定） | commit message |
+| "之前同类都开了所以我也开" | 历史路径依赖不是正当性来源（DEC-017 Amendment / DEC-018 / DEC-019 / DEC-020 即此类 collapse 实证） | 按 5 类必开正例重判 |
+| "不开 DEC 不好记录下来" | 记录需求可由 commit message / inline post-fix 父 DEC / FAQ 段满足 | commit message 或铁律 4 inline |
+| "想让未来知道有过这个讨论" | 讨论追溯价值不需要 DEC 条目承载 | design-doc `## FAQ` / analyze/[slug].md |
+| "tester/reviewer findings 说要开" | 铁律 4 明确 findings 走 inline post-fix 父 DEC | 铁律 4 inline append |
+
+### 4 类不应开 DEC 的正确落点路由表
+
+| 类型 | 正确落点 |
+|---|---|
+| 纯实现细节（命名 / 格式 / 字符串常量） | 在 design-doc 或 prompt 文件里直接定 |
+| 文本补丁 / bug 修补（如 DEC-017 Amendment 字符串重命名） | commit message + 相关 design-doc 更新 |
+| UX 偏好调整（如 DEC-018 pretty 渲染） | feedback memory 或 settings |
+| post-fix clarification（父 DEC 落盘后的细化） | **走铁律 4**（inline append 父 DEC，不重述） |
+
+**不回溯**：DEC-001~020 不因本门槛被降级或改写。
+
+---
+
+### DEC-026 decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段
+- **日期**: 2026-04-22
+- **状态**: Provisional
+- **上下文**: [issue #84](https://github.com/duktig666/roundtable/issues/84) umbrella 子议题 3 B.1（D3=A）；analyst 实测 architect SKILL.md:L12 + reviewer.md:L91 强制全读 → 22.8k tokens/workflow；子议题 1+2 收紧门槛后预期新 DEC 节奏降 ~40%，本轮**仅做 B.1 索引基础设施**，30 天观测后再评估 B.2/B.3 契约改造（架构 SKILL + reviewer agent 属 critical_modules 不轻动）
+- **决定**:
+  1. **新增 `docs/INDEX.md` §决策索引 段**：表格含列 DEC# / 标题 / 状态 / 相关 slug / 相关文件；按 DEC 号降序（最新在前）
+  2. **读取契约**：本表是**入口**，DEC 正文仍在 `decision-log.md`；architect 写新设计、reviewer 审查时先查本表定位相关 DEC，再按需 Read 具体条目（本 DEC **不强制契约变更** —— architect SKILL.md:L12 / reviewer.md:L91 仍为"全读"；索引仅作为 affordance，不作 enforcement）
+  3. **维护责任**（承袭 Step 7 INDEX.md 整体维护契约）：orchestrator 在每次 A 类 phase-gate 前按 `log_entries:` 汇聚新增 DEC 追加本段；architect / reviewer 不直接编辑 INDEX.md
+  4. **观测窗 30 天**（2026-04-22 → 2026-05-22）：指标 a) 新 DEC 节奏是否降至 ≤2 DEC/天，b) architect/reviewer 实测 prompt 自我约束行为。若观测满足 → B.2/B.3 契约改造转独立 issue P2；若不满足 → 优先级升 P1
+  5. **不改**：`skills/architect/SKILL.md:L12` / `agents/reviewer.md:L91` 全读契约；方案 A 分层存储（~20 新 design-docs/dec-xxx.md，子议题 3 C 选项）
+- **备选**（D3 锁定时考虑过）:
+  - **A 本决定 仅 B.1**：★ 推荐；纯文档基础设施，零 critical_modules 风险；给 affordance，不改契约
+  - **B B.1 + B.2/B.3**：契约一次改到位，预计 22.8k → ~6k（~74% 减免）；但触发 critical_modules 2 项 + design-doc `decisions:` 字段需回填
+  - **C 方案 A 分层存储**：最彻底但 ~20 新文件大工程，与子议题 1+2 并行风险高
+  - **D 不做**：若 1+2 降节奏不及预期，22.8k/workflow 持续
+- **理由**: (1) 子议题 1+2 预期降 ~40% DEC 节奏后 token 压力天然缓解，本轮优先稳风险面；(2) B.1 索引纯 affordance，零 contract 改动，与 analyst FAQ §A2 "superpowers Gemini CLI metadata-first + body on-demand" 范式同向但不强制；(3) 30 天观测窗后基于实证再决定是否升级 B.2/B.3，避免过早 commit critical_modules 改动
+- **相关文档**: [docs/design-docs/decision-log-sustainability.md](design-docs/decision-log-sustainability.md)、[docs/analyze/decision-log-sustainability.md](analyze/decision-log-sustainability.md)、DEC-025（本 DEC 与之同一 umbrella 分拆）、[issue #84](https://github.com/duktig666/roundtable/issues/84) 子议题 3 B.1
+- **影响范围**: `docs/INDEX.md`（+§决策索引段 ~30 行表）；`docs/log.md`（design + decide 条目）
+
+**post-fix 2026-04-22（reviewer W-R01/W-R02）**：
+1. **W-R01 4 列收紧**：决定 1 本轮实施收紧为 4 列 `| DEC | 标题 | 状态 | 相关 slug |`；"相关文件" 段省略（与各 DEC "相关文档" 段同源可 derive，避免重复）。后续若 reviewer / lint 需扩第 5 列再 Refined DEC
+2. **W-R02 首次建立例外**：决定 3 补 "首次建立本索引段由 developer 一次性填充（exec-plan 承载）；后续增量由 orchestrator 在 A 类 phase-gate 前追加。本轮本 DEC Provisional 落盘时 INDEX.md §决策索引 由 developer 直写属首次建立，符合本例外"
+
+---
+
+### DEC-025 decision-log 可持续性：门槛 + 元规则 + 归档占位
+- **日期**: 2026-04-22
+- **状态**: Provisional
+- **上下文**: [issue #84](https://github.com/duktig666/roundtable/issues/84) umbrella 子议题 1+2+4（D1/D2/D4=A/A/A）；analyst 实证 20 DEC 中 5 条走错路径（DEC-007 / DEC-017 Amendment / DEC-018 / DEC-019 / DEC-020），门槛过低 → 条目膨胀 → token 爆炸 → 需索引 → 需归档，**链条第一环是门槛**。子议题 1+2 规则融合（clarification 路径两处重复），合并同 DEC 自洽；子议题 4 归档占位亦属元规则区改动
+- **决定**:
+  1. **§开立门槛 新增**：5 类必开（跨模块接口 / 改 D1-D9 / 新依赖 / 推翻或细化 Accepted DEC / 技术选型 or 数据模型）+ Red Flags 负例清单（~6 条反模式，借鉴 superpowers using-superpowers SKILL.md 风格）+ 4 类不应开的正确落点路由表
+  2. **铁律 4 clarification 不开新 DEC**：落盘后 findings / 文本补丁 → inline append 父 DEC 末尾注日期；仅新 tradeoff / 新备选 / 跨 DEC 语义重构才开新 DEC
+  3. **铁律 5 影响范围 ≤10 行**：自 DEC-009 决定 10 显式提升为铁律；超出移 design-doc `## 影响文件清单`；**不回溯** DEC-013~020
+  4. **铁律 6 默认不改清单**：列 8 类架构稳定边界（D1-D9 / 5 agent / 2 skill / workflow 各章 / critical_modules / target CLAUDE.md / 3 schema）；新 DEC 未提默认不改
+  5. **新状态 Provisional**（落盘→冷却窗）：≥7 日 OR 首次 dogfood run 通过转 Accepted；Provisional 期允许直接修订正文。本 DEC 自身以 Provisional 入 dogfood
+  6. **新状态 Refined by DEC-xxx**：一等公民取代括注混写（`Accepted（Refines ...）`）；父 DEC 状态行追加引用不降级
+  7. **铁律 7 归档占位**（本轮立规不执行）：4 触发条件（Superseded ≥90 天 AND 后继 ≥30 天无新 Refined/Superseded AND 状态 Superseded/Rejected AND 无他处引用）+ `docs/archive/decision-log-YYYY-QN.md` 分季度归档 + 主文件 stub 格式（≤5 行含跳转链接）+ 精简纪律（仅允许 a stub 化、b 同父多段 post-fix 合并）
+  8. **architect SKILL 阶段 2 加自问句**：`skills/architect/SKILL.md` Stage 2 第 8 步前插入 "开立前自问 §开立门槛 5 类必开 + 不踩 Red Flags"
+  9. **lint 扩 5 检查项（decision-log 机械审查）**：`commands/lint.md` §6 追加 L6.1 Provisional > 30 天 + Superseded ≥ 90 天 / L6.2 影响范围 ≤10 行（不回溯 DEC-013~020）/ L6.3 状态行字面值 + ≤60 字符 / L6.4 Refined by / Superseded by 引用完整性（悬空 + 自引用）/ L6.5 DEC 必填字段完整（6 项）；统计段加 Provisional / Refined by / Rejected 细分 + 结构告警 count。**定位**：lint 是元规则执行层审查工具；机械判定条款全进 lint，门槛类 judgement 留 architect/reviewer
+  10. **不回溯**：DEC-001~020 不因新门槛 / 铁律被降级或改写（保 git commit 引用链）；铁律 5 lint 扫描跳过 DEC-013~020
+- **备选**（D1/D2/D4 锁定时考虑过）:
+  - **D1 B 仅 5 类必开无负例**：正例拦不住"模糊项"→collapse 回旧习惯
+  - **D1 C 纯定性 Nygard 版**：judgement 空间过大
+  - **D2 B 最小集（仅 Refined by + 铁律 4）**：不解"落盘当日补丁"失效模式
+  - **D4 B superpowers policy-gate 替代归档**：roundtable 单平台无多平台同步天然刹车，缺一道防护
+- **理由**: (1) 5+N 双维度门槛对 LLM "按旧习惯 collapse 开 DEC" 失败模式直接缓解；(2) 元规则 + Provisional 是 roundtable 原创（外部 4 ADR 均无先例），对 DEC-017 同日 DEC-019 三联补丁失效模式的直接应对；(3) 铁律 7 占位不执行 = 零成本 + 预留未来触发；(4) 8 条决定合并一 DEC 符合子议题 1+2+4 规则融合观察
+- **相关文档**: [docs/design-docs/decision-log-sustainability.md](design-docs/decision-log-sustainability.md)、[docs/analyze/decision-log-sustainability.md](analyze/decision-log-sustainability.md)、DEC-009 决定 10（铁律 5 前身）、DEC-017 Amendment / DEC-018 / DEC-019 / DEC-020（门槛 + Provisional 失效模式实证）、DEC-026（同 umbrella 分拆）、[issue #84](https://github.com/duktig666/roundtable/issues/84)
+- **影响范围**: `docs/decision-log.md`（顶部元规则区扩容 +§开立门槛段 + 铁律 4-7 + 状态 Provisional）；`commands/lint.md`（+5 检查项 L6.1-L6.5 + 统计扩）；`skills/architect/SKILL.md` Stage 2（+1 行自问句，**critical_modules 命中**）；`docs/INDEX.md`（design-docs 条目追）；`docs/log.md`（design + decide 条目）
+
+**post-fix 2026-04-22（issue #84, tester Critical C-01/C-02/C-03/C-05/C-06）**：
+1. **C-01 5 类必开优先于 Red Flags**：§开立门槛 "5 类必开 AND 不踩 Red Flags" 的 AND 语义改为短路：**命中 5 类必开任一类直接开 DEC**（按 Refined/Supersede 路径），Red Flags 只在 0 命中 5 类时参考；Red Flag #6 "tester/reviewer findings 说要开" **不 veto** 5 类必开 #4 "推翻或细化 Accepted DEC"。`skills/architect/SKILL.md` Stage 2 step 8 措辞已同步
+2. **C-02/C-06 Stage 2 step 11 与 Stage 3 step 11 数字冲突**：`skills/architect/SKILL.md` L71 "用户选 go-with-plan → 11. 写 exec-plan" 的 "11." 去号改为 "写 exec-plan（本阶段）"；L76 "12. exec-plan..." 前缀改为 "**Stage 3 最后一步**"，避免跨 Stage step 编号命名空间冲突
+3. **C-03 lint L6.3 不回溯 grandfather**：`commands/lint.md` L6.3 追加"跳过 DEC-001 ≤ NNN ≤ DEC-020 的字符数与字面值检查"（含 DEC-017 Amendment）；补"起首判定字符终止于第一个全角/半角括号前"措辞
+4. **C-05 lint L6.5 code-fence skip + regex 收紧**：L6.5 追加 code-fence 感知（skip ` ```markdown ` 围栏内 `### DEC-` 模板行）；regex 用 `DEC-\d{3}` 而非 `DEC-\w+`（L6.4 同此规则）；DEC-017 Amendment 缺 `**相关文档**` 属历史 grandfather
+
+5 Critical 全为措辞/执行细节，post-fix 不动核心决定；Provisional 首轮 dogfood 按设计用意内修订。
+
+**post-fix 2026-04-22（reviewer Critical C-R01）**：前一轮 post-fix Edit 的 new_string 遗漏 `---` 分隔符 + `### DEC-020 ...` header，意外删除 DEC-020 header（违反铁律 1）。本轮恢复；规避机制：post-fix 接在正文末段时，Edit old_string 必须包含下一 DEC 的 header + 分隔符以 preserve 边界。
+
+**post-fix 2026-04-22（reviewer W-R04）**：决定 10 "DEC-001~020 不因本门槛被降级或改写" 正文声明"铁律 5 lint 扫描跳过 DEC-013~020"；`commands/lint.md` L6.3/L6.5 实施层 grandfather 范围扩至 DEC-001~020（含字符数 + 字面值 + 必填字段检查）。正文声明范围 = 铁律 5 的 013~020；实施层 grandfather = 001~020（更严；F3/F4 post-fix 引入）。两者不矛盾：铁律 5 是元规则适用范围，实施层 grandfather 是 lint 对历史条目的豁免策略；lint 的扩大豁免出于 "历史字符数/字面值不强制追溯" 的工程保守。
 
 ---
 

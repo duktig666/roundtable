@@ -40,6 +40,43 @@
 | `reviews/` | reviewer / dba | 关键审查归档，文件名 `[YYYY-MM-DD]-[slug].md` 或 `[YYYY-MM-DD]-db-[slug].md` |
 | `bugfixes/` | developer | Tier 2 postmortem（根因+修复+复现+验证+后续），文件名 `[slug].md`（DEC-014） |
 
+## 决策索引（DEC-026）
+
+> `decision-log.md` 的 DEC 级索引。按 DEC 号降序（最新在前）。
+> 读取契约：本表是**入口**，各 DEC 正文在 `decision-log.md`；architect 写新设计 / reviewer 审查时先查本表定位相关 DEC，再按需 Read 具体条目。本 DEC **不强制契约变更**，索引是 affordance 非 enforcement。
+
+| DEC | 标题 | 状态 | 相关 slug |
+|-----|------|------|----------|
+| DEC-026 | decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段 | Provisional | decision-log-sustainability |
+| DEC-025 | decision-log 可持续性：门槛 + 元规则 + 归档占位 | Provisional | decision-log-sustainability |
+| DEC-024 | Phase Matrix 渲染 locus + TG 转发绑定 | Accepted (Refines §Phase Matrix + §Step 6 + §Step 5b) | phase-matrix-render-and-forward |
+| DEC-023 | tester/reviewer/dba 扩展 inline 形态 | Accepted (Refines DEC-005 决定 3) | execution-form-four-role-extension |
+| DEC-022 | §Step 5b 事件类 a 格式围栏→markdownv2 hybrid | Accepted (Refines DEC-013 §3.1a 扩展) | tg-forwarding-expansion |
+| DEC-021 | DEC-016 §Step 4b 歧义重问上限 = 3 | Accepted (Refines DEC-016 §3.2) | parallel-decisions |
+| DEC-020 | auto-halt text-mode render 形态命名 | Accepted (Refines DEC-016 §3.3) | dec016-auto-halt-text-render |
+| DEC-019 | Step 7 Relay Write 契约收紧 | Accepted | step7-relay-contract-tightening |
+| DEC-018 | TG `<decision-needed>` 转发松弛（语义等价 pretty）| Accepted | tg-forwarding-expansion |
+| DEC-017 Amendment | dba relay prefix 拆分 review → db-review | Accepted (Refines DEC-017 D6) | reviewer-write-harness-override |
+| DEC-017 | reviewer/tester/dba 落盘契约反转（orchestrator relay 主路径）| Accepted | reviewer-write-harness-override |
+| DEC-016 | orchestrator decision parallelism（§Step 4b）| Accepted | parallel-decisions |
+| DEC-015 | workflow auto-execute mode（--auto / ROUNDTABLE_AUTO）| Accepted | workflow-auto-execute-mode |
+| DEC-014 | bugfix 根因分层落盘（Tier 0/1/2） | Accepted | bugfix-rootcause-layered |
+| DEC-013 | orchestrator 可切换决策模式（modal \| text） | Accepted | decision-mode-switch |
+| DEC-012 | subagent 派发 run_in_background 策略 | Accepted | dispatch-mode-strategy |
+| DEC-011 | decision-log 条目顺序约定传导到目标项目 | Accepted | decision-log-entry-order |
+| DEC-010 | 矫正 DEC-009 决定 1：revert helper + inline 精简 | Accepted | lightweight-review |
+| DEC-009 | 轻量化重构：helper + log batching + README 重塑 | 部分 Superseded by DEC-010（决定 1） | lightweight-review |
+| DEC-008 | workflow Step 3.5 前台派发免 Monitor | Accepted | subagent-progress-and-execution-model |
+| DEC-007 | subagent progress content policy | Accepted | progress-content-policy |
+| DEC-006 | workflow phase gating taxonomy（A/B/C 三段式）| Accepted | phase-transition-rhythm |
+| DEC-005 | developer 双形态（inline \| subagent）| Accepted | subagent-progress-and-execution-model |
+| DEC-004 | subagent progress event protocol（P1 push）| Accepted (决定 6 Superseded by DEC-008) | subagent-progress-and-execution-model |
+| DEC-003 | architect skill → parallel research subagent | Accepted | parallel-research |
+| DEC-002 | shared resource / escalation / workflow matrix | Accepted (决定 5 Superseded by DEC-009 决定 8) | roundtable |
+| DEC-001 | 多角色 AI 工作流打包为 Claude Code plugin | Accepted | roundtable |
+
+**维护责任**：`docs/INDEX.md` 整体维护归 orchestrator（`commands/workflow.md` §Step 7 shared-resource 转发）。新 DEC 落盘后 orchestrator 在下一次 A 类 phase-gate 前追加本表条目。architect / reviewer 不直接编辑本表。
+
 ## 当前文档清单
 
 ### analyze
@@ -50,6 +87,7 @@
 - [phase-transition-rhythm.md](analyze/phase-transition-rhythm.md) — issue #10 workflow phase transition 节奏对标研究（git/terraform/apt/kubectl/Make/CrewAI/AutoGen/LangGraph/Claude Code 9 种 CLI/orchestrator UX；6 事实层开放问题交 architect）
 - [lightweight-review.md](analyze/lightweight-review.md) — issue #9 轻量化审计（archive 826 vs 现状 2708 行 = 3.16× / 8 个 DEC 增量分类 / 3 大抽取热区 DEC-002/004/007 / 7 事实层开放问题）
 - [dispatch-mode-strategy.md](analyze/dispatch-mode-strategy.md) — issue #19 前台/后台派发选择策略调研（F1-F6 事实 + 3 选项对比 + 5 场景评估 + 判据 D1-D4 + 8 事实层开放问题 P1-P8 交 architect）
+- [decision-log-sustainability.md](analyze/decision-log-sustainability.md) — issue #84 decision-log 可持续性 4 子议题事实层分析（20 DEC 实证分类 / token 22.8k-per-workflow 实测 / 外部 4 ADR 对照 / 子议题 1+2 规则融合观察 / 7 事实层开放问题）
 
 ### design-docs
 
@@ -75,6 +113,9 @@
 - [dec016-auto-halt-text-render.md](design-docs/dec016-auto-halt-text-render.md) — issue #61 P3 DEC-016 follow-up：`decision_mode=text` + `auto_mode=true` batch auto-halt 渲染形态命名（render 顺序 audit-first / 转发 1 audit + N blocks / fallback 块 id `batch-<slug>-<n>-q<m>`；Refines DEC-016 §3.3），DEC-020 Accepted
 - [execution-form-four-role-extension.md](design-docs/execution-form-four-role-extension.md) — issue #20 P3 DEC-005 决定 3 follow-up：tester/reviewer/dba 扩展可选 inline 形态（三级切换复用 developer 机制 + `*_form_default` 3 新键；启发式复用 §6b 不加 per-role 阈值；research 排除；默认仍 subagent 向后零破坏；Refines DEC-005 决定 3 非 Supersede），DEC-023 Accepted
 - [coding-principles.md](design-docs/coding-principles.md) — 编码基线原则参考模板（Karpathy P1-P4，MIT，非 plugin 强制）；用户按需复制到项目 CLAUDE.md 启用；附 §4 决策历史（6 prompt 内嵌 → CLAUDE.md 路径的 revert 经验），Reference-Template
+- [decision-log-sustainability.md](design-docs/decision-log-sustainability.md) — issue #84 umbrella 4 子议题 adoption 设计（5 类必开 + Red Flags 负例 / 铁律 4-7 + Provisional + Refined by / INDEX B.1 索引 / 归档占位；D1-D5=A 锁定；DEC-025 + DEC-026 拆分 Provisional 落盘）
+- [decision-log-sustainability.md](testing/decision-log-sustainability.md) — issue #84 DEC-025/026 对抗测试（18 cases：5 Critical / 9 Warning / 6 Suggestion；verdict Pass 经 developer post-fix F1-F4）
+- [2026-04-22-decision-log-sustainability.md](reviews/2026-04-22-decision-log-sustainability.md) — issue #84 DEC-025/026 reviewer 审查（1 Critical C-R01 DEC-020 header regression 已修复 + 5 Warning + 5 Suggestion；verdict Pass-with-post-fix）
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
@@ -94,6 +135,7 @@
   - [subagent-progress-and-execution-model-plan.md](exec-plans/completed/subagent-progress-and-execution-model-plan.md) — issue #7 + DEC-004/005/008（26 checkbox 全勾；PR #16 merged）
   - [progress-content-policy-plan.md](exec-plans/completed/progress-content-policy-plan.md) — issue #14 DEC-007（P0.1-P0.4 完成；PR #16 merged；归档时补勾 18 checkbox）
   - [decision-mode-switch-plan.md](exec-plans/completed/decision-mode-switch-plan.md) — issue #31 DEC-013（P0.1-P0.7 全完成；PR #34 merged 2026-04-20；剩 6/7 acceptance 待 plugin reload 后 E2E 实跑）
+  - [decision-log-sustainability-plan.md](exec-plans/completed/decision-log-sustainability-plan.md) — issue #84 DEC-025/026 实施（P0-P4 全部完成；tester 5 Critical + reviewer 1 Critical C-R01 + 3 Warning post-fix 全解；verdict Pass-with-post-fix）
 
 ### testing
 

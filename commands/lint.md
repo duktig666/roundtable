@@ -62,9 +62,44 @@ argument-hint: [target project name or path, optional]
 - 抽样检查 wiki 层文档（design-docs、analyze），标注未区分事实与推论的段落
 - 标准：引用外部 / 竞品行为是"事实"，据此推导的自身方案是"推论"，两者应可区分
 
-### 6. 决策状态审计
-- `decision-log.md` 中是否有长期 Proposed（超过 30 天未决）的条目
-- 是否有 Superseded 条目但未指向替代 DEC-xxx
+### 6. 决策状态与结构审计（DEC-025 扩）
+
+**定位**：本节是 `decision-log.md` 元规则（门槛 + 铁律 + 状态机）的**执行层审查工具**。机械判定条款全进本节；门槛类 judgement（某 DEC 是否真属 5 类必开）留 architect / reviewer。
+
+#### L6.1 状态流转
+
+- 长期 **Proposed** > 30 天未决 → 告警「长期 Proposed：建议评估 Accepted / Rejected」
+- **Provisional** > 30 天未转正（DEC-025 引入）→ 告警「Provisional 超期：建议评估 Accepted / Refined by / Rejected」
+- **Superseded** ≥ 90 天 → 告警「归档候选（铁律 7 触发条件 1）；配合 4 触发条件人工裁决」
+- Superseded 条目但未指向替代 DEC-xxx → 报错「悬空 Superseded」
+
+#### L6.2 铁律 5 影响范围 ≤10 行
+
+- 扫每条 DEC 的 `**影响范围**:` 段
+- 段内行数（按字面换行符）> 10 → 告警「影响范围超 10 行，建议移 design-doc `## 影响文件清单`」
+- **不回溯** DEC-013~020（铁律 5 声明不回溯；lint 扫描跳过 DEC-013 ≤ NNN ≤ DEC-020）
+
+#### L6.3 状态行字面值 + ≤60 字符
+
+- 扫每条 DEC 的 `**状态**:` 行
+- 必须以 6 种字面值之一起首：`Proposed` / `Provisional` / `Accepted` / `Superseded by DEC-xxx` / `Rejected`（可并列附 `Refined by DEC-xxx`）
+- "起首" 判定字符终止于第一个全角/半角括号前（遇 `（` / `(` 即停）；括号内补语不计入字面值匹配
+- 状态行总字符 > 60 → 告警「状态行超 60 字符，建议附加上下文放正文」
+- **不回溯**（DEC-025 决定 10 扩用）：跳过 DEC-001 ≤ NNN ≤ DEC-020 的字符数与字面值检查（含 DEC-017 Amendment）。grandfather clause 仅适用字面值/字符数；悬空引用 L6.4 仍全量扫描
+
+#### L6.4 Refined by / Superseded by 引用完整性
+
+- 扫所有 `Refined by DEC-NNN` / `Superseded by DEC-NNN` 引用
+- 引用的 DEC-NNN 不存在于 decision-log.md → 报错「悬空引用 DEC-NNN」
+- 自引用 (`DEC-NNN Refines DEC-NNN` / `DEC-NNN Superseded by DEC-NNN`) → 报错「自引用」
+
+#### L6.5 DEC 必填字段完整
+
+- 每条 DEC 必含 `**日期**` / `**状态**` / `**上下文**` / `**决定**` / `**相关文档**` / `**影响范围**` **6 项**
+- 任一缺失 → 告警「DEC-NNN 缺字段：<清单>」
+- `**备选**` / `**理由**` 非强制（有则检，无则跳）
+- **实施硬约束**：扫描 code-fence 感知 —— skip 位于 ` ```markdown ` / ` ``` ` 围栏内的 `### DEC-` 行（含 template 模板 `### DEC-[编号] [标题]`）；regex 用 `DEC-\d{3}` 而非 `DEC-\w+`（避免占位符 `DEC-xxx` / `DEC-MMM` 误报，L6.4 同此规则）
+- **不回溯**（grandfather）：DEC-017 Amendment 缺 `**相关文档**` 属历史格式，跳过必填字段检查（同 L6.3 不回溯）；DEC-001 ≤ NNN ≤ DEC-020 全部 grandfather
 
 ### 7. exec-plans 过期审计
 - 扫描 `{docs_root}/exec-plans/active/` 下每个计划
@@ -100,7 +135,9 @@ argument-hint: [target project name or path, optional]
 ## 统计
 - 文档总数: X
 - 有 frontmatter: X / 缺少: X
-- 决策总数: X（Accepted: X, Proposed: X, Superseded: X）
+- 决策总数: X（Accepted: X, Provisional: X, Proposed: X, Refined by: X, Superseded: X, Rejected: X）
+- 超期告警: 长期 Proposed X | Provisional 超 30 天 X | 归档候选 X
+- 结构告警: 影响范围 > 10 行 X | 状态行超长 X | 缺字段 X | 悬空 Refined/Superseded X
 - 孤儿文档: X
 - 断链: X
 - active exec-plans 建议归档: X
