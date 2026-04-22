@@ -3,7 +3,7 @@ slug: tg-forwarding-expansion
 source: 原创（issue #48）
 created: 2026-04-21
 status: Draft
-decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation]
+decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation, DEC-022 event class a fenced→markdownv2 hybrid]
 ---
 
 # DEC-013 §3.1a Active Channel Forwarding 事件范围扩展 设计文档
@@ -94,7 +94,7 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 - **Role completion digest**（c）：orchestrator 自行生成 ≤200 字 digest；`markdownv2` 结构化 —— 粗体标题行 + bullet 产出清单（每行 1 个路径 + 1 句描述）+ 可选 findings 块；超长引 `docs/...` 路径不转发全文（TG Bot API 上限 4096 字符，防御性留余量）
 - **auto_mode audit**（e）：单行，`🟢`/`🔴` emoji + 粗体事件类型 + `(why: ...)` 尾注
 - **A 类 producer-pause summary**（b）：3 行模板；**标题行粗体** + 产出路径用反引号包裹 + 操作 `go` / `调` / `问` / `停` 用反引号标记
-- **Step 0 context summary**（a）：结构化块放 ``` 代码围栏内零转义（key\: value 格式）；Step 1 size + slug 同块内 `---` 分隔
+- **Step 0 context summary**（a）：`markdownv2` 结构化（DEC-022，issue #77）——粗体标题 `*Context Detection*` + bullet 清单（每行 `• *key*: \`value\`` 组合 + 同行可并列多字段用 `·` 分隔）+ Step 1 size / pipeline / mode 同块续列。与 b/c/d 事件类统一 markdownv2；event class a 原"唯一围栏特例"割裂消除
 
 **统一原则**：纯 YAML / 纯键值表 → 代码围栏；混合 prose + 字段 → markdownv2 结构化（粗体 / 反引号 / bullet）。遵守 memory `feedback_tg_reply_format` + `feedback_tg_decision_needed_codeblock`。
 
@@ -123,8 +123,8 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 **不转发**：普通对话 / FAQ / 调试输出 / 子 agent 内部工具调用 echo / 用户无决策价值的内部状态
 
 **格式**（用户反馈增强 2026-04-21）：遵守 memory `feedback_tg_decision_needed_codeblock` + `feedback_tg_reply_format`：
-- 纯 YAML / 纯键值表（Step 0 context / audit 多行批量）→ ``` 代码围栏零转义
-- 混合 prose + 字段（A 类 summary / C handoff / role digest / 单行 audit）→ `markdownv2` 结构化（粗体标题 / 反引号路径 / bullet 清单）
+- 批量 audit 多行（e 批量） / Stage 9 Closeout bundle（b-9 长文本拆包）→ ``` 代码围栏零转义
+- 事件类 a / b / c / d / e 单事件 → `markdownv2` 结构化（粗体标题 / 反引号路径与字段值 / bullet 清单）；DEC-022（issue #77）把 a 归入此列统一
 - 目的：避免 TG 纯文本阅读效果差（issue #48 TG session message_id=428 反馈）
 
 纯终端 session（无 channel tag）→ 不调 reply，行为同现状。
@@ -178,6 +178,34 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 
 **并行决策批量形态**：`decision_mode=text` + §Step 4b 批量多块 emit 时，每块独立 pretty reply 转发（不合并单 payload，与 sticky 语义一致）。
 
+### 3.6 §Step 5b 事件类 a 格式从围栏零转义 → markdownv2 hybrid（DEC-022，issue #77）
+
+**背景**：2026-04-21 issue #61 Level 2 E2E dogfood 观察：architect 子 agent 转发 Step 0 context + Step 1 size/pipeline 判定到 TG 时实际渲染为纯文本 bracketed key=value，与 §3.3（a）"``` 代码围栏零转义" 规则漂移。TG session（message_id=428 先例 + #77 新确认）证实围栏 key\:value 块阅读效果差。
+
+**用户验收**（issue #77 body，2026-04-21 TG session，accepted）：
+
+```
+*Context Detection*
+• *project*: `roundtable` · *docs_root*: `docs`
+• *slug*: `dec016-auto-halt-text-render`
+• *size*: `medium` (3 design points, prompt-only, P3)
+• *pipeline*: `architect → design-confirm → developer` (skip tester §6 test.7)
+• *mode*: `decision_mode=text` · `auto_mode=false`
+```
+
+**决定**：事件类 a 格式改为 `markdownv2` 结构化——粗体标题 `*Context Detection*` + bullet（`• *key*: \`value\``；同行可并列多字段用 `·` 分隔）；Step 1 size / pipeline / mode 同块续列。b-9（Stage 9 Closeout bundle）**保留**围栏长文本拆包形态不变（>3500 字符拆 2-3 reply）。
+
+**理由**：(1) 用户已验收；(2) 与事件类 b / c / d 统一 markdownv2（删"事件类 a 为唯一围栏特例"割裂）；(3) 启发式「纯键值 → 围栏」仅对真正长纯 YAML 块（e 批量、b-9 长文本）仍有效，Step 0 context 字段少且含 prose 尾注，归入 markdownv2 更合适。
+
+**落点**：
+- `commands/workflow.md` §Step 5b 事件类表第 a 行格式列
+- `commands/workflow.md` §Step 5b 第 65 行（Step 0 forwarding 行内注）
+- `commands/workflow.md` §Step 5b Ordering / 批次规则第 a+Step 1 合并行
+- `commands/workflow.md` §Step 5b "格式按事件类硬绑定" F4 澄清行
+- 本文件 §3.1 event class（a）描述 + §3.1 格式启发式
+
+**不改**：DEC-013 任何 Accepted 决定 / DEC-018 pretty 松弛 / §Step 5b 事件类 b / b-9 / c / d / e 格式 / sticky channel 语义 / 4 agent prompt 本体 / Phase Matrix / critical_modules / target CLAUDE.md。
+
 ## 4. 影响文件清单
 
 新建：
@@ -218,6 +246,7 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 
 - 2026-04-21 初版（issue #48，Draft）
 - 2026-04-21 追加 §3.5（issue #63，DEC-018 §3.1a 字节等价松弛为语义等价 pretty markdownv2）
+- 2026-04-22 追加 §3.6（issue #77，DEC-022 事件类 a 围栏零转义 → markdownv2 hybrid；与 b/c/d 统一）
 
 ## 7. 待确认项
 

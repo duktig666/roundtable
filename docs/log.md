@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## decide | tg-forwarding-class-a-markdownv2 | 2026-04-22
+- 操作者: architect (inline, AUTO mode) + orchestrator
+- 影响文件: commands/workflow.md (§Step 5b 事件类表行 a + 第 65 行 forwarding 注 + Ordering 合并行 + F4 澄清行; ~4 行改动); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.1 event (a) + §3.1 格式启发式 + 新 §3.6 + 变更记录); docs/decision-log.md (DEC-022 置顶); docs/INDEX.md (tg-forwarding-expansion 条目 §3.6 追注)
+- 说明: issue #77 P3 bug —— 修正 §Step 5b 事件类 a 从 "``` 围栏零转义" → markdownv2 hybrid（粗体 key + 反引号 value + bullet）。用户 2026-04-21 TG session 已验收样例；与 b/c/d 统一，删事件类 a 唯一围栏特例割裂；b-9 Stage 9 Closeout 长文本拆包保留围栏不变。Refines DEC-013 §3.1a 扩展（issue #48）非 Supersede。DEC-022 Accepted。
+
 ## design | ambiguity-retry-cap-60 | 2026-04-22
 - 操作者: architect (inline, AUTO mode)
 - 影响文件: docs/decision-log.md (DEC-021 置顶); docs/design-docs/parallel-decisions.md (§3.2 追加歧义重问上限 = 3 子节 + frontmatter decisions DEC-021 + §6 变更记录); commands/workflow.md (§Step 4b 失败处理段 +1 子句); docs/INDEX.md (parallel-decisions 条目追 DEC-021 注)
