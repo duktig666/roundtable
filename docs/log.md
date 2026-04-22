@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | phase-matrix-render-and-forward | 2026-04-22
+- 操作者: architect (inline, AUTO mode) + orchestrator
+- 影响文件: docs/design-docs/phase-matrix-render-and-forward.md (new); docs/decision-log.md (DEC-024 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + 新 §3.7 + §6 变更记录); commands/workflow.md (§Phase Matrix 定义段 +1 句 locus + 折叠策略; §Step 6 A/B/C 三类 gating 各 +1 句 re-emit 义务; §Step 5b 事件类表 b/d/e 格式列各追加尾段注; §起点 L531-533 locus 与义务明示; 共 ~8 行改动); docs/INDEX.md (design-docs 新增 phase-matrix-render-and-forward + tg-forwarding-expansion §3.7 追注)
+- 说明: issue #79 P3 bug —— Phase Matrix 渲染 drift（spec 要求 "每次 phase 切换重新报告"，execution 从未渲染）+ TG 宏观进度视图缺失（§Step 5b 无对应事件类）。DEC-024 Refines §Phase Matrix + §Step 6 + §Step 5b：(1) 渲染 locus = orchestrator（issue 作者明示 + 与 tg-forwarding-expansion §D1 先例同构）；(2) re-emit 绑定 A/B/C 三类 phase gating 消除渲染义务悬空；(3) TG 转发折叠进既有事件类 b/d/e 尾段单行进度条（不新增事件类 f —— 与事件类 d 重叠 + 表面扩张违 DEC-022 "删割裂" 精神）；(4) 精简单行符号序列（≤120 codepoints）天然节流 medium pipeline 5-7 条 reply 不刷屏。不改 4 agent / 2 skill prompt / CLAUDE.md / DEC-006 / DEC-013 / DEC-018 / DEC-022 / Phase Matrix 9 stage 表结构 / critical_modules。
+
 ## design | execution-form-four-role-extension | 2026-04-22
 - 操作者: architect (inline) + developer (inline)
 - 影响文件: docs/design-docs/execution-form-four-role-extension.md (new); docs/decision-log.md (DEC-023 置顶); agents/tester.md / agents/reviewer.md / agents/dba.md (新增 `## Execution Form` section + description 行调整 + Progress Reporting 引入 inline skip 说明); commands/workflow.md (§Step 6b 从 Developer-only 扩到 4 角色 + Context 风险提示 + research 边界); commands/bugfix.md (§Role Form Selection 扩到 4 角色 + Step 0.5 Gate 更新); docs/claude-md-template.md (§角色偏好 新增 3 键 + FAQ 扩 4 角色); docs/INDEX.md (design-docs 条目追)

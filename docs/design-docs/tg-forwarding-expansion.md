@@ -3,7 +3,7 @@ slug: tg-forwarding-expansion
 source: 原创（issue #48）
 created: 2026-04-21
 status: Draft
-decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation, DEC-022 event class a fenced→markdownv2 hybrid]
+decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation, DEC-022 event class a fenced→markdownv2 hybrid, DEC-024 Phase Matrix snapshot folded into event classes b/d/e]
 ---
 
 # DEC-013 §3.1a Active Channel Forwarding 事件范围扩展 设计文档
@@ -206,6 +206,36 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 
 **不改**：DEC-013 任何 Accepted 决定 / DEC-018 pretty 松弛 / §Step 5b 事件类 b / b-9 / c / d / e 格式 / sticky channel 语义 / 4 agent prompt 本体 / Phase Matrix / critical_modules / target CLAUDE.md。
 
+### 3.7 Phase Matrix 快照折叠进事件类 b/d/e 尾段（DEC-024，issue #79）
+
+**背景**：2026-04-21 Level 2 E2E dogfood（issue #61 / PR #78）观察：`commands/workflow.md §Phase Matrix L18` 明文 "每次 phase 切换重新报告" + §起点 L533 "每次 phase transition 更新 matrix 并报告"，但 execution 从未 emit；§Step 6 只 "初始化"，未把 "re-emit on transition" 绑定到 A/B/C phase gating，渲染义务悬空。TG session（msg 599）进一步反馈 "TG 也要回复 Phase Matrix" —— 宏观进度视图对 TG 用户完全缺失。
+
+**决定**：
+1. **渲染 locus = orchestrator**（与 §D1 5 类 orchestrator-emitted 事件同一落点纪律；issue #79 作者明示"是 orchestrator 职责，不是 subagent"）
+2. **re-emit 绑定到 A/B/C 三类 phase gating**（§Step 6 三类各加一句义务子句；不下放 subagent）
+3. **TG 转发折叠进既有事件类 b/d/e 尾段**，**不新增事件类 f**：
+   - 事件类 b（A 类 producer-pause）→ 3 行 summary 后尾段追加 `*Phase*: \`1✅ · 2⏩ · 3🔄 · …\`` 单行
+   - 事件类 d（C 类 handoff）→ `🔄 X → Y` 后尾段追加同款单行
+   - 事件类 e（auto_mode audit）→ 仅伴 phase 切换的 `auto-accept` / `auto-go` 追加；`auto-pick`（Step 1 规模 / Step 5 escalation / Step 6b form）与 `auto-halt` 不追加（非 phase transition）
+4. **节流天然成立**：Phase Matrix 状态仅在 phase transition 时变更 → b/d/e 本就是 transition 事件 → 状态变更与转发一一对应，medium pipeline 约 5-7 条 reply，远低于 TG Bot API 速率限制
+5. **终端渲染不变**：9 行全量表格 §Phase Matrix 语义保持；TG 走单行进度条（符号化 ≤120 codepoints）
+
+**拒绝备选**：
+- **新事件类 f（每 transition 独立 reply 全量快照）**：与事件类 d 重叠（d 已是 C 类 transition 事件）；表面扩张违 DEC-022 "删割裂" 精神
+- **新事件类 f（delta-only `stage N: 🔄→✅`）**：与 d 进一步重叠，信息维度无本质差异
+- **全部拒 Path 2**：TG 仍无宏观进度视图，用户 msg 599 反馈未闭环
+
+**与事件类 d 重叠辨析**：d 是 "X role → Y role" 局部交接；matrix 是 "9 stage 全局状态" 全局视图。信息维度不同，互补而非冗余。TG 用户同时看到 "哪两个 role 在交接" + "整体跑到哪"。
+
+**落点**：
+- `commands/workflow.md` §Phase Matrix 定义段追加 "locus = orchestrator + 绑定 A/B/C + 折叠 b/d/e"
+- `commands/workflow.md` §Step 6 A/B/C 三类 gating 各追加 Phase Matrix re-emit 子句
+- `commands/workflow.md` §Step 5b 事件类表 b / d / e 格式列追加 "尾段随附 `*Phase*: \`…\`` 单行" 注
+- `commands/workflow.md` §起点 L531-533 补 locus + 渲染义务明示
+- `docs/design-docs/phase-matrix-render-and-forward.md`（本 DEC 的主设计文档）
+
+**不改**：DEC-006 phase gating taxonomy / DEC-013 §3.1a / DEC-018 pretty 松弛 / DEC-022 事件类 a 格式 / §Step 5b 事件类 a / b-9 / c 格式 / sticky channel 语义 / 4 agent prompt 本体 / 2 skill prompt 本体 / Phase Matrix 9 stage 表结构 / critical_modules / target CLAUDE.md。
+
 ## 4. 影响文件清单
 
 新建：
@@ -247,6 +277,7 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 - 2026-04-21 初版（issue #48，Draft）
 - 2026-04-21 追加 §3.5（issue #63，DEC-018 §3.1a 字节等价松弛为语义等价 pretty markdownv2）
 - 2026-04-22 追加 §3.6（issue #77，DEC-022 事件类 a 围栏零转义 → markdownv2 hybrid；与 b/c/d 统一）
+- 2026-04-22 追加 §3.7（issue #79，DEC-024 Phase Matrix 渲染 locus = orchestrator + re-emit 绑定 §Step 6 A/B/C + 折叠进事件类 b/d/e 尾段单行进度条；不新增事件类 f）
 
 ## 7. 待确认项
 
