@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | ambiguity-retry-cap-60 | 2026-04-22
+- 操作者: architect (inline, AUTO mode)
+- 影响文件: docs/decision-log.md (DEC-021 置顶); docs/design-docs/parallel-decisions.md (§3.2 追加歧义重问上限 = 3 子节 + frontmatter decisions DEC-021 + §6 变更记录); commands/workflow.md (§Step 4b 失败处理段 +1 子句); docs/INDEX.md (parallel-decisions 条目追 DEC-021 注)
+- 说明: issue #60 P3 / PR #58 reviewer R-W-02 follow-up —— DEC-016 §Step 4b per-question 歧义降级重问无 cap → unbounded retry 隐患。DEC-021 Refines DEC-016 §3.2（非 Supersede，precedent DEC-020）：retry cap = 3（per-question 独立计数，session 内维护），第 4 轮 emit `🔴 halt: q<n> ambiguity retry exhausted after 3 rounds` 审计 + skill-level fallback 交回主会话等自由文本。其他已答 / 未耗尽 question 不受影响（D3=A 保留）。不改 prompt 本体 / Phase Matrix / critical_modules / DEC-013 / DEC-015 / DEC-018 / DEC-020 / target CLAUDE.md。复用 §Step 5b 事件类 e 转发格式不新增事件类
+
 ## decide | coding-principles-revert-to-claudemd | 2026-04-22
 - 操作者: 用户
 - 影响文件: docs/design-docs/coding-principles.md (重定位 Active → Reference-Template 附 §4 决策历史); docs/INDEX.md (条目同步); agents/developer.md / tester.md / reviewer.md / dba.md (revert `## Coding Principles` section); skills/architect/SKILL.md / skills/analyst/SKILL.md (同); roundtable/CLAUDE.md (revert Rule A/B)
