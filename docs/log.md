@@ -14,6 +14,16 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | phase-matrix-tg-pseudo-table | 2026-04-22
+- 操作者: developer (inline, orchestrator)
+- 影响文件: docs/design-docs/phase-matrix-tg-pseudo-table.md (new); docs/design-docs/phase-matrix-render-and-forward.md (§2.3 D3 + §3.2 同步); docs/design-docs/tg-forwarding-expansion.md (§3.7 sample 同步); commands/workflow.md (§Phase Matrix + §Step 5b b/d/e 格式列 + §Step 6 A/B/C re-emit 子句); docs/INDEX.md (design-docs + 决策索引 DEC-027 行)
+- 说明: issue #88 Phase Matrix TG 快照从单行进度条 → 11 行 ASCII 伪表（列宽 19/9/6 byte-exact；code fence 无语言标签零转义）；stage 名可见换 TG payload ~11× 放大；DEC-022 事件类 a 分隔符一致论据 supersede（readability priority）；DEC-022 格式不连锁；path A 新 DEC 路径（非 inline post-fix）因铁律 4 归属 "新 tradeoff / 新备选评估"
+
+## decide | phase-matrix-tg-pseudo-table | 2026-04-22
+- 操作者: developer (inline, orchestrator)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-027 Provisional 7 决定（伪表形态 11 行 / Stage-Role 字面固定 / emoji 集沿用 / 单次原子替换无版本开关 / supersede DEC-024 "分隔符一致" 论据 / Refines DEC-024 非 Supersede 保 7 决定 / 不改清单）；DEC-024 状态行追加 `Refined by DEC-027 (决定 4)` 作 DEC-025 决定 6 "Refined by 一等公民" 首次 dogfood 验证载荷（issue #94）
+
 ## fix-rootcause | batch-97-dogfood-findings | 2026-04-22
 - 操作者: developer (inline, orchestrator)
 - 影响文件: commands/lint.md, docs/decision-log.md, agents/reviewer.md, docs/bugfixes/batch-97-dogfood-findings.md (new), docs/INDEX.md

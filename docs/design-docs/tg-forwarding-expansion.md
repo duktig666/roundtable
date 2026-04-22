@@ -3,7 +3,7 @@ slug: tg-forwarding-expansion
 source: 原创（issue #48）
 created: 2026-04-21
 status: Draft
-decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation, DEC-022 event class a fenced→markdownv2 hybrid, DEC-024 Phase Matrix snapshot folded into event classes b/d/e]
+decisions: [DEC-013 §3.1a append-only clarification, DEC-018 §3.1a bytes→semantic relaxation, DEC-022 event class a fenced→markdownv2 hybrid, DEC-024 Phase Matrix snapshot folded into event classes b/d/e, DEC-027 Phase Matrix snapshot form line-bar → pseudo-table (Refines DEC-024 decision 4)]
 ---
 
 # DEC-013 §3.1a Active Channel Forwarding 事件范围扩展 设计文档
@@ -214,11 +214,29 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 1. **渲染 locus = orchestrator**（与 §D1 5 类 orchestrator-emitted 事件同一落点纪律；issue #79 作者明示"是 orchestrator 职责，不是 subagent"）
 2. **re-emit 绑定到 A/B/C 三类 phase gating**（§Step 6 三类各加一句义务子句；不下放 subagent）
 3. **TG 转发折叠进既有事件类 b/d/e 尾段**，**不新增事件类 f**：
-   - 事件类 b（A 类 producer-pause）→ 3 行 summary 后尾段追加 `*Phase*: \`1✅ · 2⏩ · 3🔄 · …\`` 单行
-   - 事件类 d（C 类 handoff）→ `🔄 X → Y` 后尾段追加同款单行
+   - 事件类 b（A 类 producer-pause）→ 3 行 summary 后尾段追加 11 行 ASCII 伪表（独立 code fence，无语言标签；DEC-027 Refines DEC-024 决定 4）
+   - 事件类 d（C 类 handoff）→ `🔄 X → Y` 后尾段追加同款 11 行伪表
    - 事件类 e（auto_mode audit）→ 仅伴 phase 切换的 `auto-accept` / `auto-go` 追加；`auto-pick`（Step 1 规模 / Step 5 escalation / Step 6b form）与 `auto-halt` 不追加（非 phase transition）
-4. **节流天然成立**：Phase Matrix 状态仅在 phase transition 时变更 → b/d/e 本就是 transition 事件 → 状态变更与转发一一对应，medium pipeline 约 5-7 条 reply，远低于 TG Bot API 速率限制
-5. **终端渲染不变**：9 行全量表格 §Phase Matrix 语义保持；TG 走单行进度条（符号化 ≤120 codepoints）
+
+   **伪表 sample**（Stage 5 🔄 中状态，Stage 2 skipped 情形）：
+
+   ```
+   | # | Stage               | Role      | Status |
+   |---|---------------------|-----------|--------|
+   | 1 | Context detection   | inline    | ✅     |
+   | 2 | Research (optional) | analyst   | ⏩     |
+   | 3 | Design              | architect | ✅     |
+   | 4 | Design confirmation | user      | ✅     |
+   | 5 | Implementation      | developer | 🔄     |
+   | 6 | Adversarial testing | tester    | ⏳     |
+   | 7 | Review              | reviewer  | ⏳     |
+   | 8 | DB review           | dba       | ⏳     |
+   | 9 | Closeout            | user      | ⏳     |
+   ```
+
+   列宽 byte-exact：Stage 19 / Role 9 / Status 6（含 emoji 对齐 padding）。Stage / Role 字面固定；orchestrator 只替换 Status emoji（⏳ / 🔄 / ✅ / ⏩ / —）。
+4. **节流天然成立**：Phase Matrix 状态仅在 phase transition 时变更 → b/d/e 本就是 transition 事件 → 状态变更与转发一一对应，medium pipeline 约 5-7 条 reply，远低于 TG Bot API 速率限制。单次 reply payload 事件主体 + 伪表 ~600 chars，远低于 4096 char 上限
+5. **终端渲染不变**：9 行全量表格 §Phase Matrix 语义保持；TG 走 11 行 ASCII 伪表（DEC-027 Refines DEC-024 决定 4；原单行 ≤120 codepoints 进度条因 stage 名不可见被 refine）
 
 **拒绝备选**：
 - **新事件类 f（每 transition 独立 reply 全量快照）**：与事件类 d 重叠（d 已是 C 类 transition 事件）；表面扩张违 DEC-022 "删割裂" 精神
@@ -230,7 +248,7 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 **落点**：
 - `commands/workflow.md` §Phase Matrix 定义段追加 "locus = orchestrator + 绑定 A/B/C + 折叠 b/d/e"
 - `commands/workflow.md` §Step 6 A/B/C 三类 gating 各追加 Phase Matrix re-emit 子句
-- `commands/workflow.md` §Step 5b 事件类表 b / d / e 格式列追加 "尾段随附 `*Phase*: \`…\`` 单行" 注
+- `commands/workflow.md` §Step 5b 事件类表 b / d / e 格式列追加 "尾段随附 11 行 ASCII 伪表 Matrix 快照" 注（DEC-027 Refines DEC-024 决定 4 后本条改为伪表；DEC-024 原为单行 `*Phase*: \`…\``）
 - `commands/workflow.md` §起点 L531-533 补 locus + 渲染义务明示
 - `docs/design-docs/phase-matrix-render-and-forward.md`（本 DEC 的主设计文档）
 
@@ -278,6 +296,7 @@ architect.md / analyst.md 的现 §3.1a forwarding 规则仍只管 skill 自身 
 - 2026-04-21 追加 §3.5（issue #63，DEC-018 §3.1a 字节等价松弛为语义等价 pretty markdownv2）
 - 2026-04-22 追加 §3.6（issue #77，DEC-022 事件类 a 围栏零转义 → markdownv2 hybrid；与 b/c/d 统一）
 - 2026-04-22 追加 §3.7（issue #79，DEC-024 Phase Matrix 渲染 locus = orchestrator + re-emit 绑定 §Step 6 A/B/C + 折叠进事件类 b/d/e 尾段单行进度条；不新增事件类 f）
+- 2026-04-22 §3.7 sample 更新为 11 行 ASCII 伪表（issue #88，DEC-027 Provisional Refines DEC-024 决定 4；stage 名可见换 payload ~3.6× 放大；主设计文档 `phase-matrix-tg-pseudo-table.md`）
 
 ## 7. 待确认项
 

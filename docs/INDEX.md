@@ -47,9 +47,10 @@
 
 | DEC | 标题 | 状态 | 相关 slug |
 |-----|------|------|----------|
+| DEC-027 | Phase Matrix TG 快照格式：伪表替换单行进度条 | Provisional (Refines DEC-024 决定 4) | phase-matrix-tg-pseudo-table |
 | DEC-026 | decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段 | Provisional | decision-log-sustainability |
 | DEC-025 | decision-log 可持续性：门槛 + 元规则 + 归档占位 | Provisional | decision-log-sustainability |
-| DEC-024 | Phase Matrix 渲染 locus + TG 转发绑定 | Accepted (Refines §Phase Matrix + §Step 6 + §Step 5b) | phase-matrix-render-and-forward |
+| DEC-024 | Phase Matrix 渲染 locus + TG 转发绑定 | Accepted (Refines §Phase Matrix + §Step 6 + §Step 5b; Refined by DEC-027 决定 4) | phase-matrix-render-and-forward |
 | DEC-023 | tester/reviewer/dba 扩展 inline 形态 | Accepted (Refines DEC-005 决定 3) | execution-form-four-role-extension |
 | DEC-022 | §Step 5b 事件类 a 格式围栏→markdownv2 hybrid | Accepted (Refines DEC-013 §3.1a 扩展) | tg-forwarding-expansion |
 | DEC-021 | DEC-016 §Step 4b 歧义重问上限 = 3 | Accepted (Refines DEC-016 §3.2) | parallel-decisions |
@@ -104,6 +105,7 @@
 - [workflow-auto-execute-mode.md](design-docs/workflow-auto-execute-mode.md) — issue #33 `/roundtable:workflow --auto` 批量预授权 A/B 类 gate 自动采纳 recommended（CLI+env 两级优先链 / recommended 缺失强停 / #30 正交 / 4 agent 零改动），DEC-015 Accepted
 - [tg-forwarding-expansion.md](design-docs/tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 转发语义扩展到 5 类 orchestrator-emitted 事件（context / producer-pause / role digest / C handoff / auto_mode audit；orchestrator-only 落点；markdownv2 结构化 TG 可读性增强），append-only clarification；§3.5 issue #63 DEC-018 松弛 `<decision-needed>` 字节等价 → 语义等价 pretty markdownv2（raw YAML 仅终端 stdout）；§3.6 issue #77 DEC-022 事件类 a 围栏零转义 → markdownv2 hybrid（与 b/c/d 统一）；§3.7 issue #79 DEC-024 Phase Matrix 快照折叠进事件类 b/d/e 尾段单行进度条（不新增事件类 f；渲染 locus = orchestrator + re-emit 绑定 §Step 6 A/B/C）
 - [phase-matrix-render-and-forward.md](design-docs/phase-matrix-render-and-forward.md) — issue #79 P3 bug —— Phase Matrix 渲染 drift（spec 要求 re-emit on transition，execution 从未渲染）+ TG 宏观进度视图缺失；DEC-024 Accepted：locus = orchestrator / re-emit 绑定 §Step 6 A/B/C / TG 转发折叠进事件类 b/d/e 尾段单行进度条（不新增事件类 f）
+- [phase-matrix-tg-pseudo-table.md](design-docs/phase-matrix-tg-pseudo-table.md) — issue #88 follow-up：Phase Matrix TG 快照形态从单行进度条改为 11 行 ASCII 伪表（code fence / 列宽 19/9/6 byte-exact / stage 名可见）；DEC-027 Provisional Refines DEC-024 决定 4；supersede "与 DEC-022 分隔符一致" 论据（readability priority 胜出）；DEC-022 事件类 a 格式不连锁变更
 - [phase-end-approval-gate.md](design-docs/phase-end-approval-gate.md) — issue #30 phase-end approval gate 统一协议（A 类 producer-pause 菜单穷举 + Q&A 循环 + architect `go-with-plan` / `go-without-plan: <理由>` 拆分；orchestrator + 2 skill 落点），DEC-006 §A append-only clarification
 - [faq-sink-protocol.md](design-docs/faq-sink-protocol.md) — issue #27 FAQ 沉淀协议（orchestrator 启发式触发 + `{docs_root}/faq.md` 全局落点 + 70% 词重叠去重 + 📚 回复标注；与 slug 级 FAQ 互补）
 - [closeout-spec.md](design-docs/closeout-spec.md) — issue #26 Stage 9 Closeout 用户驱动流程规范（closeout bundle：commit msg + PR body + follow-up issues 3 section；`go-all`/`go-commit`/`skip-*`；memory `feedback_no_auto_*` 硬边界）

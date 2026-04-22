@@ -3,7 +3,7 @@ slug: phase-matrix-render-and-forward
 source: 原创（issue #79）
 created: 2026-04-22
 status: Accepted
-decisions: [DEC-024 Phase Matrix 渲染 locus + 转发绑定]
+decisions: [DEC-024 Phase Matrix 渲染 locus + 转发绑定, DEC-027 Phase Matrix TG 快照格式（Refines DEC-024 决定 4）]
 ---
 
 # Phase Matrix 渲染 locus 明确化 + TG 转发补齐 设计文档
@@ -100,23 +100,34 @@ decisions: [DEC-024 Phase Matrix 渲染 locus + 转发绑定]
 
 ### 2.3 D3：Matrix 快照形态 —— 全量 9 行 vs 当前 stage line vs 精简进度条
 
-**选择**：**精简单行进度条**（自明采纳）
+**选择**：**11 行 ASCII 伪表**（DEC-027 Refines DEC-024 决定 4；原单行进度条 2026-04-22 TG dogfood 用户反馈 stage 名不可见不可接受）
 
-格式（markdownv2 结构化）：
+格式（code fence，无语言标签，零转义）：
 
 ```
-*Phase*: `1✅ · 2⏩ · 3🔄 · 4⏳ · 5⏳ · 6⏳ · 7⏳ · 8⏳ · 9⏳`
+| # | Stage               | Role      | Status |
+|---|---------------------|-----------|--------|
+| 1 | Context detection   | inline    | ✅     |
+| 2 | Research (optional) | analyst   | ⏩     |
+| 3 | Design              | architect | ✅     |
+| 4 | Design confirmation | user      | ✅     |
+| 5 | Implementation      | developer | 🔄     |
+| 6 | Adversarial testing | tester    | ⏳     |
+| 7 | Review              | reviewer  | ⏳     |
+| 8 | DB review           | dba       | ⏳     |
+| 9 | Closeout            | user      | ⏳     |
 ```
 
-- 编号 = §Phase Matrix 表 1-9 stage 序
-- 图例复用：⏳ 待办 / 🔄 进行中 / ✅ 完成 / ⏩ skipped / — 不适用
-- 单行 `markdownv2`：粗体标签 + 反引号包裹状态序列
-- 用 `·` 分隔各 stage，与 DEC-022 事件类 a 同款分隔符
+- 列内容宽度 byte-exact：Stage 19 / Role 9 / Status 6（含 emoji 对齐 padding；emoji 视觉宽 2 的取舍，详见 `phase-matrix-tg-pseudo-table.md §2.2`）
+- Stage / Role 字面固定：orchestrator 只替换 Status emoji
+- 图例复用：⏳ 待办 / 🔄 进行中 / ✅ 完成 / ⏩ skipped / — 不适用（图例不随快照附带）
 
 **理由**：
-1. **字段最少 TG 可读**：9 stage 单行符号化 ≤ 120 codepoints，远低于 DEC-013 / DEC-018 的 ≤200 字节经济（digest 已 ≤200 字）
+1. **stage 名可见**：TG 用户不再需心算 "5 是什么"；issue #88 用户直选方案 A
 2. **全量 vs delta 权衡**：全量快照对 "刚加入 TG 订阅的用户" 友好（无历史包袱就能知宏观）；delta 需用户维护自己的状态机，UX 差
 3. **与事件类 d 重叠度再降**：d 是 "X → Y" role 交接；此处是 "9 stage 全局状态" —— 信息维度不同
+4. **代价**：每次 transition 快照 payload ~430 codepoints（vs 单行 ≤120），medium pipeline 5-7 次 transition 总 payload ~3-4k chars，远低于 TG Bot API 4096 char 单 reply 上限（事件类 b/d/e 本体 + 伪表可共单 reply 或拆独立 fence block 按现行 reply 结构）
+5. **DEC-022 分隔符和谐 supersede**：DEC-024 原理由 "与 DEC-022 事件类 a `·` 分隔符一致" 被本 refinement supersede —— 两者 UX 语境不同（a 是 in-stream 短字段；matrix 是宏观视图），readability priority 胜出；DEC-022 事件类 a 格式保持不变
 
 ### 2.4 D4：§Step 6 绑定点 —— 三 gating 统一 vs 仅 A 类
 
@@ -136,7 +147,7 @@ decisions: [DEC-024 Phase Matrix 渲染 locus + 转发绑定]
 
 ### 3.2 §Step 5b 事件类 b / d / e 尾段 Matrix 快照
 
-`commands/workflow.md §Step 5b` 事件类表 b / d / e 格式列追加注："尾段随附 `*Phase*: \`…\`` 单行 Matrix 快照"。
+`commands/workflow.md §Step 5b` 事件类表 b / d / e 格式列追加注："尾段随附 11 行 ASCII 伪表 Matrix 快照（独立 code fence，无语言标签，列宽 Stage 19 / Role 9 / Status 6 byte-exact）"（DEC-027 Refines DEC-024 决定 4；原单行进度条因 stage 名不可见被 refine）。
 
 不新增事件类 f。不改事件类 a / b-9 / c。
 
@@ -190,11 +201,11 @@ on_phase_transition(from_stage, to_stage):
     emit_to_terminal(render_matrix())      # 终端始终 emit（§Phase Matrix 原语）
     if channel_sticky:
         base_reply = build_b_or_d_or_e_event(from_stage, to_stage)
-        full_reply = base_reply + "\n" + render_matrix_single_line()
+        full_reply = base_reply + "\n" + render_matrix_pseudo_table()  # DEC-027: 11 行 ASCII 伪表
         channel.reply(full_reply)
 ```
 
-终端 matrix 保持 9 行全量表格渲染不变（`§Phase Matrix` 语义）；TG 走单行进度条（D3）。
+终端 matrix 保持 9 行全量表格渲染不变（`§Phase Matrix` 语义）；TG 走 11 行 ASCII 伪表（D3；DEC-027 Refines DEC-024 决定 4）。
 
 ## 4. 影响文件清单
 
@@ -216,7 +227,7 @@ on_phase_transition(from_stage, to_stage):
 
 | 场景 | 期望 |
 |------|------|
-| TG-driven + architect 完成 Stage 3 | TG 收到 b 类 producer-pause 3 行 summary 末尾紧贴 `*Phase*: \`…\`` 快照 |
+| TG-driven + architect 完成 Stage 3 | TG 收到 b 类 producer-pause 3 行 summary 末尾紧贴 11 行 ASCII 伪表 Matrix 快照 |
 | TG-driven + C 类 handoff（如 Stage 5 → Stage 6 / critical_modules 触发 tester）| TG 收到 d 类 `🔄 X 完成 → dispatching Y` 末尾紧贴 matrix 快照 |
 | TG-driven + auto_mode=on + B 类 Stage 4 auto-accept | TG 收到 e 类 `🟢 auto-accept` 末尾紧贴 matrix 快照 |
 | TG-driven + Step 1 规模 auto-pick（非 phase transition）| 不追加 matrix（不伴 phase 切换）|
@@ -235,6 +246,7 @@ on_phase_transition(from_stage, to_stage):
 ## 6. 变更记录
 
 - 2026-04-22 初版（issue #79，DEC-024 Accepted）
+- 2026-04-22 §2.3 D3 格式段 + §3.2 尾段描述从单行进度条更新为 11 行 ASCII 伪表（issue #88，DEC-027 Provisional Refines DEC-024 决定 4；主设计文档见 `phase-matrix-tg-pseudo-table.md`）
 
 ## 7. 待确认项
 

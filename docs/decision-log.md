@@ -106,6 +106,28 @@
 
 ---
 
+### DEC-027 Phase Matrix TG 快照格式：伪表替换单行进度条（Refines DEC-024 决定 4；issue #88）
+- **日期**: 2026-04-22
+- **状态**: Provisional
+- **上下文**: [issue #88](https://github.com/duktig666/roundtable/issues/88) P3 —— DEC-024（PR #87 / issue #79）把 Phase Matrix 快照折入事件类 b/d/e 尾段，采用单行压缩进度条 `*Phase*: \`1✅ · 2⏩ · 3✅ · …\``。2026-04-22 TG dogfood 用户反馈可读性差：(1) 只有数字要心算 stage 对应（"5 是 Implementation？"）；(2) 数字与 emoji 紧贴视觉粘连；(3) 宏观进度视图对 TG 用户仍需外部记忆。用户在三方案（保持现状 / 双行拆分 / ASCII 伪表）中选 ASCII 伪表 换 stage 名可见
+- **决定**:
+  1. **快照形态从单行进度条改为 11 行 ASCII 伪表**（code fence 包裹，无语言标签）：表头 2 行 + 9 stage 行；每行 `| # | Stage | Role | Status |`；列宽 byte-exact —— Stage 内容宽 19 / Role 9 / Status 6（含 emoji 对齐 padding）
+  2. **Stage / Role 字面固定**：orchestrator 只替换 Status emoji；9 行内容对应 §Phase Matrix 1-9 stage（Context detection / Research (optional) / Design / Design confirmation / Implementation / Adversarial testing / Review / DB review / Closeout 与 inline / analyst / architect / user / developer / tester / reviewer / dba / user）
+  3. **emoji 集沿用图例**不变（⏳ 🔄 ✅ ⏩ —）；图例不随快照附带（现状：终端 §Phase Matrix 表下方一处保留）
+  4. **单次原子替换无版本开关**：PR merge 后下一次 `/roundtable:workflow` transition 即用新格式；历史 TG 消息不回溯
+  5. **DEC-024 决定 4 理由段 "与 DEC-022 事件类 a 分隔符一致" 被本 DEC 显式 supersede**：DEC-022 事件类 a 是 in-stream 短字段键值进度（`·` 分隔适合 inline），Phase Matrix 是宏观进度视图（用户诉求 stage 名可见）；两者 UX 语境不同，**readability priority** 胜过 "分隔符视觉同款"。DEC-022 事件类 a 格式保持不变，**不** 引发连锁 Refines
+  6. **Refines DEC-024 非 Supersede**：DEC-024 决定 1（locus = orchestrator）/ 2（re-emit 绑定 A/B/C）/ 3（折叠 b/d/e 不新增事件类 f）/ 5（节流天然成立）/ 6（终端渲染不变）/ 7（转发边界）/ 8（Refines 非 Supersede）全保留；仅决定 4（快照形态）被本 DEC 细化
+  7. **不改**：DEC-006 phase gating taxonomy / DEC-013 §3.1a / DEC-018 pretty 松弛 / DEC-022 事件类 a 格式 / 事件类 b / b-9 / c / d / e 本体格式（仅改尾段快照片段）/ 4 agent prompt 本体 / 2 skill prompt 本体 / Phase Matrix 9 stage 表结构 / 图例 / critical_modules / target CLAUDE.md
+- **备选**:
+  - **A 伪表 ★**（本决定）：stage 名可见，用户已验收；代价 payload ~11× 放大（单次 ≤120 → ~430 codepoints）但 ≤ TG Bot API 4096 char 上限
+  - **B 保持现状（单行进度条）**：payload 最小；用户反馈阅读成本高；拒绝
+  - **C 双行拆分（数字行 + emoji 行）**：中间方案；未解 stage 名可见诉求；拒绝
+- **理由**: (1) 用户已在 issue #88 body 三方案选 A 并接受 payload 代价；(2) stage 名可见直接消除 "5 是什么" 心算负担；(3) TG monospace code fence 对 ASCII 对齐支持成熟；(4) DEC-024 其他 7 决定全保留，decision-log 单调递增；(5) 0 agent / skill prompt 改动（与 DEC-024 同纪律）；(6) 本 DEC 开立触发铁律 4 边界检查 —— 归属 "新 tradeoff / 新备选评估"（A/B/C 三方案对比 + payload 代价权衡 + DEC-022 分隔符 supersede）而非单纯 "文本补丁"，走新 DEC 路径而非 inline post-fix 合规
+- **相关文档**: [docs/design-docs/phase-matrix-tg-pseudo-table.md](design-docs/phase-matrix-tg-pseudo-table.md)（本 DEC 设计文档）、DEC-024（本 DEC Refines 决定 4）、DEC-022（事件类 a 格式；本 DEC supersede DEC-024 "分隔符一致" 论据，但 DEC-022 格式本身不改）、[docs/design-docs/phase-matrix-render-and-forward.md](design-docs/phase-matrix-render-and-forward.md) §2.3 D3（格式段同步更新）、[docs/design-docs/tg-forwarding-expansion.md §3.7](design-docs/tg-forwarding-expansion.md)（3 sample 同步）、[issue #88](https://github.com/duktig666/roundtable/issues/88)、issue #79 / PR #87（DEC-024 origin）、[issue #94](https://github.com/duktig666/roundtable/issues/94)（本 DEC 作 DEC-025 决定 6 "Refined by DEC-xxx 一等公民" 首次验证载荷：父 DEC-024 状态行追加 `Refined by DEC-027`）
+- **影响范围**: `commands/workflow.md` §Phase Matrix 定义段 + §Step 5b 事件类表 b / d / e 格式列 + §Step 6 A/B/C 三类 re-emit 子句（~10 行）；`docs/design-docs/phase-matrix-tg-pseudo-table.md`（new，本 DEC 主设计）；`docs/design-docs/phase-matrix-render-and-forward.md` §2.3 D3 + §3.2（同步）；`docs/design-docs/tg-forwarding-expansion.md` §3.7 3 sample 同步；`docs/decision-log.md`（本条置顶 + DEC-024 状态行追加 `Refined by DEC-027`）；`docs/INDEX.md`（design-docs 新增 + 决策索引 DEC-027 行）；`docs/log.md`（design + decide）。**不改**：4 agent prompt / 2 skill prompt / CLAUDE.md / DEC-024 其他决定 / DEC-006 / DEC-013 / DEC-018 / DEC-022 格式 / 事件类 b / b-9 / c / d / e 本体 / Phase Matrix 9 stage 表结构 / 图例 / 终端全量表格渲染 / critical_modules / Resource Access / Progress Event schema / Option Schema。运行时：TG-driven session phase transition 时 b/d/e reply 尾段由单行进度条改为 11 行 code fence 伪表；终端渲染保持 9 行全量表格
+
+---
+
 ### DEC-026 decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段
 - **日期**: 2026-04-22
 - **状态**: Provisional
@@ -171,7 +193,7 @@
 
 ### DEC-024 Phase Matrix 渲染 locus + TG 转发绑定（Refines §Phase Matrix + §Step 6 + §Step 5b；issue #79）
 - **日期**: 2026-04-22
-- **状态**: Accepted
+- **状态**: Accepted, Refined by DEC-027 (决定 4)
 - **上下文**: [issue #79](https://github.com/duktig666/roundtable/issues/79) P3 bug —— 2026-04-21 Level 2 E2E dogfood（PR #61 / PR #78）观察 `commands/workflow.md §Phase Matrix L18` 明文 "每次 phase 切换重新报告" + §起点 L533 "每次 phase transition 更新 matrix 并报告"，但 execution 从未 emit（architect 子 agent Stage 1 init / phase 切换均未渲染）；§Step 6 只写 "初始化 Phase Matrix（全部 ⏳）"，未把 re-emit on transition 绑定到 A/B/C phase gating，渲染义务悬空。TG msg 599 进一步反馈 "TG 也要回复 Phase Matrix" —— 宏观进度视图对 TG 用户完全缺失。
 - **决定**:
   1. **渲染 locus = orchestrator**（自明采纳）：§Phase Matrix 定义段追加 locus 明示；不下放 subagent。与 `tg-forwarding-expansion.md §D1` 5 类 orchestrator-emitted 事件同一落点纪律；issue 作者明示 "是 orchestrator 职责，不是 subagent"；DEC-013 决定 8 "展现与接收解耦" 边界
