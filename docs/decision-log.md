@@ -35,6 +35,30 @@
 
 ---
 
+### DEC-024 Phase Matrix 渲染 locus + TG 转发绑定（Refines §Phase Matrix + §Step 6 + §Step 5b；issue #79）
+- **日期**: 2026-04-22
+- **状态**: Accepted
+- **上下文**: [issue #79](https://github.com/duktig666/roundtable/issues/79) P3 bug —— 2026-04-21 Level 2 E2E dogfood（PR #61 / PR #78）观察 `commands/workflow.md §Phase Matrix L18` 明文 "每次 phase 切换重新报告" + §起点 L533 "每次 phase transition 更新 matrix 并报告"，但 execution 从未 emit（architect 子 agent Stage 1 init / phase 切换均未渲染）；§Step 6 只写 "初始化 Phase Matrix（全部 ⏳）"，未把 re-emit on transition 绑定到 A/B/C phase gating，渲染义务悬空。TG msg 599 进一步反馈 "TG 也要回复 Phase Matrix" —— 宏观进度视图对 TG 用户完全缺失。
+- **决定**:
+  1. **渲染 locus = orchestrator**（自明采纳）：§Phase Matrix 定义段追加 locus 明示；不下放 subagent。与 `tg-forwarding-expansion.md §D1` 5 类 orchestrator-emitted 事件同一落点纪律；issue 作者明示 "是 orchestrator 职责，不是 subagent"；DEC-013 决定 8 "展现与接收解耦" 边界
+  2. **re-emit 绑定 §Step 6 A/B/C 三类 phase gating**：A 类 producer-pause（3 行 summary 后、菜单前）+ B 类 approval-gate（`AskUserQuestion` 前）+ C 类 verification-chain（`🔄 X → Y` handoff 前）各 emit 9 行全量表格到终端
+  3. **TG 转发折叠进既有事件类 b/d/e 尾段，不新增事件类 f**：b / d 尾段随附 `*Phase*: \`1✅ · 2⏩ · 3🔄 · …\`` 单行进度条；e 仅 `auto-accept`（B 类伴随）/ `auto-go`（A 类伴随）追加，`auto-pick`（非 phase transition）与 `auto-halt` 不追加
+  4. **Matrix 快照形态 = 精简单行进度条**（9 stage 符号序列 ≤120 Unicode codepoints，`·` 分隔）：全量快照对新订阅用户友好；与 DEC-022 事件类 a 分隔符一致
+  5. **节流天然成立**：Phase Matrix 状态仅在 phase transition 时变更 → b/d/e 本就是 transition 事件 → 一一对应；medium pipeline 约 5-7 条 reply 不刷屏
+  6. **终端渲染不变**：§Phase Matrix 9 行全量表格语义保持；TG 单行进度条 + 终端全量表格互补
+  7. **转发边界**：`<decision-needed>` / in-phase 决策 / Q&A 循环 / FAQ sink / 事件类 a / c / b-9 / `auto-pick` / `auto-halt` **不追加 matrix**（非 phase transition 或已独立状态载体）
+  8. **Refines 非 Supersede**：DEC-006 phase gating taxonomy / DEC-013 §3.1a / DEC-018 / DEC-022 / §Step 5b 事件类分类 / sticky 语义 / Phase Matrix 9 stage 表结构全保留
+- **备选**:
+  - **新事件类 f（每 transition 独立 reply 全量快照）**：与事件类 d 重叠（d 已是 C 类 transition 事件）；TG 刷屏压力 + §Step 5b 表面扩张违 DEC-022 "删割裂" 精神；拒绝（评分 27 vs 46）
+  - **新事件类 f（delta-only `stage N: 🔄→✅`）**：与 d 进一步重叠，信息维度无本质差异；拒绝（评分 28 vs 46）
+  - **全部拒 Path 2**：TG 仍无宏观进度视图，用户 msg 599 反馈未闭环；拒绝（评分 43 vs 46）
+  - **subagent 层渲染 / both**：每 subagent prompt 加义务，违 "orchestrator-only" 落点纪律 + 多源 race 风险 + 违 DEC-013 决定 8；拒绝（评分 23/22 vs 47）
+- **理由**: (1) orchestrator locus 与 tg-forwarding-expansion §D1 先例评分同构（47 vs 23）；(2) 折叠进 b/d/e 尾段删 "事件类 f 单点需求" 表面扩张 + 天然节流对齐 b/d/e transition 语义；(3) DEC-006 / DEC-013 / DEC-018 / DEC-022 均 Refines 保留 decision-log append-only；(4) 0 agent / skill prompt 改动（critical_modules 命中但非 prompt 本体；orchestrator 侧改动）；(5) 终端 + TG 双形态互补（全量表格 + 单行进度条）满足两类用户
+- **相关文档**: [docs/design-docs/phase-matrix-render-and-forward.md](design-docs/phase-matrix-render-and-forward.md)（本 DEC 设计文档）、[docs/design-docs/tg-forwarding-expansion.md §3.7](design-docs/tg-forwarding-expansion.md)（Refines 落点）、DEC-006（phase gating taxonomy 边界）、DEC-013 §3.1a（本 DEC 与 §3.1a 并存；`<decision-needed>` 块不追加 matrix 保留 §3.1a 语义）、DEC-022（§Step 5b 事件类 a 格式；本 DEC 不碰 a）、DEC-018（pretty 松弛；本 DEC 继承 markdownv2 结构化）、[issue #79](https://github.com/duktig666/roundtable/issues/79)、PR #61 / PR #78 dogfood observation
+- **影响范围**: `commands/workflow.md` §Phase Matrix 定义段（+1 句 locus + 折叠策略）+ §Step 6 A/B/C 三类 gating 各 +1 句 re-emit 义务 + §Step 5b 事件类表 b / d / e 格式列各追加尾段注 + §起点 L531-533 locus 与义务明示（共 ~8 行改动）；`docs/design-docs/phase-matrix-render-and-forward.md`（new，本 DEC 主设计）；`docs/design-docs/tg-forwarding-expansion.md`（frontmatter + 新 §3.7 + §6 变更记录 + §4 影响文件清单隐含注）；`docs/decision-log.md` 本条置顶；`docs/INDEX.md`（design-docs 新增本条目 + tg-forwarding-expansion §3.7 追注）；`docs/log.md` Step 8 flush。**不改**：4 agent prompt / 2 skill prompt / CLAUDE.md / DEC-006 / DEC-013 / DEC-018 / DEC-022 / DEC-020 / DEC-021 / DEC-023 任何 Accepted 决定 / Phase Matrix 9 stage 表结构 / critical_modules / Resource Access 矩阵 / Progress Event schema / Option Schema / target CLAUDE.md。运行时：TG-driven session phase transition 时 b/d/e reply 尾段出现单行进度条；终端始终全量 9 行表格（原语不变）；纯终端 session 行为同现状
+
+---
+
 ### DEC-023 tester/reviewer/dba 扩展 inline 形态（Refines DEC-005 决定 3）
 - **日期**: 2026-04-22
 - **状态**: Accepted（Refines DEC-005 决定 3，非 Supersede）
