@@ -35,6 +35,37 @@
 
 ---
 
+### DEC-023 tester/reviewer/dba 扩展 inline 形态（Refines DEC-005 决定 3）
+- **日期**: 2026-04-22
+- **状态**: Accepted（Refines DEC-005 决定 3，非 Supersede）
+- **上下文**: [issue #20](https://github.com/duktig666/roundtable/issues/20) P3 —— DEC-005 决定 3 明定 "tester/reviewer/dba 不扩展 inline（大 context 无例外）"，基于 "17 suites / 全仓扫 / 跨库 schema" **大任务**预设。[docs/analyze/subagent-coldstart-overhead-20.md](analyze/subagent-coldstart-overhead-20.md) F2 给出 P4 dogfood 实证：developer subagent 实现几百行 Python CLI wall-clock ≥ 6 分钟 vs 等价 inline < 1 分钟（5× delta；推断冷启 + progress emit 主导）。分析 F4 指出 workflow §6b developer 小任务启发式（单文件 / wall-time <2min / token <20k / 单模块内）已 Accepted 数月，先例存在。analyst 列 (a) 保持现状 / (b) size-gated / (c) 可配置阈值 三选项代价表 + 6 事实层开放问题，不做选型
+- **决定**:
+  1. **形态扩展**：tester / reviewer / dba 在 DEC-005 既有 developer 双形态基础上**同样支持 `inline | subagent`**；默认仍 `subagent`（preserves DEC-005 context 保护纪律）
+  2. **三级切换复用 DEC-005 §3.4.2 机制**（与 developer 同构）：
+     - per-session：用户 prompt `@roundtable:tester inline` / `@roundtable:reviewer inline` / `@roundtable:dba inline`
+     - per-project：target CLAUDE.md `# 多角色工作流配置` 新增可选 `tester_form_default` / `reviewer_form_default` / `dba_form_default`（值 `inline | subagent`）
+     - per-dispatch：`/roundtable:workflow` 在角色派发前 AskUserQuestion，小任务启发式命中 → `inline` = recommended
+  3. **启发式阈值复用 §6b 既有**（**不新增每角色独立阈值**）：单文件 / wall time <2min / token <20k / 单模块内 → `inline` = recommended；否则 `subagent` = recommended。analyst Q5 flagged per-role 调整，本 DEC 推迟为 future issue（实证 deltas 不足；"先最小可行规则，dogfood 校准后再细化" 对齐 DEC-005 备选 "auto 档"拒绝理由的 6 月漂移风险防御）
+  4. **边界**（sticky DEC-005 context 保护）：
+     - `*_form_default` 省略 → `subagent`（向后兼容；现有 target 项目零改动）
+     - 大任务场景（critical_modules 命中 + reviewer 全仓扫 / tester 17 suites / dba 跨库 schema）启发式自然落在 `subagent` 侧；即便用户 per-session 强制 `inline`，orchestrator 不做安全兜底拒绝（用户自担 context 爆风险，同 DEC-005 developer inline 边界纪律）
+     - **research 角色不在本次扩展范围**：research 由 architect skill 派发（DEC-003，非用户 trigger），交互模型与用户可选形态正交；analyst Q6 flagged，本 DEC 明确排除
+  5. **Resource Access 两种形态完全一致**：tester 仍 `tests/*` Write；reviewer / dba 仍只读；DEC-017 relay 主路径对归档 .md 继续生效（reviewer / dba / tester 不 Write 归档 .md 无论形态）
+  6. **Progress**：`inline` 形态整段 skip `## Progress Reporting`（主会话已观察；与 developer inline 对称）
+  7. **Refines DEC-005 非 Supersede**：DEC-005 决定 1/2/4-7 全保留；决定 3 从"仅 subagent（无例外）"refines 为"默认 subagent + 可选 inline（per 3-level switch）"。保 decision-log 单调递增
+  8. **审计**：form 解析为 `inline` 时 phase-gate summary 加行 `<role> dispatched inline (trigger: <per-session | per-project | per-dispatch>)`，与 developer 对称
+- **备选**:
+  - **(a) 保持现状**（DEC-005 决定 3 原文）：零改动；小任务 UX 债务持续；issue #20 body 报 5× 延迟继续（拒绝：analyst F4 已提供 §6b 先例降低漂移风险，现状不再是"简洁最优"）
+  - **(b) size-gated 双形态（orchestrator auto 决定）**：orchestrator 按启发式自动选形态，无 per-project / per-session 声明槽。拒绝：analyst §失败模式 (b) 指出启发式误判大任务为小 → reviewer inline 爆 context；且 DEC-005 备选"auto 档"已拒绝（6 月漂移）。本 DEC 保留 per-dispatch AskUserQuestion 把 final choice 交用户
+  - **per-role 独立阈值（N_tester / N_reviewer / N_dba）**：analyst Q5 提出理由（reviewer token 预算天然高于 developer）。拒绝：当前缺实证 per-role delta；先用统一阈值 dogfood，证明需要差分后再 Refines（"证据驱动，不预支"）
+  - **纳入 research 一并扩展**：拒绝：research 非用户 trigger（DEC-003 明定 architect 派发），与本 DEC 的用户可选形态语义不重叠；且 analyst Q6 flagged 范围外
+  - **Supersede DEC-005 决定 3**：Refines 已足够；Supersede 需全量重写 DEC-005 导致 decision-log 断裂；与 DEC-003/DEC-020 对 D8/§3.3 的 "Refines 非 Supersede" 和谐模式不一致，拒绝
+- **理由**: (1) analyst §F4 发现 developer §6b 先例数月 Accepted 降低了"auto 档"原始拒绝理由的权重；(2) 默认保 `subagent` 向后零破坏（所有现 target 项目无需改 CLAUDE.md）；(3) 三级切换与 developer 同构降低认知负担（1 套机制 4 角色用）；(4) 阈值复用 §6b 避免"4 角色 × 独立阈值"的配置爆炸（analyst 对比表维护成本列）；(5) research 明确排除收敛 scope，避开 DEC-003 正交边界；(6) Refines 语义保 decision-log 单调递增
+- **相关文档**: [docs/analyze/subagent-coldstart-overhead-20.md](analyze/subagent-coldstart-overhead-20.md)（analyst 输入）、[docs/design-docs/execution-form-four-role-extension.md](design-docs/execution-form-four-role-extension.md)（本 DEC 设计文档）、DEC-005（本 DEC Refines 决定 3）、DEC-003（research 边界）、DEC-017（reviewer/tester/dba relay 主路径，两形态均适用）、[issue #20](https://github.com/duktig666/roundtable/issues/20)
+- **影响范围**: `agents/tester.md` / `agents/reviewer.md` / `agents/dba.md`（新增 `## Execution Form` section，与 developer 同构）；`commands/workflow.md` §Step 6b（form gate 从 developer-only 扩到 4 角色；标题改 "Role Form Selection"）；`commands/bugfix.md` §Developer Form Selection（扩到 reviewer / dba / tester）；`docs/claude-md-template.md`（新增 `tester_form_default` / `reviewer_form_default` / `dba_form_default` 3 键 + §角色偏好段 4 角色表述）；`docs/decision-log.md` 本条置顶；`docs/INDEX.md`（design-docs 条目追）；`docs/log.md`（architect + developer 条目）。**不改**：Resource Access 矩阵、Escalation Protocol schema、Progress event JSON schema、DEC-005 其他决定、DEC-003 research 派发路径、DEC-017 relay 契约、agents/research.md。运行时：target 项目省略 3 新键则行为零变化（向后兼容 DEC-005 决定 3 原语义）；声明后可用 inline 降小任务冷启
+
+---
+
 ### DEC-022 §Step 5b 事件类 a 格式从围栏零转义 → markdownv2 hybrid（Refines DEC-013 §3.1a 扩展）
 - **日期**: 2026-04-22
 - **状态**: Accepted（Refines DEC-013 §3.1a 扩展事件分类，非 Supersede）
