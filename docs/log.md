@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## review | orchestrator-preflight-hardening | 2026-04-22
+- 操作者: reviewer (inline, orchestrator-driven)
+- 影响文件: docs/reviews/2026-04-22-orchestrator-preflight-hardening.md (new), docs/INDEX.md (reviews 条目追)
+- 说明: issue #89 reviewer inline 审查；verdict Pass；0 Critical；2 Warning（W-R01 历史 docs 4 份中 rule 5/6 字样 append-only 豁免 / W-R02 多行 $ARGUMENTS 终端视觉溢出设计特性）均不 block；2 Suggestion（S-R01 `set +u` 防御 / S-R02 tester 矩阵对齐已验）；6 Positive（单一权威节 / 无新 DEC 自洽 / #88 领地保护 / research 行修补 / CLAUDE.md #22 引用纪律 / lint 0）；design-doc §2.2/§3/§4 ↔ diff 逐行核对通过；可直接进入 Stage 9 Closeout
+
 ## test-plan | orchestrator-preflight-hardening | 2026-04-22
 - 操作者: tester (inline, orchestrator-driven)
 - 影响文件: docs/testing/orchestrator-preflight-hardening.md (new), docs/INDEX.md (testing 条目追)

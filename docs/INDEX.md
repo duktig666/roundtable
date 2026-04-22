@@ -117,6 +117,7 @@
 - [orchestrator-preflight-hardening.md](design-docs/orchestrator-preflight-hardening.md) — issue #89 L2 orchestrator pre-flight hardening（§Step -1 末尾 Bash echo 块 + §Step 3 起首 7 角色形态表 + §Step 6 rule 4 删除后 5-9 顺延 + §Step 5b 事件类 a scope 扩展 Step -0/-1 pre-flight echo；L1 memory 层已 feedback_roundtable_auto_mode_source / feedback_skill_vs_agent_dispatch 固化，本 L2 回写 prompt 可观测位置；无新 DEC）
 - [decision-log-sustainability.md](testing/decision-log-sustainability.md) — issue #84 DEC-025/026 对抗测试（18 cases：5 Critical / 9 Warning / 6 Suggestion；verdict Pass 经 developer post-fix F1-F4）
 - [2026-04-22-decision-log-sustainability.md](reviews/2026-04-22-decision-log-sustainability.md) — issue #84 DEC-025/026 reviewer 审查（1 Critical C-R01 DEC-020 header regression 已修复 + 5 Warning + 5 Suggestion；verdict Pass-with-post-fix）
+- [2026-04-22-orchestrator-preflight-hardening.md](reviews/2026-04-22-orchestrator-preflight-hardening.md) — issue #89 reviewer inline 审查（verdict Pass；0 Critical；2 Warning：历史 docs rule 编号豁免 / 多行 $ARGUMENTS 设计特性；2 Suggestion / 6 Positive）
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
 
