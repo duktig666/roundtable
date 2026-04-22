@@ -84,6 +84,8 @@ echo '{"ts":"<iso-utc>","role":"reviewer","dispatch_id":"{{dispatch_id}}","slug"
 
 ## 审查维度
 
+**门槛合规（DEC 专项）**：PR 新增 / 修改 `decision-log.md` DEC 条目时必检 —— 新 DEC 是否命中 `decision-log.md` §开立门槛 5 类必开 + 不踩 Red Flags 负例反模式。严重度按 reviewer judgement 归类（同下文 🔴/🟡/🔵 三级）。
+
 **🔴 Critical（必须修）**：
 - 资金/账户/权限等业务逻辑错误
 - 整数溢出/精度丢失

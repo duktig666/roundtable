@@ -66,6 +66,12 @@ argument-hint: [target project name or path, optional]
 
 **定位**：本节是 `decision-log.md` 元规则（门槛 + 铁律 + 状态机）的**执行层审查工具**。机械判定条款全进本节；门槛类 judgement（某 DEC 是否真属 5 类必开）留 architect / reviewer。
 
+**实施共性**（L6.1-L6.5 共用，各子节不再重述）：
+
+- **code-fence-aware 扫描**：skip 位于 ` ```markdown ` / ` ``` ` 围栏内的 `### DEC-` 行（含 template `### DEC-[编号] [标题]`）—— 避免模板 / 示例误报
+- **DEC 编号 regex**：`DEC-\d{3}`（非 `DEC-\w+`）—— 避免占位符 `DEC-xxx` / `DEC-MMM` 误报
+- **Grandfather DEC-001~020**：字面值 / 字符数 / 必填字段检查跳过 DEC-001 ≤ NNN ≤ DEC-020（含 DEC-017 Amendment）；影响范围 ≤10 行纪律单独走 L6.2 自有范围 DEC-013~020；L6.4 悬空引用**例外全量扫描**（引用语义不受 grandfather 影响）
+
 #### L6.1 状态流转
 
 - 长期 **Proposed** > 30 天未决 → 告警「长期 Proposed：建议评估 Accepted / Rejected」
@@ -79,13 +85,14 @@ argument-hint: [target project name or path, optional]
 - 段内行数（按字面换行符）> 10 → 告警「影响范围超 10 行，建议移 design-doc `## 影响文件清单`」
 - **不回溯** DEC-013~020（铁律 5 声明不回溯；lint 扫描跳过 DEC-013 ≤ NNN ≤ DEC-020）
 
-#### L6.3 状态行字面值 + ≤60 字符
+#### L6.3 状态行字面值 + ≤60 字符 + 新 DEC 必标 Provisional
 
 - 扫每条 DEC 的 `**状态**:` 行
 - 必须以 6 种字面值之一起首：`Proposed` / `Provisional` / `Accepted` / `Superseded by DEC-xxx` / `Rejected`（可并列附 `Refined by DEC-xxx`）
 - "起首" 判定字符终止于第一个全角/半角括号前（遇 `（` / `(` 即停）；括号内补语不计入字面值匹配
 - 状态行总字符 > 60 → 告警「状态行超 60 字符，建议附加上下文放正文」
-- **不回溯**（DEC-025 决定 10 扩用）：跳过 DEC-001 ≤ NNN ≤ DEC-020 的字符数与字面值检查（含 DEC-017 Amendment）。grandfather clause 仅适用字面值/字符数；悬空引用 L6.4 仍全量扫描
+- **新 DEC（落盘日 ≤ 7 天）状态行必须起首 `Provisional`**；否则告警「新 DEC 漏标 Provisional」
+  - 判定依据：DEC `**日期**` 字段 vs 当前日期差 ≤ 7 天
 
 #### L6.4 Refined by / Superseded by 引用完整性
 
@@ -98,8 +105,6 @@ argument-hint: [target project name or path, optional]
 - 每条 DEC 必含 `**日期**` / `**状态**` / `**上下文**` / `**决定**` / `**相关文档**` / `**影响范围**` **6 项**
 - 任一缺失 → 告警「DEC-NNN 缺字段：<清单>」
 - `**备选**` / `**理由**` 非强制（有则检，无则跳）
-- **实施硬约束**：扫描 code-fence 感知 —— skip 位于 ` ```markdown ` / ` ``` ` 围栏内的 `### DEC-` 行（含 template 模板 `### DEC-[编号] [标题]`）；regex 用 `DEC-\d{3}` 而非 `DEC-\w+`（避免占位符 `DEC-xxx` / `DEC-MMM` 误报，L6.4 同此规则）
-- **不回溯**（grandfather）：DEC-017 Amendment 缺 `**相关文档**` 属历史格式，跳过必填字段检查（同 L6.3 不回溯）；DEC-001 ≤ NNN ≤ DEC-020 全部 grandfather
 
 ### 7. exec-plans 过期审计
 - 扫描 `{docs_root}/exec-plans/active/` 下每个计划

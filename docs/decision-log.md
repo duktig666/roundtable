@@ -37,6 +37,8 @@
 2. **冲突报 diff**：新决策与旧决策冲突时，必须在新条目中引用旧条目编号
 3. **编号递增**：DEC 编号只增不减，不复用
 4. **clarification 不开新 DEC**（自 2026-04-22 起）：落盘后发现的 tester/reviewer findings / 文本补丁 / 边角场景 id 格式等细化 → **inline append 父 DEC 末尾**并注日期（形如 `**post-fix YYYY-MM-DD（issue #N）**：...`），不新开 DEC 也不另立 Amendment 小节。仅当改动引入新 tradeoff / 新备选评估 / 跨 DEC 语义重构时才开新 DEC
+
+   **post-fix 2026-04-22（issue #97 F2）tradeoff 判定归属**：由 architect 主张、reviewer 终审；architect 与 reviewer 分歧 → 升级给用户 `AskUserQuestion`
 5. **影响范围 ≤10 行**（自 DEC-009 决定 10 立，本纪律不回溯 DEC-013~020）：超出移到关联 design-doc；运行时行为变化与"不改"清单例外项放正文末段即可
 6. **默认不改清单**（自 2026-04-22 起）：以下为 roundtable 架构稳定边界，新 DEC 默认不改，**仅在破例时显式声明**「改 X」，无需每条重复"不改"声明：
    - DEC-001 D1-D9（plugin 分发 / 双形态 / 零 userConfig / scope=user / 目标项目识别）
@@ -565,6 +567,8 @@
 - **理由**: (1) Minimal header 成本最低，直接解决 issue #18 根因 3（目标项目 decision-log 无约定 header）；(2) "第一个 `### DEC-` 行"通用锚点对所有状态单一规则定位，无边界情况；(3) 约定通过文件自身 header 固化，比纯靠 SKILL.md 规则约束更 robust（非 architect 路径手改也能看到约定）；(4) architect 是 decision-log 唯一 Writer，规则落点单一 —— 改 SKILL.md 即完全覆盖；(5) 与 log.md 的"顶部最新"表述对称，用户心智一致
 - **相关文档**: docs/design-docs/decision-log-entry-order.md（设计主文档 + 决策量化评分）、issue #18、DEC-002（Resource Access 权限声明上游 —— architect 是 decision-log 唯一 Writer）
 - **影响范围**: `skills/architect/SKILL.md` 补 +12 行（L19 / L59 / L165 各补一句，§完成后 新增 ### decision-log 条目顺序约定 小节）；`docs/claude-md-template.md` L46 改 1 行；`docs/decision-log.md` 新增本条目（置顶）；`docs/design-docs/decision-log-entry-order.md` 新建。不改 DEC-001 ~ DEC-010；不改 5 个 agent prompt；不改 `commands/workflow.md` / `commands/bugfix.md`；不改 target CLAUDE.md 业务规则边界。运行时：下次 `/roundtable:workflow` 在目标项目写新 DEC 时置顶（最新在前），首次创建则先写 Minimal header
+
+**post-fix 2026-04-22（DEC-025 副作用，issue #97 F3）**：DEC-025 决定 8 在 `skills/architect/SKILL.md` §阶段 2 第 8 步前插入"开立前自问 §开立门槛"后，本 DEC 决定 1 所引 "§阶段 2 第 8 步" 字面已指向该自问句；原"新决策 → 追加 `decision-log.md`（置顶 / 最新在前）"内容下移为 step 9。语义按 step 9 理解，锚点规则不变。
 
 ---
 

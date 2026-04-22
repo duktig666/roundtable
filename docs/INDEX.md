@@ -174,7 +174,7 @@
 
 ### bugfixes
 
-（Tier 2 postmortem 暂无条目；DEC-014）
+- [batch-97-dogfood-findings.md](bugfixes/batch-97-dogfood-findings.md) — issue #97 batch follow-up for #84（DEC-025/026 落盘后 dogfood findings）：5 改动合并 1 PR（F1 lint L6.3 Provisional 首值 / F2 铁律 4 tradeoff 归属 / F3 DEC-011 锚点漂移 post-fix / F4 lint §6 preface 重构 / F5 reviewer §审查维度 加门槛合规）；Fixed；supersedes #91/92/93/95/96
 
 ## 主题 slug 约定
 
