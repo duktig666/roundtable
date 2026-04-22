@@ -3,8 +3,8 @@ slug: parallel-decisions
 source: issue #28
 created: 2026-04-21
 status: Draft
-decisions: [DEC-016]
-description: orchestrator 无依赖决策批量化（Step 1 size / Step 3.4 dispatch mode / Step 6b developer form 合并为单次 multi-question AskUserQuestion），新增 §Step 4b Decision parallelism judgment。
+decisions: [DEC-016, DEC-021]
+description: orchestrator 无依赖决策批量化（Step 1 size / Step 3.4 dispatch mode / Step 6b developer form 合并为单次 multi-question AskUserQuestion），新增 §Step 4b Decision parallelism judgment。DEC-021 Refines §3.2 追加歧义重问上限 = 3 + 审计 halt token。
 ---
 
 # Orchestrator Decision Parallelism 设计文档
@@ -92,8 +92,19 @@ AskUserQuestion({
 
 - 每个 question 独立尝试 label 匹配（fuzzy：`A` / `选 A` / `go with size=medium`）
 - 匹配成功 → 该 decision 记录生效
-- 匹配失败 / 模糊 / 用户 cancel → 该 decision **单独降级重问**（emit 单 question AskUserQuestion 或 text `<decision-needed>`）
+- 匹配失败 / 模糊 / 用户 cancel → 该 decision **单独降级重问**（emit 单 question AskUserQuestion 或 text `<decision-needed>`）；重问走 [`docs/design-docs/decision-mode-switch.md` §3.6](decision-mode-switch.md) 层级澄清
 - **不回滚已答决策**（与 DEC-006 "用户自由文本驱动 / 不静默替决策" 一致）
+
+**歧义重问上限 = 3（DEC-021 Refines 本节）**：per-question 降级重问有硬上限，防 unbounded retry 劫持 orchestrator：
+
+- orchestrator 对每个降级的 question **独立计数**歧义重问轮次（session 内维护，跨 session 不持久化）
+- 第 1-3 轮按 §3.6 层级澄清（原语义不变）
+- 第 4 轮开始 orchestrator emit 审计行 `🔴 halt: q<n> ambiguity retry exhausted after 3 rounds`（`<n>` = batch 内 question 1-based 索引，与 DEC-020 fallback 块 id `batch-<slug>-<n>-q<m>` 的 `<m>` 对齐），**停止该 question** 的 `AskUserQuestion` / `<decision-needed>` 重问
+- skill-level fallback 交回主会话，等用户**自由文本**继续（非弹窗 / 非 decision block）
+- 其他已答 / 未耗尽的 question 不受影响（D3=A 语义保留）
+- active channel sticky 下审计行按 §Step 5b 事件类 e 规则（`markdownv2` 粗体单条 reply）转发；不走 §3.1a `<decision-needed>` pretty 格式
+
+**与 DEC-006 关系**：DEC-006 "不静默替决策" 禁止 orchestrator 自动选择，**不等价于** unbounded retry —— 用户持续模糊时终止重问并交回主会话等自由文本，仍尊重 "用户驱动" 心智（主会话里用户依然可以决策，只是不再用 `AskUserQuestion` / `<decision-needed>` 形态）。
 
 ### 3.3 Auto_mode 交互（D6 默认）
 
@@ -203,6 +214,7 @@ A 胜在 UX + 与现有心智一致；per-question 解析额外成本小。
 | 日期 | 变更 | 原因 |
 |------|------|------|
 | 2026-04-21 | 初稿 Draft | issue #28 分析 + 3 决策点闭合 |
+| 2026-04-22 | §3.2 追加歧义重问上限 = 3 + `🔴 halt: q<n> ambiguity retry exhausted after 3 rounds` 审计 token + skill-level fallback | issue #60 / DEC-021 Refines DEC-016 §3.2（reviewer R-W-02 follow-up） |
 
 ## 7. 待确认项
 

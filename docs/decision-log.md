@@ -35,6 +35,33 @@
 
 ---
 
+### DEC-021 DEC-016 §Step 4b 歧义重问上限 = 3（Refines DEC-016 §3.2）
+- **日期**: 2026-04-22
+- **状态**: Accepted（Refines DEC-016 §3.2，非 Supersede）
+- **上下文**: [issue #60](https://github.com/duktig666/roundtable/issues/60) P3 —— PR #58 reviewer R-W-02（`docs/reviews/2026-04-21-parallel-decisions.md`）identified：DEC-016 §Step 4b per-question 歧义降级重问路径（`commands/workflow.md:261`）走 `docs/design-docs/decision-mode-switch.md` §3.6 层级澄清时**无重问 cap**；用户对同一 question 连续给模糊答复可把 orchestrator 困在 unbounded re-ask loop。DEC-006 "不静默替决策" 纪律禁止 orchestrator 自动选择，但**不等价于** unbounded retry —— 持续模糊到一定轮次需要换交互形态（非弹窗 / 非 decision block）把控制权交回主会话。
+- **决定**:
+  1. **Retry cap = 3**（自明采纳）：orchestrator 对每个降级重问的 question **独立计数**歧义轮次（session 内维护，跨 session 不持久化；batch 内多 question 各自独立）；第 1-3 轮按 §3.6 层级澄清（原语义不变）；第 4 轮开始停止该 question 的 `AskUserQuestion` / `<decision-needed>` 重问
+  2. **Halt token 字面** `🔴 halt: q<n> ambiguity retry exhausted after 3 rounds`（自明采纳）：`<n>` = batch 内 question 1-based 索引，与 DEC-020 fallback 块 id `batch-<slug>-<n>-q<m>` 的 `<m>` 对齐；非 `🔴 auto-halt`（DEC-015 / DEC-020 Auto-pick 事件）、非 `🔴 halt`（通用通配），区分用途避免 grep 混淆
+  3. **Skill-level fallback = 主会话等自由文本**（自明采纳）：停止重问后 orchestrator 把控制权交回主会话，等用户自由文本（非 `AskUserQuestion` / 非 `<decision-needed>`）；用户依然可以在主会话里用 prose 决策该 question，只是不再弹窗 / 不再 decision block 形态——尊重 DEC-006 "用户驱动" 心智的同时避免 UI loop 劫持
+  4. **其他已答 / 未耗尽 question 不受影响**（D3=A Per-decision 语义保留）：retry cap 是 per-question 独立的，不触发整组 halt；batch 内其他 question 正常推进
+  5. **审计转发**：halt token 按 §Step 5b 事件类 e 规则单条 `markdownv2` 粗体 reply 转发 active channel sticky；不走 §3.1a `<decision-needed>` pretty 格式（非 decision block）
+  6. **`commands/workflow.md` 落点**：§Step 4b 失败处理段追加"歧义重问上限 = 3"子句；**不新增 Step 5b 事件类**（halt token 走既有事件类 e 格式，最小表面）
+  7. **Refines DEC-016 §3.2 非 Supersede**：DEC-016 其他 Accepted 决定（D1=B / D2=A / D3=A 失败处理主体 / max_concurrent=3）全保留；DEC-020 Refines §3.3 并存不冲突
+  8. **不改**：DEC-013 §3.1a / §3.1.1 / DEC-015 Auto-pick / DEC-018 pretty 松弛 / DEC-020 audit-first + 1+N fan-out + fallback 块 id 格式 / §Step 5b 事件类 a-d 格式 / 4 agent prompt 本体 / 2 skill prompt 本体 / Phase Matrix / critical_modules / target CLAUDE.md
+- **备选**（cap 值）:
+  - **A cap = 3 ★**：3 轮 §3.6 层级澄清足够覆盖 normal miscommunication；reviewer R-W-02 建议值；与 DEC-016 `max_concurrent_decisions = 3` / DEC-003 `≤4 research fan-out` 心智同源（working memory 上限）
+  - **B cap = 2**：更严格，但 §3.6 层级澄清本身设计为 3 步 ladder（首次歧义 / 多块共存歧义 / 用户明确不决策）；cap=2 可能不足
+  - **C cap = 5 / 无 cap**：宽容度高但重新引入 unbounded retry 隐患
+- **备选**（fallback 形态）:
+  - **A skill-level 交回主会话等自由文本 ★**：最小 UI 改动，尊重 DEC-006 "用户驱动"，用户可继续 prose 决策
+  - **B 自动选 `recommended` / 自动 cancel 该 question**：违反 DEC-006 "不静默替决策"，拒
+  - **C 整组 halt workflow / exit**：过度摧毁已完成决策，拒
+- **理由**: (1) cap=3 与 DEC-016 / DEC-003 working memory 心智同源、reviewer 建议值、3 步 §3.6 ladder 正好跑完；(2) halt token 字面与 DEC-020 `batch-<slug>-<n>-q<m>` 索引对齐便于 grep 串联 batch 上下文；(3) skill-level fallback 等自由文本是最小 UI 改动 + 尊重 DEC-006 用户驱动 + 避免 UI loop 劫持；(4) per-question 独立计数与 D3=A Per-decision 语义一致；(5) 复用 §Step 5b 事件类 e 格式不开新事件类 minimize 表面；(6) Refines 非 Supersede 保 DEC-016 append-only 语义 + 与 DEC-020 并存不冲突；(7) 0 prompt 本体改动（4 agent / 2 skill / CLAUDE.md / Phase Matrix 全不动）
+- **相关文档**: [docs/design-docs/parallel-decisions.md §3.2](design-docs/parallel-decisions.md)（Refines 落点）、DEC-016 §3.2（本 DEC Refines）、DEC-020（§3.3 并存 Refines 先例）、DEC-006（"不静默替决策" 纪律边界）、DEC-013 §3.1a / §3.1.1（事件类 e 转发规则 / 多块串行 emit 保留）、DEC-015（Auto-pick `🔴 auto-halt` 事件区分）、[issue #60](https://github.com/duktig666/roundtable/issues/60)、PR #58 Reviewer R-W-02（`docs/reviews/2026-04-21-parallel-decisions.md`）
+- **影响范围**: `commands/workflow.md` §Step 4b 失败处理段（+1 子句，~3 行）；`docs/design-docs/parallel-decisions.md` §3.2 追加 retry cap 子节 + frontmatter `decisions:` 追加 DEC-021 + §6 变更记录；`docs/decision-log.md`（本条置顶）。**不改**：4 agent prompt / 2 skill prompt / Phase Matrix / critical_modules / target CLAUDE.md / DEC-016 其他决定 / DEC-020 / DEC-013 / DEC-018 / Step 5b 事件类分类。运行时：per-question 歧义重问轮 4 触发 `🔴 halt: q<n> ambiguity retry exhausted after 3 rounds` 审计 + skill-level fallback 交回主会话等自由文本，其他 question 不受影响
+
+---
+
 ### DEC-020 DEC-016 auto-halt text-mode render 形态命名（Refines DEC-016 §3.3）
 - **日期**: 2026-04-21
 - **状态**: Accepted（Refines DEC-016 §3.3，非 Supersede）
