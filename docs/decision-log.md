@@ -35,6 +35,26 @@
 
 ---
 
+### DEC-022 §Step 5b 事件类 a 格式从围栏零转义 → markdownv2 hybrid（Refines DEC-013 §3.1a 扩展）
+- **日期**: 2026-04-22
+- **状态**: Accepted（Refines DEC-013 §3.1a 扩展事件分类，非 Supersede）
+- **上下文**: [issue #77](https://github.com/duktig666/roundtable/issues/77) —— 2026-04-21 issue #61 Level 2 E2E dogfood 观察 architect 转发 Step 0 context + Step 1 size/pipeline 判定到 TG 实际渲染为纯文本 bracketed key=value，与 §Step 5b 事件类 a "``` 围栏零转义" 规则漂移。TG session（message_id=428 先例）证实围栏 key\:value 块阅读效果差。用户对比三方案后选 markdownv2 hybrid（粗体 key + inline code value + bullet），评价"这个格式看起来可以"（accepted 2026-04-21）
+- **决定**:
+  1. **事件类 a 格式改 `markdownv2` 结构化**：粗体标题 `*Context Detection*` + bullet 清单（`• *key*: \`value\``；同行并列多字段用 `·` 分隔）；Step 1 size / pipeline / mode 同块续列
+  2. **事件类 b-9（Stage 9 Closeout bundle）保留围栏不变**：因 3 section >3500 字符拆包 2-3 reply 的长文本场景与单短块启发式正交
+  3. **`commands/workflow.md` 落点**：§Step 5b 事件类表第 a 行格式列；第 65 行 Step 0 forwarding 行内注；Ordering / 批次规则 a+Step 1 合并行；"格式按事件类硬绑定" F4 澄清行
+  4. **设计文档落点**：`docs/design-docs/tg-forwarding-expansion.md` §3.1 event class (a) 描述 + §3.1 格式启发式块；追加新 §3.6 记录本 DEC；frontmatter `decisions:` 追加 DEC-022
+  5. **Refines DEC-013 §3.1a 扩展（issue #48）非 Supersede**：DEC-013 任何 Accepted 决定、sticky 语义、§Step 5b 事件类 b / b-9 / c / d / e 格式全保留
+  6. **不改**：DEC-013 任何其他 Accepted 决定 / DEC-018 pretty 松弛 / §Step 5b 事件类 b / b-9 / c / d / e 格式 / sticky channel 语义 / 4 agent prompt 本体 / Phase Matrix / critical_modules / target CLAUDE.md
+- **备选**:
+  - **A 本决定 markdownv2 hybrid（路径 1）**：★ 用户已验收 + 与 b/c/d 统一 + 删"唯一围栏特例"割裂
+  - **B 保规则不变修 agent prompt 让其真走围栏（路径 2）**：阅读体验差且需定位未执行规则的 prompt 段，工作量大；拒绝
+- **理由**: (1) 用户已验收（issue #77 body + 2026-04-21 TG session）；(2) 与事件类 b/c/d 统一 markdownv2 删割裂；(3) 启发式「纯键值 → 围栏」仅对真正长纯 YAML 块（e 批量 / b-9 长文本）仍有效，Step 0 context 字段少且含 prose 尾注归 markdownv2 更合适；(4) Refines 非 Supersede 保 DEC-013 §3.1a append-only 语义
+- **相关文档**: [docs/design-docs/tg-forwarding-expansion.md §3.6](design-docs/tg-forwarding-expansion.md)、DEC-013 §3.1a（本 DEC Refines）、DEC-018、[issue #77](https://github.com/duktig666/roundtable/issues/77)、PR #61 dogfood observation
+- **影响范围**: `commands/workflow.md`（§Step 5b 事件类表第 a 行 + 第 65 行 + Ordering 合并行 + F4 行；~4 行改动）；`docs/design-docs/tg-forwarding-expansion.md`（frontmatter + §3.1 event (a) + §3.1 格式启发式 + 新 §3.6 + 变更记录）；`docs/decision-log.md` 本条置顶；`docs/INDEX.md` + `docs/log.md` 追加。**不改**：DEC-013 任何其他 Accepted 决定 / §Step 5b 事件类 b / b-9 / c / d / e 格式 / sticky 语义 / 4 agent prompt / Phase Matrix / critical_modules / target CLAUDE.md。运行时：TG-driven session Step 0 context + Step 1 判定块由原围栏零转义改为 `markdownv2` 结构化 reply
+
+---
+
 ### DEC-021 DEC-016 §Step 4b 歧义重问上限 = 3（Refines DEC-016 §3.2）
 - **日期**: 2026-04-22
 - **状态**: Accepted（Refines DEC-016 §3.2，非 Supersede）
