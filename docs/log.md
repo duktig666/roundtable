@@ -14,6 +14,16 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## decide | coding-principles-revert-to-claudemd | 2026-04-22
+- 操作者: 用户
+- 影响文件: docs/design-docs/coding-principles.md (重定位 Active → Reference-Template 附 §4 决策历史); docs/INDEX.md (条目同步); agents/developer.md / tester.md / reviewer.md / dba.md (revert `## Coding Principles` section); skills/architect/SKILL.md / skills/analyst/SKILL.md (同); roundtable/CLAUDE.md (revert Rule A/B)
+- 说明: 阶段 C 撤销，改走用户 CLAUDE.md 路径。关键发现：CLAUDE.md 自动传导到 subagent cwd 层级（本会话实测验证），plugin 内嵌反造成 DRY 违反 + 外部使用者被强加风格 + 6 处同步 drift 风险。rsw 本仓库在 /data/rsw/CLAUDE.md §通用规则 §编码原则 段启用四原则；roundtable plugin 保持工作流中立。coding-principles.md 降级为"推荐模板"以供外部使用者按需复制。
+
+## design | coding-principles | 2026-04-22
+- 操作者: architect (inline) + reviewer (subagent, orchestrator relay-free audit)
+- 影响文件: docs/design-docs/coding-principles.md (new); docs/INDEX.md (design-docs 条目追)
+- 说明: 六角色共用四条编码基线 P1-P4（Think Before / Simplicity / Surgical / Goal-Driven，源自 andrej-karpathy-skills）；仅作人类设计 + review 载体，agent 不 Read，落地走 6 prompt 内嵌（§4.1 否决 _helper 共享模式：4 行静态文本不值每派发额外 6 Read）。Reviewer audit 2 Critical + 4 Warning + 3 Suggestion 全部已修（C1 分级误引 DEC-009 改 agents/reviewer.md 三档；C2 §4.2 插入位点校准到实际 `## 职责`；W1-4 + S1-4 并入同轮）。Draft 状态；阶段 C（批量改 6 agent/skill prompt 内嵌）另起 workflow 轮次。**本条已被 2026-04-22 revert 决策 supersede（上一条）**，保留作审计轨迹。
+
 ## fix | step7-relay-write-failure-ux | 2026-04-21
 - 操作者: developer (inline)
 - 影响文件: commands/workflow.md (§Step 7 Relay contract bullet 6 新增)

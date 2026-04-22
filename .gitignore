@@ -23,6 +23,10 @@ Thumbs.db
 *.log
 logs/
 
+# Orchestrator runtime progress streams (非入库中间产物)
+docs/progress/
+docs/log.md.progress
+
 # Dev scratch
 scratch/
 tmp/
