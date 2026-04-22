@@ -13,6 +13,7 @@ Thumbs.db
 .claude/settings.local.json
 .claude/agent-memory/
 .claude/agent-memory-local/
+.claude/worktrees/
 # .claude/rules/ 若未来使用，需团队共享，不忽略
 
 # 个人 CLAUDE.md 覆盖（不入库）
