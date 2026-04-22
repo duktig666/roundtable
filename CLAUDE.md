@@ -55,3 +55,4 @@ roundtable 自身设计可横向参考以下仓库，遇到跨角色编排 / ski
 | 新增用户产出文档类别 | 同步更新 Step 7 Index Maintenance "identify category" 列表 |
 | `gh issue create` | 必加 `P0/P1/P2/P3` 标签（P0 阻塞/数据损坏；P1 主干/UX；P2 质量/缺口；P3 优化）|
 | 评估 issue 顺序 | 先 priority（P0→P3），同级再看依赖 / dogfood 串联 |
+| 改 skill/agent/command prompt 本体（行内 DEC/issue 引用纪律；#22）| 禁新增"仅 maintainer 可溯源"类括注：`（DEC-xxx）` 标签 / `（DEC-xxx §y.z）` 行内 / `issue #nn` 行内。白名单：跨文档 `详见 docs/xxx` 跳转、`file:line` 源码位置、Accepted DEC 原文段落。新 DEC 落 prompt 时全文只留 1 处锚点 ref，其余靠上下文自释；扩既有规则禁旧句反复加括注。回归监控 `grep -cE "DEC-[0-9]+\|§[0-9]" <file>` per-file baseline，单文件回升 >20% 或 `skills/+agents/+commands/` 合计 ≥ #22 旧快照（28）→ 开 follow-up audit issue 走 #22 方法论 |
