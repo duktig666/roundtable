@@ -1,51 +1,58 @@
 # CLAUDE.md
 
-roundtable plugin：多角色 AI 开发工作流 Claude Code plugin。将 analyst / architect / developer / tester / reviewer / dba 六角色打包为可安装组件，适配不同技术栈项目。
+roundtable plugin：analyst / architect / developer / tester / reviewer / dba / research 七角色多角色 AI 开发工作流 Claude Code plugin。
 
 ## 通用规则
 
 - **语言**：代码英文、注释中文、文档中文、回答中文
-- **Plugin prompt 文件本体**（`skills/*.md` / `agents/*.md` / `commands/*.md`）**以中文为主，关键专有名词保留英文**（工具名、字段名、DEC-xxx、env var、`Task` / `Monitor` / `AskUserQuestion` 等 Claude Code / plugin 术语不翻译）—— 约定 2026-04-19 更新，见 `feedback_roundtable_prompt_language`
+- **Plugin prompt 文件本体**（`skills/*.md` / `agents/*.md` / `commands/*.md`）**英文**，见 `feedback_roundtable_prompt_language`
 - **用户产出文档**（`docs/design-docs/` / `docs/decision-log.md` / `docs/log.md`）保持**中文**
 - **GitHub Issue / PR 标题**：英文；body / 评论可中英混合
-- **架构决策需确认**：任何影响 DEC-001（D1-D9）的改动必须走 DEC-xxx Superseded 流程
+- **架构决策需确认**：影响 DEC-001（D1-D9）的改动必须走 DEC-xxx Superseded 流程，不删旧条目
 
----
+## 设计参考
 
-# 多角色工作流配置
+roundtable 自身设计可横向参考以下仓库，遇到跨角色编排 / skill 拆分 / progress 事件等取舍时先看他们怎么做：
 
-> 本 section 由 roundtable plugin 自读。roundtable 本身的开发也走 roundtable 工作流（递归 dogfood）。
+- **superpowers** — https://github.com/obra/superpowers
+- **gstack** — https://github.com/garrytan/gstack
 
-## critical_modules（tester / reviewer 必触发）
+## 多角色工作流配置
 
-- **Skill / agent / command prompt 文件本体（含 `skills/_detect-project-context.md` 与 `skills/_progress-content-policy.md` 共享 helper）**：任何 bug 会传播到所有下游 `/roundtable:workflow` 调用
-- **Resource Access matrix**：权限声明错漏会在并行派发时 race 或角色越权
-- **Escalation Protocol JSON schema**：格式改错导致 orchestrator 无法解析，subagent 决策 relay 失效
-- **`_detect-project-context` 4 步检测逻辑**：错了整个 workflow 链路起不来，所有 target_project 识别失败
-- **AskUserQuestion Option Schema**：schema 偏差让弹窗选项失去 rationale / tradeoff / recommended，用户难以决策
-- **workflow command Phase Matrix + Step 4 Task 并行判定树 + Step 4b 决策并行判定树（DEC-016） + phase gating taxonomy (DEC-006)**：编排状态、Task 派发 / 决策批量化的并行安全性、phase transition 节奏（producer-pause / approval-gate / verification-chain）的核心
-- **Progress event JSON schema (DEC-004)**：所有 subagent 的进度 emit 依赖此 schema；schema 偏差让 orchestrator Monitor / jq 解析失败、主会话失去实时感知
-- **Developer execution-form switching rules (DEC-005)**：切换规则（per-session @声明 / per-project `developer_form_default` / per-dispatch AskUserQuestion）错位会导致 inline/subagent 选择错位，UX 与 context 风险同时受影响
+> 本 section 由 roundtable plugin 自读。roundtable 自身开发走 roundtable 工作流（递归 dogfood）。
 
-## 工具链覆盖
+### critical_modules（tester / reviewer 必触发）
 
-> roundtable 本身是纯 prompt 包，无传统 build/test 链路。
+| 模块 | 影响面 |
+|------|--------|
+| skill / agent / command prompt 本体（含 `_detect-project-context.md` / `_progress-content-policy.md`） | bug 传播到所有下游 `/roundtable:workflow` |
+| Resource Access matrix | 权限错漏 → 并行派发 race 或越权 |
+| Escalation Protocol JSON schema | 格式错 → orchestrator 无法解析 subagent 决策 relay |
+| `_detect-project-context` 4 步检测 | 错 → 全链路 target_project 识别失败 |
+| AskUserQuestion Option Schema | schema 偏差 → 选项失去 rationale/tradeoff/recommended |
+| workflow Phase Matrix + Step 4 Task 并行判定 + Step 4b 决策并行（DEC-016）+ phase gating（DEC-006） | 编排状态 / 并行安全 / phase transition 核心 |
+| Progress event JSON schema（DEC-004） | 所有 subagent emit 依赖；偏差 → Monitor/jq 解析失败 |
+| Developer execution-form switching（DEC-005） | 切换规则错位 → inline/subagent 选择错位 |
 
-- **primary_lang**: markdown（含 YAML frontmatter）
-- **lint_cmd**: `grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/`（target-project 名 / 外部路径硬编码扫描，应 0 命中。**DEC-00X 引用本就合法**，不再扫 —— 过去误把 DEC-003/004/005 当"未完成 DEC 泄漏"是规则 bug）
-- **test_cmd**: dogfood run —— `/roundtable:workflow` 在 target 项目跑一轮做 E2E 验证（见 `docs/testing/p4-self-consumption.md` 样例）
-- **build_cmd**: N/A
-- **dev_cmd**: `claude --plugin-dir <path-to-roundtable-clone>`（本地测试 plugin；将 `<path-to-roundtable-clone>` 替换为本地仓库绝对路径）
+### 工具链
 
-## 条件触发规则
+- **primary_lang**：markdown（YAML frontmatter）
+- **lint_cmd**：`grep -rnE "gleanforge|dex-sui|dex-ui|\bvault/|\bllm/" skills/ agents/ commands/`（target-project 名 / 外部路径硬编码，应 0 命中；DEC-00X 引用本就合法，不扫）
+- **test_cmd**：dogfood —— `/roundtable:workflow` 在 target 项目跑一轮 E2E（样例见 `docs/testing/p4-self-consumption.md`）
+- **build_cmd / dev_cmd**：N/A ∕ `claude --plugin-dir <本地 roundtable 仓库绝对路径>`
 
-- 修改 skill / agent / command prompt 本体 → 必须跑 lint_cmd 硬编码 grep 扫描，0 命中才可合并
-- 新增或修改 DEC → 必须评估与已有 Accepted DEC 的冲突，走 Superseded 流程（不删旧条目）
-- 修改任一 agent 的 Resource Access 矩阵 → 必须 review 其他 3 个 agent 的对应列保持纪律一致
-- 新增 agent / skill → 必须完整加 `## Resource Access` matrix + `## Escalation Protocol`（agent 专属）或 `## AskUserQuestion Option Schema`（skill 专属）
-- 跨阶段约束变动 → 必须同步更新 `docs/exec-plans/active/roundtable-plan.md` §跨阶段约束章节
-- 修改 `_detect-project-context.md` → 必须同步 review 所有 5 个调用方（`commands/workflow.md` / `commands/bugfix.md` / `commands/lint.md` / `skills/architect.md` / `skills/analyst.md`）
-- 新增或修改 Phase Matrix 的 stages → 必须同步更新 `commands/workflow.md` §Step 3 artifact chain 和 `docs/INDEX.md` 的 6 类 orphan 扫描清单
-- 新增用户产出文档类别（如 `benchmarks/`）→ 必须同步更新 Step 7 Index Maintenance 的 "identify category" 列表
-- 创建 issue（`gh issue create`）→ 必须加 `P0/P1/P2/P3` 标签（P0 阻塞全流程/数据损坏；P1 主干缺陷/UX 中断；P2 质量缺陷/功能缺口；P3 优化/长期议题）
-- 评估 issue 执行顺序 → 优先按 priority 排序（P0 → P1 → P2 → P3），同优先级内再看依赖 / dogfood 串联
+### 条件触发规则
+
+| 改动 | 强制动作 |
+|------|---------|
+| 修 skill/agent/command prompt 本体 | 跑 lint_cmd，0 命中才合并 |
+| 新增/改 DEC | 评估与 Accepted DEC 冲突，走 Superseded |
+| 改任一 agent Resource Access | review 其它 3 个 agent 对应列保持一致 |
+| 新增 agent/skill | 完整加 `## Resource Access` + `## Escalation Protocol`（agent）或 `## AskUserQuestion Option Schema`（skill）|
+| 跨阶段约束变动 | 同步更新 `docs/exec-plans/active/roundtable-plan.md` §跨阶段约束 |
+| 改 `_detect-project-context.md` | review 5 个调用方（`commands/workflow.md`∕`bugfix.md`∕`lint.md`、`skills/architect.md`∕`analyst.md`）|
+| 新增/改 Phase Matrix stages | 同步更新 `commands/workflow.md` §Step 3 artifact chain 与 `docs/INDEX.md` 6 类 orphan 扫描 |
+| 新增用户产出文档类别 | 同步更新 Step 7 Index Maintenance "identify category" 列表 |
+| `gh issue create` | 必加 `P0/P1/P2/P3` 标签（P0 阻塞/数据损坏；P1 主干/UX；P2 质量/缺口；P3 优化）|
+| 评估 issue 顺序 | 先 priority（P0→P3），同级再看依赖 / dogfood 串联 |
+| 改 skill/agent/command prompt 本体（行内 DEC/issue 引用纪律；#22）| 禁新增"仅 maintainer 可溯源"类括注：`（DEC-xxx）` 标签 / `（DEC-xxx §y.z）` 行内 / `issue #nn` 行内。白名单：跨文档 `详见 docs/xxx` 跳转、`file:line` 源码位置、Accepted DEC 原文段落。新 DEC 落 prompt 时全文只留 1 处锚点 ref，其余靠上下文自释；扩既有规则禁旧句反复加括注。回归监控 `grep -cE "DEC-[0-9]+\|§[0-9]" <file>` per-file baseline，单文件回升 >20% 或 `skills/+agents/+commands/` 合计 ≥ #22 旧快照（28）→ 开 follow-up audit issue 走 #22 方法论 |

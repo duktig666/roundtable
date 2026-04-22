@@ -43,7 +43,7 @@ argument-hint: <bug 描述 或 issue 编号>
 
 ## 步骤 1：定位问题
 
-1. 有 GitHub Issue 编号 → `gh issue view <n>` 读 Issue
+1. 有 Issue/Ticket 引用 → 读取正文（GitHub `gh issue view <n>` / GitLab `glab issue view <n>` / Jira / Linear / URL / 纯描述皆可；无 `gh` 时走 URL 抓取或让用户贴正文）
 2. 仅现象描述 → 在对话分析 / 探索定位可疑文件
 3. 复杂定位可派 `@roundtable:analyst`（简单 bug 直接跳过）
 4. **跳过 design 阶段**

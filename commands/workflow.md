@@ -13,6 +13,8 @@ argument-hint: <task description>
 
 目标项目遵循 roundtable 的 docs 布局（`design-docs/` / `exec-plans/active/` / `analyze/` / `testing/` / `reviews/` / `decision-log.md` / `log.md`）。缺失子目录在首次写入时自动创建并向用户报告。
 
+**VCS / Issue tracker 中立**：本流程不要求 GitHub。`gh` CLI 仅在有 GitHub Issue 编号时可选启用；Stage 9 Closeout 产出的 `PR body` / `follow-up issues` 是**通用变更描述文本**，用户按自己的 forge（GitLab MR / Gitea PR / Jira ticket / 纯 patch mail）自行落地。
+
 ## Phase Matrix
 
 在整个派发生命周期维护本 matrix；每次 phase 切换或用户询问进度时重新报告。**渲染 locus = orchestrator**（DEC-024，与 `tg-forwarding-expansion.md §D1` 5 类 orchestrator-emitted 事件同一落点纪律）；不下放 subagent。re-emit 义务绑定到 §Step 6 A/B/C 三类 phase gating；TG channel 下单行进度条随附事件类 b/d/e 尾段转发（DEC-024，不新增事件类）。
