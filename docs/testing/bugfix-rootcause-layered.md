@@ -133,7 +133,7 @@ description: 对抗性审查 DEC-014 bugfix 根因分层落盘在 4 文件（com
 
 - **C1（Critical）**：**规则描述缺执行锚点 —— orchestrator 在哪一步执行这个检查？**
   - `commands/bugfix.md` §步骤 5 之前只说 "lint + test 通过后... developer 必须产出 postmortem"，未定义 orchestrator 在 "步骤 4 → 步骤 5" 或 "Closeout → commit" 的哪个转场点做 tier==2 的缺失扫描。
-  - `commands/workflow.md` §Step 6 规则 5 "developer 完成后跑 lint_cmd + test_cmd" 未提 postmortem 检查。
+  - `commands/workflow.md` §Step 6 规则 4 "developer 完成后跑 lint_cmd + test_cmd" 未提 postmortem 检查（DEC-028 / issue #104 Step 6 rule 删 4 renumber 后；历史快照对应规则 5）。
   - `commands/workflow.md` §Step 8 flush 触发点 1 "Stage 9 Closeout 之前" 是 log entries flush，不是 postmortem 存在性检查。
   - **症结**：没有任何 prompt 指令让 orchestrator LLM 机械执行 "if tier==2 and not exists({docs_root}/bugfixes/[slug].md) → block closeout emit warning"。subagent 返回后 orchestrator 靠什么记住 tier 状态？bugfix.md §步骤 3 只说 "派发 developer prompt 追加 tier 注入"，tier 在**发出时**有，但 developer 返回后 orchestrator 是否保留 tier 在 session state？没有显式契约。
   - **影响**：Tier 2 bug 可以 silently 跳过 postmortem 而 orchestrator 无感知 → "block closeout" 成空文。

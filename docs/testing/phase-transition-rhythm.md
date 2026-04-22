@@ -29,7 +29,7 @@ role: tester
 - **位置**：`commands/workflow.md` §Step 6 规则 1 新文本，以及 `docs/design-docs/phase-transition-rhythm.md` §3.1 新文本。
 - **原文**：
   > "Critical findings, escalations, or lint/test failures still interrupt per Steps 5 / 6.5 / 6.6."
-- **事实**：`commands/workflow.md` 的小节编号序列为 Step 5 → Step 6 → Step 6b → Step 7。**不存在 Step 6.5 / 6.6**。lint/test 执行规则实际在 Step 6 规则 5（"After developer: run lint_cmd and test_cmd"），tester 业务 bug 处理在 Step 6 规则 6。
+- **事实**：`commands/workflow.md` 的小节编号序列为 Step 5 → Step 6 → Step 6b → Step 7。**不存在 Step 6.5 / 6.6**。lint/test 执行规则实际在 Step 6 规则 4（"developer 完成后跑 lint_cmd + test_cmd"），tester 业务 bug 处理在 Step 6 规则 5（DEC-028 / issue #104 Step 6 rule 删 4 renumber 后；历史快照对应规则 5 / 6）。
 - **影响**：文档断链；读者按指针跳转无果；LLM orchestrator 按此规则自查时引用不到规范。
 - **复现路径**：在 workflow.md 中 `grep -nE "Step 6\.[56]"` 找不到被指引的 anchor。
 - **建议修复**：将 `Steps 5 / 6.5 / 6.6` 改为 `Step 5 and Step 6 rules 5–6`（或把 Step 6 拆分并重编号）。

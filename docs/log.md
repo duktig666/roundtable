@@ -14,6 +14,26 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## review | orchestrator-bootstrap-hardening | 2026-04-22
+- 操作者: reviewer (subagent)
+- 影响文件: docs/reviews/2026-04-22-orchestrator-bootstrap-hardening.md (new)
+- 说明: issue #104 DEC-028 reviewer 审查；Pass-with-post-fix；0 Critical / 3 Warning / 3 Suggestion / 6 Positive；W-R01 Step 6 renumber drift 已在 orchestrator post-fix 4 处（workflow-auto-execute-mode / phase-transition-rhythm / bugfix-rootcause-layered）；W-R02 §Step 3 派发表与 DEC-023 冲突已 post-fix（tester/reviewer/dba 补 agent / inline 列）；W-R03 T10 runtime DEFER 已在 design doc 追加 "Provisional 转 Accepted 验收门槛" 3 条
+
+## test-plan | orchestrator-bootstrap-hardening | 2026-04-22
+- 操作者: tester (subagent)
+- 影响文件: docs/testing/orchestrator-bootstrap-hardening.md (new)
+- 说明: issue #104 DEC-028 对抗性测试；15 cases（T1-T10 + 5 额外）；verdict Pass-with-post-fix；0 Critical / 2 Warning（W-01 ${:-} 空串合并已修 design doc T3 expected / W-02 DEC-027 跨分支号预占无冲突仅观察）/ 3 Suggestion；lint baseline 42→42
+
+## design | orchestrator-bootstrap-hardening | 2026-04-22
+- 操作者: architect (inline, orchestrator)
+- 影响文件: docs/design-docs/orchestrator-bootstrap-hardening.md (new); docs/decision-log.md (+DEC-028 Provisional 置顶); docs/INDEX.md (design-docs + DEC 索引表 条目追); hooks/hooks.json (new); hooks/session-start (new); scripts/preflight.sh (new)
+- 说明: issue #104 supersedes issue #89；参考 superpowers 5.0.7 SessionStart hook + scripts/ 外挂模式；D1-D5 锁定（D1 最小 hook scope / D2 scripts/ 约定开 DEC-028 / D3 raw-echo-only / D4 HARD-GATE inline prose / D5 7 角色派发表 §Step 3 起首，同 shelved PR #103 方案）；shelved PR #103 保留作回滚候选
+
+## decide | orchestrator-bootstrap-hardening | 2026-04-22
+- 操作者: architect (inline, orchestrator)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-028 Provisional 落盘（scripts/ 目录与 SessionStart hook 首引入；raw-echo-only 契约；外挂 vs 内嵌 3 项判据；HARD-GATE inline prose 样式；自检 DEC-025 铁律 4 命中新备选路径 + 新 tradeoff）
+
 ## fix-rootcause | batch-97-dogfood-findings | 2026-04-22
 - 操作者: developer (inline, orchestrator)
 - 影响文件: commands/lint.md, docs/decision-log.md, agents/reviewer.md, docs/bugfixes/batch-97-dogfood-findings.md (new), docs/INDEX.md

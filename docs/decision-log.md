@@ -106,6 +106,29 @@
 
 ---
 
+### DEC-028 `scripts/` 目录与 SessionStart hook 首引入（issue #104）
+- **日期**: 2026-04-22
+- **状态**: Provisional
+- **上下文**: [issue #104](https://github.com/duktig666/roundtable/issues/104) supersedes [issue #89](https://github.com/duktig666/roundtable/issues/89)。原 L2 方案（shelved PR #103）把 Bash pre-flight 块内嵌进 `commands/workflow.md`，依赖 orchestrator LLM 每次读 spec 执行；参考 `@claude-plugins-official/superpowers` 5.0.7 的 SessionStart hook + `skills/*/scripts/` 外挂模式，改走 harness 强制执行 + 脚本外挂路径
+- **决定**:
+  1. 引入 `hooks/session-start` 主脚本 + `hooks/hooks.json` SessionStart 触发注册（`matcher: startup|clear|compact`）；hook 向 `sessionContext` 注入 `<roundtable-preflight>` 块
+  2. 引入 `scripts/` 顶层目录作为 plugin-level shell 外挂地，首批 `scripts/preflight.sh`；与 `commands/*.md` 内现有 §3.5.1-style 内嵌 bash 并存
+  3. **外挂 vs 内嵌判据**（任一命中则外挂）：脚本行数 ≥ 15 行；需独立调试或被 ≥2 处调用（hook + 手动 + 其他脚本）；含平台分支逻辑（如 `CLAUDE_PLUGIN_ROOT` / `CURSOR_PLUGIN_ROOT`）
+  4. **raw-echo-only 契约**：hook / scripts 只输出 raw env；CLI 优先级 / fallback / 默认值解算全部由 orchestrator LLM 按 §Step -0 / §Step -1 既定路径完成。**不在 bash 层做任何 resolve**
+  5. **HARD-GATE 样式**：以 inline prose 行落地 `commands/workflow.md` §Step -0 / §Step -1 章首，不引入 `<HARD-GATE>` 自定义块（保持 prose-first）
+  6. **铁律 4 自检**：本 DEC 引入新目录约定（`scripts/`）+ 新资产层（hooks/）+ 新 bootstrap 强度（harness 强制执行 vs LLM 读 spec），属新备选路径与新 tradeoff，非纯 text patch → 新 DEC 门槛达标
+- **备选**:
+  - **B** inline Bash 内嵌（shelved PR #103 方案）：改动面小、无新约定，但强制力弱（依赖 LLM 读 spec）
+  - **C** 混合（hook + inline）：双重保险但重复维护
+- **理由**: empirical > inferential；harness 层强制执行对"cold-start 误判"是根治，inline Bash 只是提醒
+- **相关文档**: `docs/design-docs/orchestrator-bootstrap-hardening.md`
+- **影响范围**:
+  - `hooks/hooks.json`、`hooks/session-start` 新建
+  - `scripts/preflight.sh` 新建（建立 `scripts/` 顶层目录）
+  - `commands/workflow.md` §Step -0 / §Step -1 / §Step 3 / §Step 5b / §Step 6 编辑
+  - plugin 分发（moongpt-harness）需校验 `hooks/` + `scripts/` 打包
+  - dogfood 验证路径：会话启动后编排器能读到 `<roundtable-preflight>` 块
+
 ### DEC-026 decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段
 - **日期**: 2026-04-22
 - **状态**: Provisional
