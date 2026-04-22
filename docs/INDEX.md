@@ -154,6 +154,7 @@
 - [faq-sink-protocol.md](testing/faq-sink-protocol.md) — issue #27 FAQ sink protocol 对抗审查（2 High F1/F2 + 4 Medium F3-F6 + 5 Low F7-F11；post-fix 修 F1-F6；F7-F11 follow-up；lint 0）
 - [parallel-decisions.md](testing/parallel-decisions.md) — issue #28 DEC-016 §Step 4b 对抗性测试（0 Critical / 5 Warning W-01~W-05 / 4 Suggestion；4 条件对 7 决策点分类 100% 一致；14 dogfood 场景；W-01~W-05 orchestrator 全 inline fix）
 - [reviewer-write-harness-override.md](testing/reviewer-write-harness-override.md) — issue #59 DEC-017 relay 反转契约对抗性测试（0 Critical / 3 Warning W1-W3 / 3 Suggestion / 5 Positive；A1-A12 对抗 + E1-E3 E2E；E1 本派发即 dogfood 通过 orchestrator relay；critical_modules 4 项命中）
+- [orchestrator-preflight-hardening.md](testing/orchestrator-preflight-hardening.md) — issue #89 L2 orchestrator pre-flight hardening 对抗性测试矩阵（13 cases：5 handoff + 3 adversarial + 5 regression；verdict Pass；无 Critical；W1 多行 $ARGUMENTS 视觉溢出 / W2 历史 docs Step 6 rule 编号豁免；1 Suggestion `set +u` 防御）
 
 ### reviews
 

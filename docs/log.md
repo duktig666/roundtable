@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## test-plan | orchestrator-preflight-hardening | 2026-04-22
+- 操作者: tester (inline, orchestrator-driven)
+- 影响文件: docs/testing/orchestrator-preflight-hardening.md (new), docs/INDEX.md (testing 条目追)
+- 说明: issue #89 对抗性测试矩阵 13 cases（5 handoff：T1 baseline / T2 env AUTO=true / T3 CLI --auto / T4 §Step 3 表格 + §Step 6 rule 4 删 / T5 §5b a 行扩；3 对抗：A1 env 空白 / A2 CLI vs env 冲突 / A3 多行 $ARGUMENTS；5 回归：R1 lint 0 / R2 无 rule 5-9 plugin 引用 / R3 §Phase Matrix 未动 / R4 §5b b/d/e 尾段未动 / R5 DEC-022/024/025 语义不破）；verdict Pass，无 Critical，2 Warning（A3/R2 豁免）+ 1 Suggestion `set +u`；critical_modules 命中 skill/agent/command prompt 本体强制派 tester 已满足
+
 ## impl | orchestrator-preflight-hardening | 2026-04-22
 - 操作者: developer (inline, orchestrator)
 - 影响文件: commands/workflow.md (§Step -1 末尾新增 Pre-flight Bash echo 块 + 输入源纪律段; §Step 3 标题改 "Slug、角色形态与 Artifact Handoff" + 起首新增 7 角色形态映射表; §Step 6 rule 4 角色形态 2 行 bullet 删除 + rule 5-9 顺延为 4-8; §Step 5b 事件类 a 扩 Step -0/-1 pre-flight echo), docs/INDEX.md (design-docs 新增 orchestrator-preflight-hardening 条目)
