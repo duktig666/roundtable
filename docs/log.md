@@ -14,6 +14,12 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix-rootcause | batch-97-dogfood-findings | 2026-04-22
+- 操作者: developer (inline, orchestrator)
+- 影响文件: commands/lint.md, docs/decision-log.md, agents/reviewer.md, docs/bugfixes/batch-97-dogfood-findings.md (new), docs/INDEX.md
+- 说明: issue #97 batch follow-up for #84 dogfood findings；Tier 2（critical_modules 命中 agents/reviewer.md）；5 改动合并 1 PR：F1 lint L6.3 加"新 DEC ≤7 天必带 Provisional 首值" / F2 铁律 4 inline post-fix tradeoff 归属（architect 主张 / reviewer 终审 / 分歧升 AskUserQuestion）/ F3 DEC-011 post-fix 说明 §阶段 2 第 8 步 漂移到 step 9 / F4 lint §6 提取 **实施共性** preface（code-fence / DEC-\d{3} regex / grandfather DEC-001~020）/ F5 reviewer §审查维度 加"门槛合规（DEC 专项）"；advisor 反馈 F5 scope 收敛（剥离 Red Flags→Critical 映射）、F2 格式对齐 DEC-011 post-fix 样式；supersedes #91/92/93/95/96；#94 保留独立观察
+- 关联 postmortem: docs/bugfixes/batch-97-dogfood-findings.md
+
 ## design | decision-log-sustainability | 2026-04-22
 - 操作者: architect (skill, inline)
 - 影响文件: docs/design-docs/decision-log-sustainability.md (new 313 行); docs/exec-plans/active/decision-log-sustainability-plan.md (new); docs/decision-log.md (+DEC-025 + DEC-026 Provisional 置顶); docs/INDEX.md (design-docs + exec-plans/active 条目追)
