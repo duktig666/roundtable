@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | execution-form-four-role-extension | 2026-04-22
+- 操作者: architect (inline) + developer (inline)
+- 影响文件: docs/design-docs/execution-form-four-role-extension.md (new); docs/decision-log.md (DEC-023 置顶); agents/tester.md / agents/reviewer.md / agents/dba.md (新增 `## Execution Form` section + description 行调整 + Progress Reporting 引入 inline skip 说明); commands/workflow.md (§Step 6b 从 Developer-only 扩到 4 角色 + Context 风险提示 + research 边界); commands/bugfix.md (§Role Form Selection 扩到 4 角色 + Step 0.5 Gate 更新); docs/claude-md-template.md (§角色偏好 新增 3 键 + FAQ 扩 4 角色); docs/INDEX.md (design-docs 条目追)
+- 说明: issue #20 P3 —— DEC-023 Refines DEC-005 决定 3：tester/reviewer/dba 在默认 subagent 基础上扩展可选 inline 形态；三级切换（per-session `@roundtable:<role> inline` / per-project `<role>_form_default` / per-dispatch AskUserQuestion）与 developer 同构；启发式复用 workflow §6b 既有阈值（单文件 / wall <2min / token <20k / 单模块内），不加 per-role 差分（推迟为 future issue）；research 排除（DEC-003 正交）；默认仍 subagent 保向后零破坏；测量方法 anecdote-only（analyst F2 P4 dogfood 5× delta）；未改 Resource Access / Escalation / Progress schema / DEC-005 其他决定 / DEC-003 / DEC-017 relay 契约
+
 ## decide | tg-forwarding-class-a-markdownv2 | 2026-04-22
 - 操作者: architect (inline, AUTO mode) + orchestrator
 - 影响文件: commands/workflow.md (§Step 5b 事件类表行 a + 第 65 行 forwarding 注 + Ordering 合并行 + F4 澄清行; ~4 行改动); docs/design-docs/tg-forwarding-expansion.md (frontmatter + §3.1 event (a) + §3.1 格式启发式 + 新 §3.6 + 变更记录); docs/decision-log.md (DEC-022 置顶); docs/INDEX.md (tg-forwarding-expansion 条目 §3.6 追注)

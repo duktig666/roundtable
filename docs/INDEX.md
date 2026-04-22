@@ -72,6 +72,7 @@
 - [reviewer-write-harness-override.md](design-docs/reviewer-write-harness-override.md) — issue #59 DEC-017 reviewer/tester/dba 落盘契约反转：orchestrator relay 升主路径（3 agent 不 Write 归档 .md；Step 7 从兜底升主路径；sentinel 协议废除；Refines DEC-006 非 Supersede），DEC-017 Accepted
 - [step7-relay-contract-tightening.md](design-docs/step7-relay-contract-tightening.md) — issue #65 DEC-019 Step 7 relay 契约收紧：W1 frontmatter 剥离 + W2 Critical/归档 trigger 白名单 + W3 tester 触发布尔优先级（Refines DEC-017），DEC-019 Accepted
 - [dec016-auto-halt-text-render.md](design-docs/dec016-auto-halt-text-render.md) — issue #61 P3 DEC-016 follow-up：`decision_mode=text` + `auto_mode=true` batch auto-halt 渲染形态命名（render 顺序 audit-first / 转发 1 audit + N blocks / fallback 块 id `batch-<slug>-<n>-q<m>`；Refines DEC-016 §3.3），DEC-020 Accepted
+- [execution-form-four-role-extension.md](design-docs/execution-form-four-role-extension.md) — issue #20 P3 DEC-005 决定 3 follow-up：tester/reviewer/dba 扩展可选 inline 形态（三级切换复用 developer 机制 + `*_form_default` 3 新键；启发式复用 §6b 不加 per-role 阈值；research 排除；默认仍 subagent 向后零破坏；Refines DEC-005 决定 3 非 Supersede），DEC-023 Accepted
 - [coding-principles.md](design-docs/coding-principles.md) — 编码基线原则参考模板（Karpathy P1-P4，MIT，非 plugin 强制）；用户按需复制到项目 CLAUDE.md 启用；附 §4 决策历史（6 prompt 内嵌 → CLAUDE.md 路径的 revert 经验），Reference-Template
 
 **Plugin 内部 include-only helper**（下划线前缀约定；非独立可激活 skill；不在用户向 skill 清单露出）：
