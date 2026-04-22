@@ -56,9 +56,10 @@ description: Architect role for system design, interface definition, technology 
 
 6. 写 `{docs_root}/design-docs/[slug].md`
 7. 如涉及公开 API 同时写 `{docs_root}/api-docs/[slug].md`
-8. 新决策 → 追加 `{docs_root}/decision-log.md`（DEC-xxx 编号递增；**置顶 / 最新在前**；不存在或为空时先写 Minimal header —— 详见 §完成后）
-9. in-session output 末尾以 `log_entries:` YAML block 上报本轮产出（同轮多文档合并为一条 entry）
-10. 停下来请用户审阅 design-docs，按反馈微调
+8. **开立前自问**（DEC-025）：该决策是否落入 `decision-log.md` §开立门槛 **5 类必开**（跨模块接口 / 改 DEC-001 D1-D9 / 新依赖 / 推翻或细化 Accepted DEC / 技术选型 or 数据模型）？若命中任一类，**无论 Red Flags 如何，按 5 类必开走**（Red Flags 是"0 命中 5 类时避免凭直觉开 DEC"的负例清单，不 veto 5 类必开）；若 0 命中 5 类再自检 Red Flags，命中任一走 commit message / inline post-fix 父 DEC（铁律 4）/ feedback memory / settings，**不开 DEC**。
+9. 新决策 → 追加 `{docs_root}/decision-log.md`（DEC-xxx 编号递增；**置顶 / 最新在前**；状态默认 `Provisional`，冷却窗见 `decision-log.md` §状态说明；不存在或为空时先写 Minimal header —— 详见 §完成后）
+10. in-session output 末尾以 `log_entries:` YAML block 上报本轮产出（同轮多文档合并为一条 entry）
+11. 停下来请用户审阅 design-docs，按反馈微调
 
 ### 阶段 3：exec-plan（默认中/大任务产出 / 小任务显式豁免；issue #30）
 
@@ -67,12 +68,12 @@ description: Architect role for system design, interface definition, technology 
 - `go-with-plan` ★ 推荐（why: exec-plan 承载 developer checkbox 进度 + 跨 session 续作锚点；中/大任务默认）：写 `{docs_root}/exec-plans/active/[slug]-plan.md` 后进入 Stage 4
 - `go-without-plan: <理由>`：跳过 exec-plan 直接进入 Stage 4；理由必填 1-2 句（典型：bug fix / UI 微调 / 决策全在 DEC 已闭合 / 任务足够小）
 
-用户选 `go-with-plan` → 11. 写 exec-plan → 进入 Stage 4。
+用户选 `go-with-plan` → 写 exec-plan（本阶段）→ 进入 Stage 4。
 用户选 `go-without-plan: <理由>` → orchestrator 把理由落盘到 `{docs_root}/log.md` 条目（prefix `decide`；**不**回写 architect 已落盘的 design-doc，避免越 architect Resource Access Write 边界）→ 进入 Stage 4。
 
 **禁止**：architect 自行判断跳过 exec-plan 而不在菜单显示。任何豁免必须 user-driven + 落盘说理（DEC-006 §A 菜单穷举原则）。
 
-12. exec-plan（或豁免理由）产出并入同一轮 `log_entries:` YAML（有 plan 时 prefix `exec-plan`；豁免时 prefix `decide`）
+**Stage 3 最后一步**：exec-plan（或豁免理由）产出并入同一轮 `log_entries:` YAML（有 plan 时 prefix `exec-plan`；豁免时 prefix `decide`）
 
 ## AskUserQuestion 使用要点
 

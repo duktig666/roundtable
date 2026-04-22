@@ -14,6 +14,51 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | decision-log-sustainability | 2026-04-22
+- 操作者: architect (skill, inline)
+- 影响文件: docs/design-docs/decision-log-sustainability.md (new 313 行); docs/exec-plans/active/decision-log-sustainability-plan.md (new); docs/decision-log.md (+DEC-025 + DEC-026 Provisional 置顶); docs/INDEX.md (design-docs + exec-plans/active 条目追)
+- 说明: D1-D6=A/A/A/A/A/★ go-with-plan 锁定；DEC-025（子议题 1+2+4 合并：门槛 + 元规则 + 归档占位，10 决定 Provisional）+ DEC-026（子议题 3 B.1：INDEX DEC 索引段，5 决定 Provisional）；lint §6 扩 L6.1-L6.5 5 检查项（用户 2026-04-22 补充 "lint 流程可以审查 decision-log"）；exec-plan P0-P4 跨 5 目标文件；critical_modules 命中 P2 skills/architect/SKILL.md；Provisional 自 dogfood（Stage 9 closeout 前无回归即转 Accepted）；**本轮 recover**：会话启动时本地落后 origin/main 4 commits (DEC-021-024 远程已 merged)，我初写 021/022 号段冲突；go-recover 切 feat/decision-log-sustainability-84 分支 + 批量 renumber 025/026
+
+## decide | decision-log-sustainability | 2026-04-22
+- 操作者: architect (skill, inline)
+- 影响文件: docs/decision-log.md
+- 说明: DEC-025 Provisional 10 决定（§开立门槛 5 类必开 + Red Flags 负例 / 铁律 4 inline post-fix / 铁律 5 影响范围 ≤10 行 / 铁律 6 默认不改清单 / Provisional 状态 / Refined by 一等公民 / 铁律 7 归档占位 / architect SKILL 自问句 / lint 扩 5 检查项 / 不回溯）；DEC-026 Provisional 5 决定（INDEX DEC 索引段 / affordance 非 enforcement / orchestrator 维护 / 30 天观测窗 / 不改全读契约）；2 DEC 拆分策略 D5=A（子议题 1+2+4 合 DEC-025；子议题 3 B.1 分 DEC-026）
+
+## exec-plan | decision-log-sustainability | 2026-04-22
+- 操作者: architect (skill, inline)
+- 影响文件: docs/exec-plans/completed/decision-log-sustainability-plan.md
+- 说明: P0 decision-log.md 元规则区扩容（含本地预写 15 行整合）/ P1 commands/lint.md 5 检查项 + 统计扩 / P2 skills/architect/SKILL.md Stage 2 自问句（critical_modules）/ P3 docs/INDEX.md §决策索引段 / P4 本地预写归并；跨阶段约束：不回溯 DEC-001~020 / 本地预写整合非叠加 / Provisional 自 dogfood
+
+## review | decision-log-sustainability | 2026-04-22
+- 操作者: reviewer (subagent, orchestrator relay)
+- 影响文件: docs/reviews/2026-04-22-decision-log-sustainability.md (new); docs/INDEX.md (reviews 条目追); docs/decision-log.md (DEC-025 post-fix block 追 C-R01 regression 修复记注 + DEC-020 header 恢复)
+- 说明: reviewer 审查 5 M + 4 new；1 Critical C-R01 (DEC-020 header 被 F1/F2 post-fix 意外删除，违反铁律 1；已 developer inline 恢复 `---` 分隔符 + header，grep -c = 23 恢复；DEC-025 post-fix 2026-04-22 第 2 段记注) + 5 Warning W-R01~W-R05 + 5 Suggestion S-R01~S-R05；verdict Pass-with-post-fix；跨 DEC 一致性审计 9 项（DEC-001/006/011/013/015/016/017/019 + 铁律 6）均对齐 ✅（C-R01 修复后）
+
+## test-plan | decision-log-sustainability | 2026-04-22
+- 操作者: tester (subagent, orchestrator relay)
+- 影响文件: docs/testing/decision-log-sustainability.md (new + post-fix 变更记录追); docs/INDEX.md (testing 条目追)
+- 说明: 对抗性 18 cases（A 组 SKILL step 8-11 / B 组 §开立门槛 / C 组 lint L6.1-L6.5 / D 组 INDEX 索引 / E 组 跨 DEC 漂移）；5 Critical（C-01 step 8 AND 死锁 / C-02+C-06 step 11 数字冲突 / C-03 L6.3 不回溯缺失 / C-05 L10 模板误报）+ 9 Warning + 6 Suggestion；verdict Pass-with-post-fix → Pass（developer inline 批处理 F1-F4 全解 5 Critical）
+
+## fix | decision-log-sustainability-post-fix | 2026-04-22
+- 操作者: developer (inline)
+- 影响文件: skills/architect/SKILL.md (step 8 短路措辞 + L71+L76 去跨 Stage step 11 冲突); commands/lint.md (L6.3 不回溯 grandfather + L6.5 code-fence skip + DEC-\d{3} regex); docs/decision-log.md (DEC-025 正文末 post-fix 2 段)
+- 说明: 铁律 4 inline post-fix 批处理；F1-F4 解 5 Critical（C-01 短路/C-02+C-06 step 号冲突/C-03 L6.3 grandfather/C-05 L6.5 code-fence）；非新 tradeoff 非跨 DEC 语义重构，走 inline 非 Refined；dogfood first-use 内修订符合 Provisional 积极语义
+
+## fix | decision-log-sustainability-regression-restore | 2026-04-22
+- 操作者: developer (inline, orchestrator-driven)
+- 影响文件: docs/decision-log.md (DEC-020 header + `---` 分隔符恢复; DEC-025 post-fix block 追第 2 段 regression 记注)
+- 说明: reviewer C-R01 发现 F1/F2 Edit new_string 遗漏 `---` 分隔符 + DEC-020 header，意外删除 header（违反铁律 1 不删除旧条目）；恢复后 `grep -cE "^### DEC-[0-9]+"` 回到正常；记注到 DEC-025 正文第 2 段 post-fix；规避教训"post-fix Edit old_string 必须包含下一 DEC 的 header + 分隔符以 preserve 边界"
+
+## fix | decision-log-sustainability-warning-post-fix | 2026-04-22
+- 操作者: developer (inline)
+- 影响文件: docs/decision-log.md (DEC-026 正文末 post-fix 2 段 + DEC-025 正文末 post-fix 第 3 段); docs/design-docs/decision-log-sustainability.md (§2.3 索引格式收紧 4 列 + 首次建立例外声明)
+- 说明: reviewer W-R01/W-R02/W-R04 inline post-fix（铁律 4）；W-R01 DEC-026 决定 1 收紧 4 列（"相关文件" 与 "相关文档" 段同源 derive 避免重复）；W-R02 DEC-026 决定 3 补 "首次建立由 developer 一次性填充"例外；W-R04 DEC-025 决定 10 澄清 "正文 013~020 vs 实施层 001~020 grandfather 范围" 不矛盾；W-R03/W-R05 已由 Stage 9 closeout 声明与 C-R01 修复覆盖；S-R01~S-R05 follow-up issue
+
+## analyze | decision-log-sustainability | 2026-04-22
+- 操作者: analyst (skill, inline)
+- 影响文件: docs/analyze/decision-log-sustainability.md (new + FAQ 追加); docs/INDEX.md (analyze 条目追)
+- 说明: issue #84 umbrella 事实基线 + 20 DEC 实证分类（15 真架构 / 5 应走其他路径） + token 22.8k-per-workflow 实测（architect SKILL.md:L12 + reviewer.md:L91 全读契约） + 外部 4 ADR 对照（Nygard / MADR / Y-Statements / adr-tools 均无 Provisional 先例） + 子议题 1+2 规则融合观察 + 7 事实层开放问题交 architect; FAQ 扩 superpowers 借鉴 6 维度（ADR 无 / Gemini metadata-lazy 对子议题 3 B / Red Flags 反模式补门槛 / skill policy-gate 对子议题 4 归档视角），264 → 342 行
+
 ## design | phase-matrix-render-and-forward | 2026-04-22
 - 操作者: architect (inline, AUTO mode) + orchestrator
 - 影响文件: docs/design-docs/phase-matrix-render-and-forward.md (new); docs/decision-log.md (DEC-024 置顶); docs/design-docs/tg-forwarding-expansion.md (frontmatter + 新 §3.7 + §6 变更记录); commands/workflow.md (§Phase Matrix 定义段 +1 句 locus + 折叠策略; §Step 6 A/B/C 三类 gating 各 +1 句 re-emit 义务; §Step 5b 事件类表 b/d/e 格式列各追加尾段注; §起点 L531-533 locus 与义务明示; 共 ~8 行改动); docs/INDEX.md (design-docs 新增 phase-matrix-render-and-forward + tg-forwarding-expansion §3.7 追注)
