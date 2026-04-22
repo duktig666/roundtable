@@ -114,6 +114,7 @@
 - [execution-form-four-role-extension.md](design-docs/execution-form-four-role-extension.md) — issue #20 P3 DEC-005 决定 3 follow-up：tester/reviewer/dba 扩展可选 inline 形态（三级切换复用 developer 机制 + `*_form_default` 3 新键；启发式复用 §6b 不加 per-role 阈值；research 排除；默认仍 subagent 向后零破坏；Refines DEC-005 决定 3 非 Supersede），DEC-023 Accepted
 - [coding-principles.md](design-docs/coding-principles.md) — 编码基线原则参考模板（Karpathy P1-P4，MIT，非 plugin 强制）；用户按需复制到项目 CLAUDE.md 启用；附 §4 决策历史（6 prompt 内嵌 → CLAUDE.md 路径的 revert 经验），Reference-Template
 - [decision-log-sustainability.md](design-docs/decision-log-sustainability.md) — issue #84 umbrella 4 子议题 adoption 设计（5 类必开 + Red Flags 负例 / 铁律 4-7 + Provisional + Refined by / INDEX B.1 索引 / 归档占位；D1-D5=A 锁定；DEC-025 + DEC-026 拆分 Provisional 落盘）
+- [orchestrator-preflight-hardening.md](design-docs/orchestrator-preflight-hardening.md) — issue #89 L2 orchestrator pre-flight hardening（§Step -1 末尾 Bash echo 块 + §Step 3 起首 7 角色形态表 + §Step 6 rule 4 删除后 5-9 顺延 + §Step 5b 事件类 a scope 扩展 Step -0/-1 pre-flight echo；L1 memory 层已 feedback_roundtable_auto_mode_source / feedback_skill_vs_agent_dispatch 固化，本 L2 回写 prompt 可观测位置；无新 DEC）
 - [decision-log-sustainability.md](testing/decision-log-sustainability.md) — issue #84 DEC-025/026 对抗测试（18 cases：5 Critical / 9 Warning / 6 Suggestion；verdict Pass 经 developer post-fix F1-F4）
 - [2026-04-22-decision-log-sustainability.md](reviews/2026-04-22-decision-log-sustainability.md) — issue #84 DEC-025/026 reviewer 审查（1 Critical C-R01 DEC-020 header regression 已修复 + 5 Warning + 5 Suggestion；verdict Pass-with-post-fix）
 

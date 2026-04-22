@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## impl | orchestrator-preflight-hardening | 2026-04-22
+- 操作者: developer (inline, orchestrator)
+- 影响文件: commands/workflow.md (§Step -1 末尾新增 Pre-flight Bash echo 块 + 输入源纪律段; §Step 3 标题改 "Slug、角色形态与 Artifact Handoff" + 起首新增 7 角色形态映射表; §Step 6 rule 4 角色形态 2 行 bullet 删除 + rule 5-9 顺延为 4-8; §Step 5b 事件类 a 扩 Step -0/-1 pre-flight echo), docs/INDEX.md (design-docs 新增 orchestrator-preflight-hardening 条目)
+- 说明: issue #89 L2 落地 docs/design-docs/orchestrator-preflight-hardening.md；§Step -1 末尾 Bash 块 + §Step 3 起首表格把 "auto_mode/decision_mode 解析" 与 "7 角色 Skill/Agent 形态" 从隐式 LLM 规则降为可观测 echo + 结构化表；§Step 6 rule 4 原 2 行 bullet 删除（单一权威节落在 §Step 3，消散点重复）；§Step 5b 事件类 a scope 扩展，Pre-flight echo 合入首块 markdownv2 reply 转发（DEC-022 格式不变）。无新 DEC（DEC-025 §开立门槛 5 类自检 0 命中）；plugin 内部无 rule 4-9 数字引用（仅 3 份 docs/ 历史文档描述旧状态，append-only 不回溯）；critical_modules 命中 "skill/agent/command prompt 本体" 强制派 tester
+
 ## fix-rootcause | batch-97-dogfood-findings | 2026-04-22
 - 操作者: developer (inline, orchestrator)
 - 影响文件: commands/lint.md, docs/decision-log.md, agents/reviewer.md, docs/bugfixes/batch-97-dogfood-findings.md (new), docs/INDEX.md
