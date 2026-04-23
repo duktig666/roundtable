@@ -62,7 +62,7 @@ argument-hint: [target project name or path, optional]
 - 抽样检查 wiki 层文档（design-docs、analyze），标注未区分事实与推论的段落
 - 标准：引用外部 / 竞品行为是"事实"，据此推导的自身方案是"推论"，两者应可区分
 
-### 6. 决策状态与结构审计（DEC-025 扩）
+### 6. 决策状态与结构审计
 
 **定位**：本节是 `decision-log.md` 元规则（门槛 + 铁律 + 状态机）的**执行层审查工具**。机械判定条款全进本节；门槛类 judgement（某 DEC 是否真属 5 类必开）留 architect / reviewer。
 
@@ -83,7 +83,7 @@ argument-hint: [target project name or path, optional]
 
 - 扫每条 DEC 的 `**影响范围**:` 段
 - 段内行数（按字面换行符）> 10 → 告警「影响范围超 10 行，建议移 design-doc `## 影响文件清单`」
-- **不回溯** DEC-013~020（铁律 5 声明不回溯；lint 扫描跳过 DEC-013 ≤ NNN ≤ DEC-020）
+- **不回溯**：铁律 5 声明不回溯；lint 扫描跳过 Grandfather 段声明的历史 DEC 范围
 
 #### L6.3 状态行字面值 + ≤60 字符 + 新 DEC 必标 Provisional
 

@@ -79,7 +79,7 @@ description: Internal helper skill. Detects target_project (via D9 algorithm), t
 
 - **critical_modules** → 存入 session 记忆；决定后续是否触发 tester / reviewer
 - **设计参考** → 存入 session 记忆；给 architect 做设计决策时用
-- **工具链覆盖**（可选）→ 若声明了 `lint` / `test`，**覆盖**第 2 步的检测值
+- **工具链覆盖**（可选）→ 若声明了 `lint` / `test`，**覆盖**第 2 步的检测值；CLAUDE.md 若以 `lint_cmd_*` 多字段形式声明（如 `lint_cmd_hardcode` / `lint_cmd_density`），调用方遍历跑各字段并独立判 exit code（任一非 0 即失败）
 - **条件触发规则**（可选）→ 作为所有角色的硬约束
 - **文档约定**（可选）→ 覆盖默认约定
 

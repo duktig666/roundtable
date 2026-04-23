@@ -61,7 +61,7 @@ description: Architect role for system design, interface definition, technology 
 10. in-session output 末尾以 `log_entries:` YAML block 上报本轮产出（同轮多文档合并为一条 entry）
 11. 停下来请用户审阅 design-docs，按反馈微调
 
-### 阶段 3：exec-plan（默认中/大任务产出 / 小任务显式豁免；issue #30）
+### 阶段 3：exec-plan（默认中/大任务产出 / 小任务显式豁免）
 
 阶段 2 结束时菜单**必须**显式列两条 option（**exec-plan 产出决定**，与 Stage 4 B 类 Accept/Modify/Reject 正交）；`text` decision_mode emit `<decision-needed>` 时 `go-with-plan` 标 `★ 推荐`（供 §Auto-pick 识别 recommended）：
 
@@ -71,7 +71,7 @@ description: Architect role for system design, interface definition, technology 
 用户选 `go-with-plan` → 写 exec-plan（本阶段）→ 进入 Stage 4。
 用户选 `go-without-plan: <理由>` → orchestrator 把理由落盘到 `{docs_root}/log.md` 条目（prefix `decide`；**不**回写 architect 已落盘的 design-doc，避免越 architect Resource Access Write 边界）→ 进入 Stage 4。
 
-**禁止**：architect 自行判断跳过 exec-plan 而不在菜单显示。任何豁免必须 user-driven + 落盘说理（DEC-006 §A 菜单穷举原则）。
+**禁止**：architect 自行判断跳过 exec-plan 而不在菜单显示。任何豁免必须 user-driven + 落盘说理（菜单穷举原则）。
 
 **Stage 3 最后一步**：exec-plan（或豁免理由）产出并入同一轮 `log_entries:` YAML（有 plan 时 prefix `exec-plan`；豁免时 prefix `decide`）
 
@@ -85,8 +85,8 @@ description: Architect role for system design, interface definition, technology 
 **`decision_mode` 分支**（orchestrator 注入 context prefix；DEC-013）：
 
 - `modal`（默认）→ 调 `AskUserQuestion({questions: [...]})`，schema 见下方 §AskUserQuestion Option Schema
-- `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 DEC-013 / design-doc §3.1）；options 行 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`；≤1 个 option 可标 `★ 推荐`；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
-  - **Active channel forwarding**（DEC-013 §3.1a，DEC-018 松弛为语义等价）：若 session inbound prompt 含 `<channel source="<plugin>:<name>" chat_id="..." ...>` 标签，或该 channel reply 工具在本 session 内曾调用过（sticky 语义，不按轮次窗口衰减），skill emit `<decision-needed>` 块**必须**同步调该 channel reply 工具转发**语义等价**的 pretty 渲染——人类可读 markdownv2（粗体 question 标题 / A-B-C option 行含 `★` 推荐标识 / rationale / tradeoff 缩进 bullet / 末尾小字 id footer），保留 `id` / `question` / `option label` 三字段不改写。**不再转发 raw YAML 块**——终端 stdout 仍 emit 原 `<decision-needed>` YAML 供 orchestrator fuzzy parse。纯终端 session 不触发。只在 emit `<decision-needed>` 时触发，普通对话 / phase summary / FAQ 不在本规则范围。
+- `text` → **不调工具**，改 emit `<decision-needed id="<slug>-<n>">` 文本块到对话流（canonical schema 见 `docs/design-docs/decision-mode-switch.md`）；options 行 `<letter>（★ 推荐）：<label> — <rationale> / <tradeoff>`；≤1 个 option 可标 `★ 推荐`；多决策串行 emit 一次一个；emit 后 skill **停下不继续调用工具** 等用户回复（orchestrator fuzzy 解析注入下一轮 prompt 续跑）
+  - **Active channel forwarding**：若 session inbound prompt 含 `<channel source="<plugin>:<name>" chat_id="..." ...>` 标签，或该 channel reply 工具在本 session 内曾调用过（sticky 语义，不按轮次窗口衰减），skill emit `<decision-needed>` 块**必须**同步调该 channel reply 工具转发**语义等价**的 pretty 渲染——人类可读 markdownv2（粗体 question 标题 / A-B-C option 行含 `★` 推荐标识 / rationale / tradeoff 缩进 bullet / 末尾小字 id footer），保留 `id` / `question` / `option label` 三字段不改写。**不再转发 raw YAML 块**——终端 stdout 仍 emit 原 `<decision-needed>` YAML 供 orchestrator fuzzy parse。纯终端 session 不触发。只在 emit `<decision-needed>` 时触发，普通对话 / phase summary / FAQ 不在本规则范围。
 
 ## AskUserQuestion Option Schema
 

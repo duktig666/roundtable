@@ -14,6 +14,46 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## review | prompt-reference-density-audit | 2026-04-23
+- 操作者: reviewer (subagent, aa650bb12d7c45c4d) + orchestrator (relay for reviewer)
+- 影响文件: docs/reviews/2026-04-23-prompt-reference-density-audit.md (orchestrator relay)
+- 说明: issue #99 DEC-029 终审 Approve with caveats；0 Critical / 3 Warning / 4 Suggestion / 6 Positive；W-R01 3 处 ε 裸引用 + W-R02 Step 0.5 η title issue# 发现 → 本会话 developer 轮 5 inline post-fix；W-R03 lint_cmd_* 多字段 schema 扩展面 → follow-up issue #108；critical_modules 8 点位全无 regression
+
+## fix | prompt-reference-density-audit | 2026-04-23 (W-R01+R02)
+- 操作者: developer (subagent, ae1433e6572b46493)
+- 影响文件: commands/workflow.md; skills/analyst/SKILL.md; docs/decision-log.md (DEC-029 第 3 段 post-fix)
+- 说明: reviewer W-R01 (3 处 `design-doc §x` 裸引用加 `docs/design-docs/decision-mode-switch.md` 前缀) + W-R02 (workflow.md:73 Step 0.5 title `（issue #27；常驻规则...）` 删；常驻规则语义保留于原下方位置说明 blockquote) 全 post-fix；DEC-029 第 3 段 post-fix 记录 W-R01/R02 细化 + W-R03 follow-up 至 issue #108；验证 grep "design-doc §"=0 / grep "^## .*（issue #"=0 / ref-density-check.sh exit 0 / workflow.md DEC=13
+
+## fix | prompt-reference-density-audit | 2026-04-23
+- 操作者: developer (subagent, a01e3bb368a1c4f3b) + orchestrator (rebaseline relay)
+- 影响文件: CLAUDE.md; skills/_detect-project-context.md; scripts/ref-density-check.sh; scripts/ref-density.baseline (rebaseline); docs/decision-log.md (DEC-029 第二段 post-fix)
+- 说明: tester C1 + 3 Warning 修复；C1=B CLAUDE.md §工具链 lint_cmd 拆 lint_cmd_hardcode + lint_cmd_density（解 `&&` 短路 enforcement 洞）；W1 scripts 改 grep -oE|wc -l（同行多 ref 可测）；W2 新文件 stderr 'NOTE:' + total_delta 仍累加；W3 baseline 重复 path 行预检 exit 2；_detect-project-context.md §4 加 lint_cmd_* 多字段兼容说明；DEC-029 第二段 post-fix 记录所有调整；W1 方法变更致 baseline 失效 (user 裁决 A) orchestrator relay 跑 --update-baseline 重锁（新水位 DEC=40 § =30 issue#=3 total=73 methodology shift 非 ref 回弹）；最终 lint_cmd_hardcode exit 1 pass / lint_cmd_density exit 0 pass；4 反向测试全 pass (+3 fail / W1 同行 3 ref fail / W2 新文件 NOTE / W3 dup exit 2)
+
+## test-plan | prompt-reference-density-audit | 2026-04-23
+- 操作者: tester (subagent, a1eebb9f0a10d3523)
+- 影响文件: docs/testing/prompt-reference-density-audit.md (new)
+- 说明: DEC-029 + scripts/ref-density-check.sh + prompt cleanup 对抗性测试 19 case；16 PASS；1 Critical C1 (CLAUDE.md lint_cmd `&&` 方向反) + 3 Warning W1/W2/W3 + 2 Suggestion；Critical/Warning 已由 developer 4 轮 dispatch 全解；Suggestion S1 CWD 锚定 / S2 regex word-boundary 未修（冗余 alt cover）
+
+## exec-plan | prompt-reference-density-audit | 2026-04-23
+- 操作者: developer (subagent, 3 dispatches: ad314c7dcaf8eefd1 + a9809a330dfbaef34 + a2033d2c09b6331e9)
+- 影响文件: commands/workflow.md; commands/bugfix.md; commands/lint.md; agents/tester.md; agents/reviewer.md; agents/dba.md; skills/_progress-content-policy.md; skills/architect/SKILL.md; skills/analyst/SKILL.md; CLAUDE.md; docs/decision-log.md (DEC-010 状态行 + DEC-029 post-fix); scripts/ref-density-check.sh (new); scripts/ref-density.baseline (new)
+- 说明: issue #99 DEC-029 P1-P6 执行完成；title 层 5 处全清；workflow.md DEC 34→13（≤14 ✓）+ § 17；其他 7 文件行内深度清理 per-file 全达标；总 DEC 83→31（-62.7% ≥#22 门槛 60% ✓）/ § 41→20（-51% 近 design-doc 预期 -59%，3 条残留属 scope 边界：research.md 未动/analyst 已达/bugfix 语义锚）；CLAUDE.md γ 措辞 amend（semantic-anchor first per user 裁决 B）；DEC-010 状态行 Refined by DEC-029；scripts/ref-density-check.sh + baseline 锁双向测试通过（+3 → exit 1 / 删回 → exit 0）；过程含一次 git checkout 误用后 advisor 警示纠正
+
+## design | prompt-reference-density-audit | 2026-04-23
+- 操作者: architect (skill)
+- 影响文件: docs/design-docs/prompt-reference-density-audit.md (new); docs/exec-plans/active/prompt-reference-density-audit-plan.md (new); docs/decision-log.md (+DEC-029 Provisional 置顶); docs/INDEX.md (决策索引表 + design-docs/exec-plans/analyze 三段新增条目)
+- 说明: issue #99 DEC-029 Provisional Refines DEC-010 北极星；3 决策点 AskUserQuestion 完成（D1=B 中道 -60% / D2=A 严格 grep 可验 / D3=B γ+α₂ scripts/ lint enforcement）；D4 threshold 改绝对量（per-file +≥3 或 total +≥10）+ D5 Refines 关系折入 DEC 直决；clean-up list 覆盖 5 title ref + workflow.md 42→≤14 + 其他 8 文件；新 scripts/ref-density-check.sh + baseline enforcement；CLAUDE.md §工具链 + §条件触发规则同步；docs/ 豁免明示；Stage 4 B 类 Accept 2026-04-23
+
+## analyze | prompt-reference-density-audit | 2026-04-23
+- 操作者: analyst (skill)
+- 影响文件: docs/analyze/prompt-reference-density-audit.md (new)
+- 说明: issue #99 承接 #22 方法论；采 2026-04-23 baseline（DEC 83/§ 41/issue# 5/详见 12）+ post-#22 commit 净增归因（+54，DEC-023/024/017 前三占 63%）+ superpowers (0 DEC ref in 5 skills) / gstack 竞品参照；列 A/B/C/D 四方案估算（含彻底重构选项）+ 6 事实层开放问题；不做选型推荐（留给 architect）
+
+## faq-sink | faq-sink | 2026-04-23
+- 操作者: orchestrator (relay for Step 0.5 FAQ Sink Protocol)
+- 影响文件: docs/faq.md
+- 说明: 本会话 4 条机制裸问 sink：(1) created/log_entries YAML 格式定义 (2) faq.md 追加规则 (3) 📚 回复标注 (4) FAQ 双层 slug vs global；副观察：Jaccard 标题级算法对连环子问题偏松
+
 ## review | orchestrator-bootstrap-hardening | 2026-04-22
 - 操作者: reviewer (subagent)
 - 影响文件: docs/reviews/2026-04-22-orchestrator-bootstrap-hardening.md (new)
