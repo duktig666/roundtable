@@ -1,11 +1,11 @@
 ---
 name: _progress-content-policy
-description: Internal helper. Shared progress-emission content policy included by developer/tester/reviewer/dba `## Progress Reporting` sections. Underscore prefix = include-only, not independently activatable. Layered on DEC-004 event schema.
+description: Internal helper. Shared progress-emission content policy included by developer/tester/reviewer/dba `## Progress Reporting` sections. Underscore prefix = include-only, not independently activatable. Layered on the progress event schema.
 ---
 
 # Progress Content Policy
 
-被 `agents/{developer,tester,reviewer,dba}.md` 的 Progress Reporting 引用。叠加在 DEC-004 §3.1–3.2（schema —— 这里不重复）之上，与 DEC-002（escalation）正交。
+被 `agents/{developer,tester,reviewer,dba}.md` 的 Progress Reporting 引用。叠加在 DEC-004 event schema 之上，与 escalation 通道正交。
 
 ## 1. Substantive-progress gate
 
@@ -15,7 +15,7 @@ description: Internal helper. Shared progress-emission content policy included b
 - 有**子里程碑**完成（测试通过、exec-plan checkbox 勾选），或
 - 消耗了**≥50% 新 context**（有意义的新 read，不是 re-read）。
 
-无触发器 → **不要** emit。替代时钟心跳（LLM 没有 timer）。与 DEC-004「每次派发 3–10 条事件、phase-checkpoint 级别」对齐。
+无触发器 → **不要** emit。替代时钟心跳（LLM 没有 timer）。每次派发 3–10 条事件、phase-checkpoint 级别。
 
 `phase_blocked` + `<escalation>` **gate-exempt** —— blocker 总是立即 emit。
 
@@ -40,19 +40,19 @@ description: Internal helper. Shared progress-emission content policy included b
 
 ## 5. 反例 vs 正例
 
-**A —— no-repeat（§2）**
+**A —— no-repeat**
 - ❌ `"dev round2 progress"` 连续 3 条 emit。
 - ✅ `"P0.2 editing tester.md"` → `"P0.2 2/4 agents synced"` → `"P0.2 milestone: 4 agents synced"`。
 
-**B —— differentiated content（§3）**
+**B —— differentiated content**
 - ❌ `"working on tests"` —— 无 sub-step / score / milestone。
 - ✅ `"running case-fuzz 3/12 — boundary overflow"` —— sub-step + score。
 
-**C —— gate（§1）**
+**C —— substantive-progress gate**
 - ❌ `phase_start` 紧接另一条 emit，中间无文件写入 / 子里程碑 / read。
 - ✅ `phase_start` →（Edit 落盘）→ 带结果的 `phase_complete` —— 文件写入触发器。
 
-**D —— DONE marker（§4）**
+**D —— DONE marker**
 - ❌ 终结 `phase_complete` summary `"done"`。
 - ✅ `"✅ P0.4 lint 0-hit + awk smoke folded x2"` —— ✅ 前缀 + 具体结果。
 
@@ -60,9 +60,9 @@ description: Internal helper. Shared progress-emission content policy included b
 
 | 情形 | 处理 |
 |------|------|
-| 相邻 phase 共享 sub-step 名 | 用 score 或 milestone 区分；否则跳过第二条 emit（§2）。 |
+| 相邻 phase 共享 sub-step 名 | 用 score 或 milestone 区分；否则按 no-repeat 规则跳过第二条 emit。 |
 | `ROUNDTABLE_PROGRESS_DISABLE=1` / 空 `{{progress_path}}` | Policy 失效；按各 agent Fallback 静默 skip。 |
-| 无 exec-plan P0.n（tester / reviewer 自由格式） | 用 agent 原生 phase tag；§3 依然适用。 |
-| Emit IO 失败 | 按 DEC-004 §3.2 静默降级；无新 fallback。 |
+| 无 exec-plan P0.n（tester / reviewer 自由格式） | 用 agent 原生 phase tag；differentiated-content 规则仍适用。 |
+| Emit IO 失败 | 按 event-schema fallback 静默降级；无新 fallback。 |
 
-Refs：DEC-007、DEC-004 §3.1–3.2、DEC-002。
+Refs：DEC-007（content policy 原始决定）。

@@ -106,6 +106,43 @@
 
 ---
 
+### DEC-029 Runtime prompt DEC/§ 引用纪律固化 + scripts/ref-density-check.sh enforcement（Refines DEC-010；issue #99）
+- **日期**: 2026-04-23
+- **状态**: Provisional
+- **上下文**: [issue #22](https://github.com/duktig666/roundtable/issues/22) 2026-04-20 闭环后两天内密度回弹（DEC 28→83 +196% / § 12→41 +242%）；[issue #100](https://github.com/duktig666/roundtable/issues/100) 只加 CLAUDE.md 预防 rule 未做存量清理，且 rule 白名单边界模糊（"Accepted DEC 原文段落" 未定义）。[issue #99](https://github.com/duktig666/roundtable/issues/99) 承接 #22 方法论做第二轮清理 + enforcement。analyst 报告 `docs/analyze/prompt-reference-density-audit.md` 四方案估算 + superpowers 5 skill 0 DEC ref 竞品参照
+- **决定**:
+  1. **Scope**：仅作用于 runtime-loaded prompt 本体 `skills/*.md` + `agents/*.md` + `commands/*.md`；`docs/` 下所有 .md 豁免（读者需 DEC 溯源，#22 已明确）
+  2. **清理策略 = 方案 B 中道**：(a) 删全部 title 标签 DEC/issue ref（现 5 处）；(b) 同 DEC 在单文件重复 ≥2 处时仅首处保留锚点，后续删；(c) 跨文档 `详见 docs/xxx` 跳转 ref 全保
+  3. **白名单 = 严格 / grep 可验**：(α) 跨文档跳转 = `详见 docs/<path>` 或裸 `docs/<path>` 绝对路径；(β) `file:line` 仅 src/tests/scripts/hooks；(γ) "首处锚点" = 同 DEC 在该 runtime prompt 文件**全文**第一次出现的字面位置（非语义最强；保 grep 可验）；(δ) Accepted DEC 原文仅见 `docs/decision-log.md`，runtime prompt 本体**禁 inline 复刻** DEC 全文段落；(ε) **禁**不带 `docs/` 路径前缀的裸 `§y.z` 跨文件引用
+  4. **Enforcement = γ + α₂**：新增 `scripts/ref-density-check.sh` + `scripts/ref-density.baseline` 锁定 D1=B 清理后水位；脚本打印 per-file DEC/§/issue# 计数并对比 baseline；追加到 CLAUDE.md §工具链 `lint_cmd` 清单（不替换原 hardcode 扫）；回归阈值改**绝对量**：per-file 新增 ≥3 或 skills+agents+commands 总净增 ≥10 → 脚本 exit 1 + 提示开 audit issue
+  5. **Threshold 设计**：取消 CLAUDE.md 现行 "+20% per-file / 合计 ≥28"（小基数敏感 + 合计硬线已被超越失效），改为 baseline-diff 模式（baseline 文件内 DEC/§/issue# per-file 锁死；脚本跑 diff 而非快照）
+  6. **Refines DEC-010 北极星**：延续"token 成本 > SSOT" 落在 prompt 本体 DEC ref 维度（DEC-010 解决 helper 抽取 ↔ inline 的 tradeoff；DEC-029 解决 runtime prompt DEC ref 密度的 tradeoff，同源异 lever）
+  7. **CLAUDE.md 同步**：条件触发规则表"改 skill/agent/command prompt 本体"那条更新为指向 DEC-029 白名单 + 命令 `scripts/ref-density-check.sh`；`lint_cmd` 追 `&& scripts/ref-density-check.sh`
+  8. **docs/ 豁免明示**：所有 docs/design-docs/ / docs/analyze/ / docs/reviews/ / docs/testing/ / docs/log.md / docs/decision-log.md 里的 DEC ref 一切照旧，不在本 DEC 约束内
+- **备选**:
+  - **A 激进 -84%**：超 #22 验收门槛过头；maintainer 回溯 Step 5b / Step 6.1 规则源头需跨 `docs/decision-log.md` grep；拒绝
+  - **C 保守 -26%**：欠 #22 验收门槛（60% / 8%）；6 个月回弹概率高；拒绝
+  - **D 彻底重构 -100%**：超 #99 scope 大框架（需重改 rule 表达方式，场景移入 prose），建议走独立 umbrella issue（类 #107 FAQ 架构）；拒绝
+  - **宽松白名单**：允许 inline 复刻 DEC 短段落 ≤3 行 + 同文件 `§y.z` 裸引；"3 行" 执行指标易漂移 reviewer 负担高；拒绝
+  - **契约优先白名单**：允许 "契约类 DEC" 明示清单 inline 复刻；需维护归类清单 + 新 DEC 归类争议；边界无法 grep；拒绝
+  - **γ only**（维持 CLAUDE.md rule + manual）：#22 闭环后 2 天回弹证伪 manual discipline 可持续性；拒绝
+  - **γ + α₁ GitHub Actions**：需新建 `.github/workflows/`（目前 roundtable 仓无 CI）；锁定 GitHub 与 [#100](https://github.com/duktig666/roundtable/issues/100) 的 VCS 中立方向冲突；拒绝
+  - **γ + β PR template**：checklist fatigue；无程序硬阻；需新建 `.github/`；拒绝
+- **理由**: (1) 方案 B 精准命中 #22 验收门槛 60%/8%；(2) 白名单 A 严格换来审计可程序化自动验证，消除"首处锚点"主观争议；(3) `scripts/` 目录已由 DEC-028 建立，复用路径零新增基础设施；(4) 本地 lint 方案符合 #100 VCS 中立方向（不绑 GitHub Actions）；(5) 绝对量阈值替代百分比解决小基数敏感度 + 硬线被突破后失效的双重问题；(6) Refines DEC-010 明示北极星继承而非推翻
+- **相关文档**: docs/design-docs/prompt-reference-density-audit.md；docs/exec-plans/active/prompt-reference-density-audit-plan.md；docs/analyze/prompt-reference-density-audit.md（analyst 前置事实）；DEC-010（北极星上游）；DEC-028（scripts/ 目录约定）；CLAUDE.md §条件触发规则 + §工具链；[issue #99](https://github.com/duktig666/roundtable/issues/99)
+- **影响范围**: runtime prompt 12 文件 DEC/§/issue# 精简（workflow.md 为主热点 42→≤20）；新增 `scripts/ref-density-check.sh` + `scripts/ref-density.baseline`；CLAUDE.md §条件触发规则 + §工具链 两处更新；不改 docs/ 下任何文件的 ref 纪律；不改 DEC-001/004/006/013/015/016/017/019/023/024/025/028 正文，仅精简这些 DEC 在 runtime prompt 的 inline 括注数量
+- **post-fix 2026-04-23（issue #99 developer escalation）**：决定 3 (γ) 首处锚点 clarification —— 语义首次（规则主体首次）优先于字面首次，跳过负面排除子句 / 一笔带过括注 / 表格注解处。理由：maintainer grep 落到负面排除处 "此处不适用" 误导。scripts/ref-density-check.sh 只计总量不判位置，enforcement 不受影响；纯人判定判断位置。
+- **post-fix 2026-04-23（tester C1+3W finding，issue #99）**：
+  - 决定 4 调整：`scripts/ref-density-check.sh` 追 `grep -oE | wc -l` 替 `grep -cE`（W1 同行多 ref 不再漏计）+ 新文件 stderr 'NOTE:' 但 delta 仍累加 total（W2 非 fail 仅提醒）+ baseline 重复 path 行预检 exit 2（W3 fail fast）
+  - 决定 7 调整：CLAUDE.md §工具链 `lint_cmd` 单字段拆为 `lint_cmd_hardcode` + `lint_cmd_density`（C1 `&&` 短路问题）；两字段各自 exit code 独立；向后兼容 external target 项目单 `lint_cmd` 配置（roundtable 内部用多字段）
+  - 理由：C1 `&&` 使 ref-density 在清洁 grep 态（exit 1）下永不执行 = enforcement 洞；tester 推 B 方案 schema 拆分；W1-W3 同次 inline 修避免二轮 PR
+- **post-fix 2026-04-23（reviewer W-R01+W-R02，issue #99）**：
+  - ε 条款执行细化：3 处 `design-doc §x` 裸引用（workflow.md:279,298 + analyst/SKILL.md:40）加 `docs/design-docs/<slug>.md` 前缀（parallel-decisions / decision-mode-switch）
+  - η 条款执行细化：workflow.md:73 Step 0.5 title `（issue #27；常驻规则...）` 删，常驻规则语义保留在引言 blockquote
+  - reviewer W-R03（`lint_cmd_*` 多字段扩展面 5 调用点 + output template）走独立 follow-up issue，不在本 DEC 内 inline fix
+
+---
+
 ### DEC-028 `scripts/` 目录与 SessionStart hook 首引入（issue #104）
 - **日期**: 2026-04-22
 - **状态**: Provisional
@@ -597,7 +634,7 @@
 
 ### DEC-010 矫正 DEC-009 决定 1：revert helper 抽取 + 激进 inline 精简（运行期 token 真减）
 - **日期**: 2026-04-19
-- **状态**: Accepted
+- **状态**: Accepted (Refined by DEC-029)
 - **上下文**: DEC-009 Accepted 后 closeout 阶段用户反馈"越加越多"。复盘发现 analyst/architect 估算 token 节省时只算"agent 单文件前后行数差"（-346），未算**每次 subagent 派发还要 Read N 个 helper**（~+300/派发）。真实账：单次典型 workflow（orchestrator + 3 subagent）token 负载 DEC-009 前 ~1540 行 → DEC-009 后 ~1800 行（**反增 17%**）。tree 总行 2708 → 2791（+83）。issue #9 原初目标 "Token 成本：每次会话加载长 prompt 耗 context" 未达成，反向
 - **决定**:
   1. **Supersede DEC-009 决定 1**（4 shared helper 抽取 + 5 agent retrofit 到 ref 模式）—— 仅决定 1 被 supersede，DEC-009 其他 9 条决定保留

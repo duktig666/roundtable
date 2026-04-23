@@ -47,6 +47,7 @@
 
 | DEC | 标题 | 状态 | 相关 slug |
 |-----|------|------|----------|
+| DEC-029 | Runtime prompt DEC/§ 引用纪律固化 + scripts/ref-density-check.sh enforcement（issue #99）| Provisional | prompt-reference-density-audit |
 | DEC-028 | `scripts/` 目录与 SessionStart hook 首引入（issue #104）| Provisional | orchestrator-bootstrap-hardening |
 | DEC-026 | decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段 | Provisional | decision-log-sustainability |
 | DEC-025 | decision-log 可持续性：门槛 + 元规则 + 归档占位 | Provisional | decision-log-sustainability |
@@ -89,6 +90,7 @@
 - [lightweight-review.md](analyze/lightweight-review.md) — issue #9 轻量化审计（archive 826 vs 现状 2708 行 = 3.16× / 8 个 DEC 增量分类 / 3 大抽取热区 DEC-002/004/007 / 7 事实层开放问题）
 - [dispatch-mode-strategy.md](analyze/dispatch-mode-strategy.md) — issue #19 前台/后台派发选择策略调研（F1-F6 事实 + 3 选项对比 + 5 场景评估 + 判据 D1-D4 + 8 事实层开放问题 P1-P8 交 architect）
 - [decision-log-sustainability.md](analyze/decision-log-sustainability.md) — issue #84 decision-log 可持续性 4 子议题事实层分析（20 DEC 实证分类 / token 22.8k-per-workflow 实测 / 外部 4 ADR 对照 / 子议题 1+2 规则融合观察 / 7 事实层开放问题）
+- [prompt-reference-density-audit.md](analyze/prompt-reference-density-audit.md) — issue #99 runtime prompt 引用密度回归审计（2026-04-23 baseline DEC 83/§ 41 vs #22 旧快照 28/12；post-#22 commit 净增 +54 归因；superpowers 0 DEC ref / gstack 竞品参照；A/B/C/D 4 方案估算；6 事实层开放问题交 architect）
 
 ### design-docs
 
@@ -116,6 +118,7 @@
 - [coding-principles.md](design-docs/coding-principles.md) — 编码基线原则参考模板（Karpathy P1-P4，MIT，非 plugin 强制）；用户按需复制到项目 CLAUDE.md 启用；附 §4 决策历史（6 prompt 内嵌 → CLAUDE.md 路径的 revert 经验），Reference-Template
 - [decision-log-sustainability.md](design-docs/decision-log-sustainability.md) — issue #84 umbrella 4 子议题 adoption 设计（5 类必开 + Red Flags 负例 / 铁律 4-7 + Provisional + Refined by / INDEX B.1 索引 / 归档占位；D1-D5=A 锁定；DEC-025 + DEC-026 拆分 Provisional 落盘）
 - [orchestrator-bootstrap-hardening.md](design-docs/orchestrator-bootstrap-hardening.md) — issue #104 supersedes #89：SessionStart hook + `scripts/` 外挂替代 shelved PR #103 的 inline Bash；D1-D5 锁定（最小 hook scope / scripts/ 约定新 DEC-028 / raw-echo-only / HARD-GATE inline prose / 7 角色派发表 §Step 3 起首），DEC-028 Provisional
+- [prompt-reference-density-audit.md](design-docs/prompt-reference-density-audit.md) — issue #99 runtime prompt 引用密度回归审计设计（D1=B 中道清理 -60% / D2=A 严格白名单 grep 可验 / D3=B γ+α₂ scripts/ref-density-check.sh enforcement；Refines DEC-010 北极星；docs/ 豁免明示），DEC-029 Provisional
 - [decision-log-sustainability.md](testing/decision-log-sustainability.md) — issue #84 DEC-025/026 对抗测试（18 cases：5 Critical / 9 Warning / 6 Suggestion；verdict Pass 经 developer post-fix F1-F4）
 - [2026-04-22-decision-log-sustainability.md](reviews/2026-04-22-decision-log-sustainability.md) — issue #84 DEC-025/026 reviewer 审查（1 Critical C-R01 DEC-020 header regression 已修复 + 5 Warning + 5 Suggestion；verdict Pass-with-post-fix）
 
@@ -130,6 +133,7 @@
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
   - [workflow-auto-execute-mode-plan.md](exec-plans/active/workflow-auto-execute-mode-plan.md) — issue #33 DEC-015 auto 模式实施计划（P0 bootstrap → P1 Step 5 Escalation → P2 Step 6 A/B gating → P3-P4 inline + bugfix ref → P5-P6 tester/reviewer → P7 dogfood E2E → P8 PR）
   - [parallel-decisions-plan.md](exec-plans/active/parallel-decisions-plan.md) — issue #28 DEC-016 §Step 4b 决策并行化 P0-P3 实施（§Step 4b 新增 + 3 处 ref + §Auto-pick batch 行 + §5b e 批注；P0/P1 checkbox 已 [x]）
+  - [prompt-reference-density-audit-plan.md](exec-plans/active/prompt-reference-density-audit-plan.md) — issue #99 DEC-029 P1-P6 执行计划（P1 title 层 → P2 workflow.md 热点 → P3 其他文件 → P4 scripts+baseline → P5 CLAUDE.md 同步 + DEC-010 状态行 → P6 lint+dogfood 验证）
 - completed/
   - [reviewer-write-harness-override-plan.md](exec-plans/completed/reviewer-write-harness-override-plan.md) — issue #59 DEC-017 4-phase 实施（P0 3 agent prompt / P1 workflow.md Step 7 / P2 testing post-fix / P3 E1+E2 dogfood 验证通过 2/2；lint 2/2）
   - [step7-relay-contract-tightening.md](exec-plans/completed/step7-relay-contract-tightening.md) — issue #65 DEC-019 P0-P3 实施（architect 定稿 → developer Step 7 文本补丁 → decision-log + exec-plan 落盘 → reviewer 自审）
@@ -155,6 +159,7 @@
 - [faq-sink-protocol.md](testing/faq-sink-protocol.md) — issue #27 FAQ sink protocol 对抗审查（2 High F1/F2 + 4 Medium F3-F6 + 5 Low F7-F11；post-fix 修 F1-F6；F7-F11 follow-up；lint 0）
 - [parallel-decisions.md](testing/parallel-decisions.md) — issue #28 DEC-016 §Step 4b 对抗性测试（0 Critical / 5 Warning W-01~W-05 / 4 Suggestion；4 条件对 7 决策点分类 100% 一致；14 dogfood 场景；W-01~W-05 orchestrator 全 inline fix）
 - [reviewer-write-harness-override.md](testing/reviewer-write-harness-override.md) — issue #59 DEC-017 relay 反转契约对抗性测试（0 Critical / 3 Warning W1-W3 / 3 Suggestion / 5 Positive；A1-A12 对抗 + E1-E3 E2E；E1 本派发即 dogfood 通过 orchestrator relay；critical_modules 4 项命中）
+- [prompt-reference-density-audit.md](testing/prompt-reference-density-audit.md) — issue #99 DEC-029 enforcement 对抗性测试（19 case / 1 Critical C1 lint_cmd `&&` 方向反 + 3 Warning W1 line-count 可绕 / W2 新文件 silent / W3 baseline dup silent + 2 Suggestion；C1+W1+W2+W3 developer 4 轮全修；W1 methodology shift 触发 baseline --update-baseline 重锁（水位 40 DEC / 30 § / 3 issue#）；lint_cmd_hardcode + lint_cmd_density 独立字段）
 
 ### reviews
 
@@ -167,6 +172,7 @@
 - [2026-04-20-dispatch-mode-strategy.md](reviews/2026-04-20-dispatch-mode-strategy.md) — issue #19 DEC-012 终审（Approve-with-caveats；0 Critical / 3 Warning / 2 Suggestion；W-01 section-number §3.4.5→§3.4 + W-03 Step 4 前置顺序 + S-01/S-02 全 post-fix）
 - [2026-04-20-bugfix-rootcause-layered.md](reviews/2026-04-20-bugfix-rootcause-layered.md) — issue #37 DEC-014 终审（Approve-with-caveats；0 Critical / 3 Warning / 5 Suggestion；W1 PR 实施 commit 未推送 + W2 CLAUDE.md scope 溢出 + W3 INDEX 导航 table 已同步；tester 双轮 C1+W1-W4 闭环；critical_modules 1/6 命中必落盘）
 - [2026-04-21-tg-forwarding-expansion.md](reviews/2026-04-21-tg-forwarding-expansion.md) — issue #48 DEC-013 §3.1a 扩展终审（Approve-with-caveats；0 Critical / 1 Warning W1 / 3 Suggestion R1-R3；tester post-fix 7 项全实质修复；验收 8/8；合入后跟进 R1+R2）
+- [2026-04-23-prompt-reference-density-audit.md](reviews/2026-04-23-prompt-reference-density-audit.md) — issue #99 DEC-029 终审（Approve with caveats；0 Critical / 3 Warning W-R01-R03 / 4 Suggestion / 6 Positive；W-R01 3 处 ε 裸 `design-doc §x` + W-R02 workflow.md:73 η title issue# → developer 轮 5 inline post-fix；W-R03 lint_cmd_* 多字段 schema 扩展面 → follow-up issue #108；critical_modules 8 点位全无 regression）
 - [2026-04-21-dedupe-produce-created.md](reviews/2026-04-21-dedupe-produce-created.md) — issue #29 dedupe 产出/created 终审 (Approve；tester W1-W3 实质吸收；W4+S1-S3 follow-up)
 - [2026-04-21-reviewer-write-permission.md](reviews/2026-04-21-reviewer-write-permission.md) — issue #23 reviewer/tester/dba Write 权限明示终审 (Approve-with-caveats；0 Critical / 3 Warning / 3 Suggestion / 5 Positive；自举 dogfood Step 7 兜底；F3 sentinel-vs-escalation follow-up issue 建议创建)
 - [2026-04-21-faq-sink-protocol.md](reviews/2026-04-21-faq-sink-protocol.md) — issue #27 FAQ sink protocol 终审 (Approve-with-caveats；C1 Step 0.2→0.5 位置修复 + W1-W5 inline / S2/S4 inline；W3/S1/S3 follow-up；自举 dogfood Step 7 兜底 ×2)
