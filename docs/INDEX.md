@@ -133,7 +133,6 @@
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
   - [workflow-auto-execute-mode-plan.md](exec-plans/active/workflow-auto-execute-mode-plan.md) — issue #33 DEC-015 auto 模式实施计划（P0 bootstrap → P1 Step 5 Escalation → P2 Step 6 A/B gating → P3-P4 inline + bugfix ref → P5-P6 tester/reviewer → P7 dogfood E2E → P8 PR）
   - [parallel-decisions-plan.md](exec-plans/active/parallel-decisions-plan.md) — issue #28 DEC-016 §Step 4b 决策并行化 P0-P3 实施（§Step 4b 新增 + 3 处 ref + §Auto-pick batch 行 + §5b e 批注；P0/P1 checkbox 已 [x]）
-  - [prompt-reference-density-audit-plan.md](exec-plans/active/prompt-reference-density-audit-plan.md) — issue #99 DEC-029 P1-P6 执行计划（P1 title 层 → P2 workflow.md 热点 → P3 其他文件 → P4 scripts+baseline → P5 CLAUDE.md 同步 + DEC-010 状态行 → P6 lint+dogfood 验证）
 - completed/
   - [reviewer-write-harness-override-plan.md](exec-plans/completed/reviewer-write-harness-override-plan.md) — issue #59 DEC-017 4-phase 实施（P0 3 agent prompt / P1 workflow.md Step 7 / P2 testing post-fix / P3 E1+E2 dogfood 验证通过 2/2；lint 2/2）
   - [step7-relay-contract-tightening.md](exec-plans/completed/step7-relay-contract-tightening.md) — issue #65 DEC-019 P0-P3 实施（architect 定稿 → developer Step 7 文本补丁 → decision-log + exec-plan 落盘 → reviewer 自审）
@@ -142,6 +141,7 @@
   - [progress-content-policy-plan.md](exec-plans/completed/progress-content-policy-plan.md) — issue #14 DEC-007（P0.1-P0.4 完成；PR #16 merged；归档时补勾 18 checkbox）
   - [decision-mode-switch-plan.md](exec-plans/completed/decision-mode-switch-plan.md) — issue #31 DEC-013（P0.1-P0.7 全完成；PR #34 merged 2026-04-20；剩 6/7 acceptance 待 plugin reload 后 E2E 实跑）
   - [decision-log-sustainability-plan.md](exec-plans/completed/decision-log-sustainability-plan.md) — issue #84 DEC-025/026 实施（P0-P4 全部完成；tester 5 Critical + reviewer 1 Critical C-R01 + 3 Warning post-fix 全解；verdict Pass-with-post-fix）
+  - [prompt-reference-density-audit-plan.md](exec-plans/completed/prompt-reference-density-audit-plan.md) — issue #99 DEC-029 P1-P6 全部完成（PR #109 merged）；5 轮 developer dispatch（P1-P6 初轮 + semantic-anchor 续派 + P3 深度 + C1/W1/W2/W3 修 + W-R01/R02 post-fix）；tester 19 case / reviewer Approve with caveats；follow-up #107 + #108
 
 ### testing
 

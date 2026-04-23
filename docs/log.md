@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## exec-plan | prompt-reference-density-audit | 2026-04-23 (archive)
+- 操作者: orchestrator (post-merge housekeeping)
+- 影响文件: docs/exec-plans/active/prompt-reference-density-audit-plan.md → docs/exec-plans/completed/prompt-reference-density-audit-plan.md (git mv); docs/INDEX.md (active 条目移到 completed)
+- 说明: issue #99 PR #109 merged (commit 3164294)；exec-plan 归档 active→completed；本地 + 远程 feat/dec-029-ref-density-99 分支删
+
 ## review | prompt-reference-density-audit | 2026-04-23
 - 操作者: reviewer (subagent, aa650bb12d7c45c4d) + orchestrator (relay for reviewer)
 - 影响文件: docs/reviews/2026-04-23-prompt-reference-density-audit.md (orchestrator relay)
