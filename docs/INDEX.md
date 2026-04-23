@@ -47,6 +47,7 @@
 
 | DEC | 标题 | 状态 | 相关 slug |
 |-----|------|------|----------|
+| DEC-028 | `scripts/` 目录与 SessionStart hook 首引入（issue #104）| Provisional | orchestrator-bootstrap-hardening |
 | DEC-026 | decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段 | Provisional | decision-log-sustainability |
 | DEC-025 | decision-log 可持续性：门槛 + 元规则 + 归档占位 | Provisional | decision-log-sustainability |
 | DEC-024 | Phase Matrix 渲染 locus + TG 转发绑定 | Accepted (Refines §Phase Matrix + §Step 6 + §Step 5b) | phase-matrix-render-and-forward |
@@ -114,6 +115,7 @@
 - [execution-form-four-role-extension.md](design-docs/execution-form-four-role-extension.md) — issue #20 P3 DEC-005 决定 3 follow-up：tester/reviewer/dba 扩展可选 inline 形态（三级切换复用 developer 机制 + `*_form_default` 3 新键；启发式复用 §6b 不加 per-role 阈值；research 排除；默认仍 subagent 向后零破坏；Refines DEC-005 决定 3 非 Supersede），DEC-023 Accepted
 - [coding-principles.md](design-docs/coding-principles.md) — 编码基线原则参考模板（Karpathy P1-P4，MIT，非 plugin 强制）；用户按需复制到项目 CLAUDE.md 启用；附 §4 决策历史（6 prompt 内嵌 → CLAUDE.md 路径的 revert 经验），Reference-Template
 - [decision-log-sustainability.md](design-docs/decision-log-sustainability.md) — issue #84 umbrella 4 子议题 adoption 设计（5 类必开 + Red Flags 负例 / 铁律 4-7 + Provisional + Refined by / INDEX B.1 索引 / 归档占位；D1-D5=A 锁定；DEC-025 + DEC-026 拆分 Provisional 落盘）
+- [orchestrator-bootstrap-hardening.md](design-docs/orchestrator-bootstrap-hardening.md) — issue #104 supersedes #89：SessionStart hook + `scripts/` 外挂替代 shelved PR #103 的 inline Bash；D1-D5 锁定（最小 hook scope / scripts/ 约定新 DEC-028 / raw-echo-only / HARD-GATE inline prose / 7 角色派发表 §Step 3 起首），DEC-028 Provisional
 - [decision-log-sustainability.md](testing/decision-log-sustainability.md) — issue #84 DEC-025/026 对抗测试（18 cases：5 Critical / 9 Warning / 6 Suggestion；verdict Pass 经 developer post-fix F1-F4）
 - [2026-04-22-decision-log-sustainability.md](reviews/2026-04-22-decision-log-sustainability.md) — issue #84 DEC-025/026 reviewer 审查（1 Critical C-R01 DEC-020 header regression 已修复 + 5 Warning + 5 Suggestion；verdict Pass-with-post-fix）
 

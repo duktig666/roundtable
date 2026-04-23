@@ -32,7 +32,7 @@ decisions: [DEC-015]
 - **不抬到 target CLAUDE.md**（对齐 DEC-011 / DEC-012 "dispatch mode 是 orchestrator 内部策略" 边界）
 - **不做每阶段粒度**（`ROUNDTABLE_AUTO=analyst,architect` YAGNI，v1 不造）
 - **不豁免 critical_modules tester 派发**（verification-chain C 类强制依然成立；仅 hard regression 打断）
-- **不豁免 lint + test 失败**（developer 完成后 failure 仍按 Step 6 规则 5 报告用户不静默重派）
+- **不豁免 lint + test 失败**（developer 完成后 failure 仍按 Step 6 规则 4 报告用户不静默重派）
 
 ## 2. 业务逻辑
 
@@ -68,7 +68,7 @@ auto 模式下遇以下情况**必须**打断（即使 flag 设 true）：
 1. 决策点所有 option 均无 `recommended: true`（真 tie-break；DEC-006 B 类 approval 原意保留）
 2. subagent `<escalation>` 的 options 均无 `recommended`（同上）
 3. Tester `<escalation>` bug report（业务 bug 永远人工）
-4. lint 或 test 失败（Step 6 规则 5）
+4. lint 或 test 失败（Step 6 规则 4）
 5. Format/schema 解析错误（现状行为沿用）
 
 打断渲染方式与 manual 模式完全一致（modal `AskUserQuestion` / text `<decision-needed>`）—— auto 模式对 fallback 路径零侵入。
