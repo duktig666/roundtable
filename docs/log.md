@@ -14,6 +14,11 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## analyze | prompt-language-policy | 2026-04-23
+- 操作者: analyst (skill, 2 轮)
+- 影响文件: docs/analyze/prompt-language-policy.md (new)
+- 说明: issue #110 —— Plugin prompt 本体语言策略调研。轮 1（原 scope）：12 维度 + 3 信源 drift 溯源（CLAUDE.md `75a9475` slim commit 静默翻转 / prompt-language-style-guide.md feature 分支孤儿 blob / MEMORY.md 索引与 body 矛盾）+ 路径 A/B/C 事实对照。轮 2（用户 `调:` rescope，忽略 DEC-002/007/009 / memory / CLAUDE.md 历史）：R1-R10 第一性原理重评估 + α/β/γ 3 形态事实对照（α=strict English / β=keep current / γ=partial skeleton English）+ 新生态对比事实（superpowers/telegram/claude-md-management 3 官方 plugin 100% 英文）+ R5/R6 事实缺口（Claude 纯英文 prompt + 中文输出遵从稳定性无实测 / 用户未来外部分发计划未询问）。**不做选型推荐**（留给 architect）。
+
 ## exec-plan | prompt-reference-density-audit | 2026-04-23 (archive)
 - 操作者: orchestrator (post-merge housekeeping)
 - 影响文件: docs/exec-plans/active/prompt-reference-density-audit-plan.md → docs/exec-plans/completed/prompt-reference-density-audit-plan.md (git mv); docs/INDEX.md (active 条目移到 completed)

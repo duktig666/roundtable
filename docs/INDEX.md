@@ -91,6 +91,7 @@
 - [dispatch-mode-strategy.md](analyze/dispatch-mode-strategy.md) — issue #19 前台/后台派发选择策略调研（F1-F6 事实 + 3 选项对比 + 5 场景评估 + 判据 D1-D4 + 8 事实层开放问题 P1-P8 交 architect）
 - [decision-log-sustainability.md](analyze/decision-log-sustainability.md) — issue #84 decision-log 可持续性 4 子议题事实层分析（20 DEC 实证分类 / token 22.8k-per-workflow 实测 / 外部 4 ADR 对照 / 子议题 1+2 规则融合观察 / 7 事实层开放问题）
 - [prompt-reference-density-audit.md](analyze/prompt-reference-density-audit.md) — issue #99 runtime prompt 引用密度回归审计（2026-04-23 baseline DEC 83/§ 41 vs #22 旧快照 28/12；post-#22 commit 净增 +54 归因；superpowers 0 DEC ref / gstack 竞品参照；A/B/C/D 4 方案估算；6 事实层开放问题交 architect）
+- [prompt-language-policy.md](analyze/prompt-language-policy.md) — issue #110 plugin prompt 本体语言策略调研（2 轮：12 维度 drift 溯源 + R1-R10 rescope 第一性原理重评估；α/β/γ 3 形态事实对照；R5/R6 事实缺口交 architect）
 
 ### design-docs
 
