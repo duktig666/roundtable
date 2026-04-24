@@ -66,7 +66,7 @@ argument-hint: <task description>
 3. **docs_root detection**：`docs/` → `documentation/` → `AskUserQuestion` 默认「创建 `docs/`」
 4. **CLAUDE.md loading**：读 `# 多角色工作流配置` 的 `critical_modules` / `设计参考` / `工具链覆盖` / `条件触发规则`（CLAUDE.md 覆盖自动检测）
 
-后续派发**必须**注入：`target_project` / `docs_root` / `primary_lang` / `lint_cmd` / `test_cmd` / `critical_modules` / `design_ref` / `slug`。绝不让 subagent 自己重跑。
+后续派发**必须**注入：`target_project` / `docs_root` / `primary_lang` / `lint_cmd_hardcode` / `lint_cmd_density` / `lint_cmd`（三字段任一存在即合法，调用方遍历跑各非空字段并独立判 exit code） / `test_cmd` / `critical_modules` / `design_ref` / `slug`。绝不让 subagent 自己重跑。
 
 **转发**：active channel 下按 Step 5b 事件类 a 转发检测结果块（`markdownv2` 结构化）。
 

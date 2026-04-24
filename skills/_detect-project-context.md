@@ -109,7 +109,9 @@ description: Internal helper skill. Detects target_project (via D9 algorithm), t
 [project context detected]
   target_project: <absolute path>
   primary_lang:   <rust | typescript | python | go | move | mixed | n/a>
-  lint_cmd:       <cmd or "(not needed for this task)">
+  lint_cmd_hardcode: <cmd or "(not needed for this task)">
+  lint_cmd_density:  <cmd or "(not needed for this task)">
+  lint_cmd:          <singular fallback cmd or "(not needed for this task)">
   test_cmd:       <cmd or "(not needed for this task)">
   docs_root:      <docs | documentation | other>
   claude_md:      <loaded | missing>

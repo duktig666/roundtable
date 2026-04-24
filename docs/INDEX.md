@@ -188,6 +188,7 @@
 ### bugfixes
 
 - [batch-97-dogfood-findings.md](bugfixes/batch-97-dogfood-findings.md) — issue #97 batch follow-up for #84（DEC-025/026 落盘后 dogfood findings）：5 改动合并 1 PR（F1 lint L6.3 Provisional 首值 / F2 铁律 4 tradeoff 归属 / F3 DEC-011 锚点漂移 post-fix / F4 lint §6 preface 重构 / F5 reviewer §审查维度 加门槛合规）；Fixed；supersedes #91/92/93/95/96
+- [lint-cmd-multifield-propagation.md](bugfixes/lint-cmd-multifield-propagation.md) — issue #108 Tier 2 bugfix：DEC-029 决定 7 post-fix 多字段契约传导面覆盖（5 调用点 + 输出模板 singular `lint_cmd` 扩 3 字段 `lint_cmd_hardcode` / `lint_cmd_density` / `lint_cmd` 三字段任一存在即合法；α 方向 user=A；back-compat singular fallback 保；reviewer W-R03 承接）
 
 ## 主题 slug 约定
 
