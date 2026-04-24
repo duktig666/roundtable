@@ -47,6 +47,7 @@
 
 | DEC | 标题 | 状态 | 相关 slug |
 |-----|------|------|----------|
+| DEC-030 | Orchestrator skill→handoff forwarding 合规性双层修复（issue #111）| Provisional | orchestrator-compliance-gap |
 | DEC-029 | Runtime prompt DEC/§ 引用纪律固化 + scripts/ref-density-check.sh enforcement（issue #99）| Provisional | prompt-reference-density-audit |
 | DEC-028 | `scripts/` 目录与 SessionStart hook 首引入（issue #104）| Provisional | orchestrator-bootstrap-hardening |
 | DEC-026 | decision-log token 优化 B.1：INDEX.md 新增 DEC 索引段 | Provisional | decision-log-sustainability |
@@ -92,6 +93,7 @@
 - [decision-log-sustainability.md](analyze/decision-log-sustainability.md) — issue #84 decision-log 可持续性 4 子议题事实层分析（20 DEC 实证分类 / token 22.8k-per-workflow 实测 / 外部 4 ADR 对照 / 子议题 1+2 规则融合观察 / 7 事实层开放问题）
 - [prompt-reference-density-audit.md](analyze/prompt-reference-density-audit.md) — issue #99 runtime prompt 引用密度回归审计（2026-04-23 baseline DEC 83/§ 41 vs #22 旧快照 28/12；post-#22 commit 净增 +54 归因；superpowers 0 DEC ref / gstack 竞品参照；A/B/C/D 4 方案估算；6 事实层开放问题交 architect）
 - [prompt-language-policy.md](analyze/prompt-language-policy.md) — issue #110 plugin prompt 本体语言策略调研（2 轮：12 维度 drift 溯源 + R1-R10 rescope 第一性原理重评估；α/β/γ 3 形态事实对照；R5/R6 事实缺口交 architect）
+- [orchestrator-compliance-gap.md](analyze/orchestrator-compliance-gap.md) — issue #111 orchestrator skill→orchestrator handoff forwarding 合规缺口调研（Finding 1 6 条应 fire 清单 vs 实际观察 4 miss / 非首次证据链 2026-04-22 memory + 2026-04-23 本会话 / Finding 1+2 拆耦论证无 A/B 实证 / 3 hypothesis density+enforcement+cognitive load 各独立佐证 / superpowers <SUBAGENT-STOP> 事实校正 / 4 mitigation 方向 × 3 hypothesis 交叉映射 / 实施成本 per-file delta 方向 c ~280-400 行 vs 方向 d ~45-65 行 / 7 事实层开放问题）
 
 ### design-docs
 
@@ -120,6 +122,7 @@
 - [decision-log-sustainability.md](design-docs/decision-log-sustainability.md) — issue #84 umbrella 4 子议题 adoption 设计（5 类必开 + Red Flags 负例 / 铁律 4-7 + Provisional + Refined by / INDEX B.1 索引 / 归档占位；D1-D5=A 锁定；DEC-025 + DEC-026 拆分 Provisional 落盘）
 - [orchestrator-bootstrap-hardening.md](design-docs/orchestrator-bootstrap-hardening.md) — issue #104 supersedes #89：SessionStart hook + `scripts/` 外挂替代 shelved PR #103 的 inline Bash；D1-D5 锁定（最小 hook scope / scripts/ 约定新 DEC-028 / raw-echo-only / HARD-GATE inline prose / 7 角色派发表 §Step 3 起首），DEC-028 Provisional
 - [prompt-reference-density-audit.md](design-docs/prompt-reference-density-audit.md) — issue #99 runtime prompt 引用密度回归审计设计（D1=B 中道清理 -60% / D2=A 严格白名单 grep 可验 / D3=B γ+α₂ scripts/ref-density-check.sh enforcement；Refines DEC-010 北极星；docs/ 豁免明示），DEC-029 Provisional
+- [orchestrator-compliance-gap.md](design-docs/orchestrator-compliance-gap.md) — issue #111 orchestrator skill→handoff forwarding 合规性修复（D1=D 保持 YAML + Finding 2 accepted cosmetic / D2=C 双层 composite layout §Step 5c + runtime enforcement / D3=B 2 follow-ups 拆分），DEC-030 Provisional Refines DEC-024 + DEC-013 §3.1a + §Step 6 非 Supersede
 - [decision-log-sustainability.md](testing/decision-log-sustainability.md) — issue #84 DEC-025/026 对抗测试（18 cases：5 Critical / 9 Warning / 6 Suggestion；verdict Pass 经 developer post-fix F1-F4）
 - [2026-04-22-decision-log-sustainability.md](reviews/2026-04-22-decision-log-sustainability.md) — issue #84 DEC-025/026 reviewer 审查（1 Critical C-R01 DEC-020 header regression 已修复 + 5 Warning + 5 Suggestion；verdict Pass-with-post-fix）
 
@@ -134,6 +137,7 @@
   - [roundtable-plan.md](exec-plans/active/roundtable-plan.md) — roundtable umbrella 实施计划（P0-P4 完成；P5 外部试装 + P6 v0.1 发布未做；24 个 unchecked 主要在 v0.1 release 环节）
   - [workflow-auto-execute-mode-plan.md](exec-plans/active/workflow-auto-execute-mode-plan.md) — issue #33 DEC-015 auto 模式实施计划（P0 bootstrap → P1 Step 5 Escalation → P2 Step 6 A/B gating → P3-P4 inline + bugfix ref → P5-P6 tester/reviewer → P7 dogfood E2E → P8 PR）
   - [parallel-decisions-plan.md](exec-plans/active/parallel-decisions-plan.md) — issue #28 DEC-016 §Step 4b 决策并行化 P0-P3 实施（§Step 4b 新增 + 3 处 ref + §Auto-pick batch 行 + §5b e 批注；P0/P1 checkbox 已 [x]）
+  - [orchestrator-compliance-gap-plan.md](exec-plans/active/orchestrator-compliance-gap-plan.md) — issue #111 DEC-030 P1 layout §Step 5c + Tier 2 postmortem（~60-80 行）/ P2 runtime enforcement audit log + scripts（~40-60 行）两 phase 执行计划
 - completed/
   - [reviewer-write-harness-override-plan.md](exec-plans/completed/reviewer-write-harness-override-plan.md) — issue #59 DEC-017 4-phase 实施（P0 3 agent prompt / P1 workflow.md Step 7 / P2 testing post-fix / P3 E1+E2 dogfood 验证通过 2/2；lint 2/2）
   - [step7-relay-contract-tightening.md](exec-plans/completed/step7-relay-contract-tightening.md) — issue #65 DEC-019 P0-P3 实施（architect 定稿 → developer Step 7 文本补丁 → decision-log + exec-plan 落盘 → reviewer 自审）

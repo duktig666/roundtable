@@ -106,6 +106,30 @@
 
 ---
 
+### DEC-030 Orchestrator skill→handoff forwarding 合规性双层修复（Refines DEC-024 + DEC-013 §3.1a + §Step 6；issue #111）
+- **日期**: 2026-04-24
+- **状态**: Provisional
+- **上下文**: [issue #111](https://github.com/duktig666/roundtable/issues/111) P1 bug —— 2026-04-23 `/roundtable:workflow #110`（TG active channel sticky）跑 analyst pipeline 时 orchestrator skill 返回后漏 §Step 5b 事件类 b/c forwarding + §Step 6.1 A 类 producer-pause 菜单 / pause 协议。2026-04-22 memory `feedback_tg_workflow_updates_to_tg` 同类 miss 已记录一次，本次是第 2 次观测 —— **非首次**。缺口不是 SPEC 缺失（DEC-024 locus / DEC-013 §3.1a / §Step 6.1 均 Accepted），而是 **SPEC→RUNTIME 合规性 drift**：prose 规则清晰但 runtime 未收敛，且无机械 enforcement 兜底。analyst 报告 `docs/analyze/orchestrator-compliance-gap.md` 3 hypothesis（rule density / no enforcement / cognitive load）× 4 mitigation cross-map 显示无单方向全响应；Finding 2（YAML 契约终端可见）对 Finding 1 因果**无 A/B 实证**
+- **决定**:
+  1. **Finding 2 = accepted cosmetic**（D1=D）：不改 final message `log_entries:` + `created:` YAML 位置 / 包裹 / 渠道；承认终端可见是 cosmetic trade；4 agent prompt + 2 skill prompt 本体 YAML 契约保持不变（mitigation a/b/c 全拒）
+  2. **Finding 1 = 双层 composite 独立修**（D2=C）：(i) Layout —— `commands/workflow.md` 新 **§Step 5c Skill→Orchestrator Handoff Checklist** 小节明示 6 条应 fire 动作（flush / sync / fwd-c / fwd-b / menu / pause），§Step 6.1 A 类模板旁 ref 一行；(ii) Runtime enforcement —— orchestrator emit JSONL audit log（`${ROUNDTABLE_AUDIT_PATH:-/tmp/roundtable-audit/${SESSION_ID}.jsonl}`）+ 新 `scripts/orchestrator-compliance-check.sh` + CLAUDE.md §工具链 追 `lint_cmd_compliance` 字段
+  3. **Tier 2 postmortem（DEC-014）**：P1 follow-up 附写 `docs/bugfixes/orchestrator-compliance-gap.md` 五段式；`docs/log.md` 一条 `fix-rootcause` tier=2 entry 关联（本 DEC 落盘时不写，归 P1 实施同 PR）
+  4. **Follow-up 拆 2 issues**（D3=B）：P1 labels `P1 + bug` —— layout §Step 5c + postmortem Tier 2，~60-80 行；P2 labels `P2 + enhancement` —— runtime enforcement scripts + audit log schema + CLAUDE.md lint 字段 + hooks/preflight 扩展，~40-60 行；P2 依赖 P1 checklist 结构完成后实施（可并开 design 但 merge 有序）
+  5. **Refines DEC-024 + DEC-013 §3.1a + §Step 6 非 Supersede**：DEC-024 Phase Matrix locus / DEC-013 §3.1a sticky channel forwarding / §Step 6 A/B/C phase gating 全部 Accepted 决定保留；本 DEC 只加 "SPEC→RUNTIME 合规性 enforcement" 新维度
+  6. **Audit log 契约（placeholder）**：JSONL schema 含 `ts` / `session_id` / `dispatch_id` / `slug` / `event` / `phase_from` / `phase_to` / `channel` / `payload_ref`；`event` 枚举 `flush|sync|fwd-b|fwd-c|fwd-d|fwd-e-audit|menu|pause`；具体 schema 细化 + scan 算法归 P2 architect round（可能开 DEC-031 Refines 本 DEC）
+  7. **dogfood 验证路径**：P1 + P2 merged 后跑 `/roundtable:workflow` TG-driven analyst pipeline + `scripts/orchestrator-compliance-check.sh` exit 0 即 Provisional → Accepted（同 DEC-025 冷却窗）
+- **备选**:
+  - **D1 备选**：a HTML comment（拒：LLM 仍读 YAML，attention shift 不减 + 无参照前例 + score 23）/ b frontmatter 前置（拒：违 UX 惯例 + TG 抓首段击中 YAML + score 22）/ c 外挂 /tmp/contracts（拒：280-400 行 delta + double critical_modules + Finding 2 causality 无实证 + score 26）
+  - **D2 备选**：A 仅 layout（拒：soft rule 2026-04-22→23 已证不收敛 + score 28）/ B 仅 enforcement（拒：prose 规则 grep 负担未改善 + score 35）/ D 仅文档化（拒：与 DEC-024+013 MUST 语义冲突 + score 12）
+  - **D3 备选**：A 1 combined（拒：PR 跨 3 类 120-160 行 review 重 + score 25）/ C 先 P1 后 P2+postmortem（拒：延迟 postmortem 违 AC + score 31）/ D 3 independent（拒：postmortem PR ~30 行不值独立 + score 33）
+  - **铁律 4 inline post-fix DEC-024**：拒 —— 本 DEC 引入新备选评估（4 mitigation）+ 新 tradeoff（SPEC→RUNTIME 合规性维度）+ 跨 DEC 语义重构（DEC-024 + DEC-013 §3.1a + §Step 6 三者合流），超铁律 4 clarification scope
+  - **同时系统性精简 workflow.md rule density（hypothesis A 响应）**：拒 —— issue #111 明示 out-of-scope，P3 umbrella 独立 design；本 DEC §Step 5c 抽小节局部微降密度已足
+- **理由**: (1) Finding 1 已非首次（2026-04-22 + 2026-04-23 两次）soft rule 证不收敛 → 需 hard enforcement，D2=C 双层是 analyst 维度 9 cross-map 中唯一 full-hypothesis 响应组合；(2) Finding 2 因果无 A/B 实证 → 按"证据驱动不预支"原则 D1=D 保持现状，留 P2 enforcement 落地后有证据再重评估结构性改动；(3) D3=B P1+P2 拆分语义同源（P1 layout+postmortem 属 Finding 1 结构修 + 根因归档）+ P2 独立 architect round（audit log schema 可能自开 DEC-031）；(4) Refines 非 Supersede 保 decision-log 单调递增 + 对齐 DEC-021/022/023 先例；(5) 复用 DEC-028 scripts/ + SessionStart hook 基础设施 + DEC-029 scripts 双层 enforcement 先例，零新增基础设施
+- **相关文档**: [docs/design-docs/orchestrator-compliance-gap.md](design-docs/orchestrator-compliance-gap.md)（本 DEC 主设计）、[docs/analyze/orchestrator-compliance-gap.md](analyze/orchestrator-compliance-gap.md)（analyst 前置事实，含 3 hypothesis 佐证 + 4 mitigation cross-map + superpowers `<SUBAGENT-STOP>` 参照校正）、DEC-024（Phase Matrix locus，本 DEC Refines）、DEC-013 §3.1a（sticky channel forwarding，本 DEC Refines）、DEC-006（§Step 6 A/B/C taxonomy，本 DEC Refines）、DEC-028（scripts/ 目录 + SessionStart hook 基础设施复用）、DEC-029（scripts/ref-density-check.sh 双层 enforcement 先例）、DEC-014（Tier 2 postmortem）、[issue #111](https://github.com/duktig666/roundtable/issues/111)
+- **影响范围**: 本 DEC 落盘仅 3 文档（design-doc / decision-log / exec-plan）；P1 follow-up 改 `commands/workflow.md` +§Step 5c ~30 行 + §Step 6.1 ref 1 行 / `docs/bugfixes/orchestrator-compliance-gap.md` new ~30-40 行 / `docs/log.md` +1 fix-rootcause tier=2 / `docs/INDEX.md` +bugfixes 条目；P2 follow-up 新 `scripts/orchestrator-compliance-check.sh` ~50 行 / `CLAUDE.md` §工具链 +1 字段 / `commands/workflow.md` 事件 fire 处 +audit emit 注 ~10 行 / `hooks/session-start` + `scripts/preflight.sh` +ROUNDTABLE_AUDIT_PATH echo ~4 行。**不改**：4 agent prompt / 2 skill prompt 本体 / final message YAML 契约位置形态 / Resource Access matrix / Escalation Protocol JSON schema / Progress event JSON schema / AskUserQuestion Option Schema / Phase Matrix 9 stage 表结构 / critical_modules 触发机制 / target CLAUDE.md 业务规则 / DEC-024 / DEC-013 / DEC-006 / DEC-028 / DEC-029 任何 Accepted 决定
+
+---
+
 ### DEC-029 Runtime prompt DEC/§ 引用纪律固化 + scripts/ref-density-check.sh enforcement（Refines DEC-010；issue #99）
 - **日期**: 2026-04-23
 - **状态**: Provisional
