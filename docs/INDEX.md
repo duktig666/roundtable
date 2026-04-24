@@ -165,6 +165,7 @@
 - [parallel-decisions.md](testing/parallel-decisions.md) — issue #28 DEC-016 §Step 4b 对抗性测试（0 Critical / 5 Warning W-01~W-05 / 4 Suggestion；4 条件对 7 决策点分类 100% 一致；14 dogfood 场景；W-01~W-05 orchestrator 全 inline fix）
 - [reviewer-write-harness-override.md](testing/reviewer-write-harness-override.md) — issue #59 DEC-017 relay 反转契约对抗性测试（0 Critical / 3 Warning W1-W3 / 3 Suggestion / 5 Positive；A1-A12 对抗 + E1-E3 E2E；E1 本派发即 dogfood 通过 orchestrator relay；critical_modules 4 项命中）
 - [prompt-reference-density-audit.md](testing/prompt-reference-density-audit.md) — issue #99 DEC-029 enforcement 对抗性测试（19 case / 1 Critical C1 lint_cmd `&&` 方向反 + 3 Warning W1 line-count 可绕 / W2 新文件 silent / W3 baseline dup silent + 2 Suggestion；C1+W1+W2+W3 developer 4 轮全修；W1 methodology shift 触发 baseline --update-baseline 重锁（水位 40 DEC / 30 § / 3 issue#）；lint_cmd_hardcode + lint_cmd_density 独立字段）
+- [orchestrator-compliance-gap.md](testing/orchestrator-compliance-gap.md) — issue #113 P1 §Step 5c handoff checklist 对抗性验证（AC 4 维度 A 类模板 / architect / Stage 9 / Q&A 循环全 Pass；1 Critical C1 DEC-029 §2(a) title-tag DEC ref 零存量底线破坏 + W1 INDEX bugfixes 段顺序 + W2 action 4 未覆盖 Stage 9 b-9；C1+W1+W2 orchestrator inline post-fix 全闭环；Pass-with-post-fix）
 
 ### reviews
 
@@ -184,11 +185,13 @@
 - [2026-04-21-parallel-decisions.md](reviews/2026-04-21-parallel-decisions.md) — issue #28 DEC-016 §Step 4b 终审 (Approve-with-nits；0 Critical / 2 Warning R-W-01 R-W-02 / 3 Nit；R-W-01 overflow 行为 inline fix + R-W-02 retry cap follow-up；自举 dogfood Step 7 兜底：reviewer Write 被 harness override → orchestrator relay；#23 fix 未完全生效 follow-up issue)
 - [2026-04-21-reviewer-write-harness-override.md](reviews/2026-04-21-reviewer-write-harness-override.md) — issue #59 DEC-017 终审 Approve（0 Critical / 2 Warning non-blocking / 4 Suggestion；DEC-017 决定 1-8 全落地；sentinel 协议完整删除；Refines DEC-006 纪律保持；E2 dogfood 通过 reviewer Write=0 + orchestrator relay）
 - [2026-04-21-step7-relay-contract-tightening.md](reviews/2026-04-21-step7-relay-contract-tightening.md) — issue #65 DEC-019 Approve（0 Critical / 1 Warning non-blocking / 2 Suggestion；W1/W2/W3 全落地；Refines DEC-017 非 Supersede；diff ≤ 20 行；orchestrator relay 落盘）
+- [2026-04-24-orchestrator-compliance-gap.md](reviews/2026-04-24-orchestrator-compliance-gap.md) — issue #113 P1 §Step 5c + Tier 2 postmortem 终审 Approve（0 Critical / 1 Warning 存量 postmortem 5-段 vs DEC-014 7-段漂移，lint-cmd-multifield 同症非本 PR 引入 / 2 Suggestion；6 DEC 对齐 DEC-024 / DEC-013 §3.1a / §Step 6 / DEC-030 / DEC-029 / DEC-014；lint 双层 pass；tester Pass-with-post-fix C1+W1+W2 闭环）
 
 ### bugfixes
 
 - [batch-97-dogfood-findings.md](bugfixes/batch-97-dogfood-findings.md) — issue #97 batch follow-up for #84（DEC-025/026 落盘后 dogfood findings）：5 改动合并 1 PR（F1 lint L6.3 Provisional 首值 / F2 铁律 4 tradeoff 归属 / F3 DEC-011 锚点漂移 post-fix / F4 lint §6 preface 重构 / F5 reviewer §审查维度 加门槛合规）；Fixed；supersedes #91/92/93/95/96
 - [lint-cmd-multifield-propagation.md](bugfixes/lint-cmd-multifield-propagation.md) — issue #108 Tier 2 bugfix：DEC-029 决定 7 post-fix 多字段契约传导面覆盖（5 调用点 + 输出模板 singular `lint_cmd` 扩 3 字段 `lint_cmd_hardcode` / `lint_cmd_density` / `lint_cmd` 三字段任一存在即合法；α 方向 user=A；back-compat singular fallback 保；reviewer W-R03 承接）
+- [orchestrator-compliance-gap.md](bugfixes/orchestrator-compliance-gap.md) — issue #113 P1 Tier 2 bugfix：skill→orchestrator A 类 producer-pause handoff 6 条 fire action（flush / sync / fwd-c / fwd-b / menu / pause）2026-04-22+23 两次 observed miss；P1 layout 层 `commands/workflow.md` +§Step 5c Handoff Checklist 独立小节 + §Step 6.1 A 类模板 ref 一行；P2 runtime enforcement 归 issue #114（scripts/orchestrator-compliance-check.sh + JSONL audit log + lint_cmd_compliance）；Refines DEC-024 + DEC-013 §3.1a + §Step 6 非 Supersede
 
 ## 主题 slug 约定
 
