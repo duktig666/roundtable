@@ -27,7 +27,7 @@ argument-hint: <bug 描述 或 issue 编号>
 
 **inline 执行 4 步检测**：`Read` `${CLAUDE_PLUGIN_ROOT}/skills/_detect-project-context.md` 并按 4 步执行（D9 → toolchain → docs_root → CLAUDE.md 加载）。**不用 `Skill` 工具**。
 
-后续派发 developer / tester / reviewer / dba 时注入：`target_project` / `docs_root` / `lint_cmd` / `test_cmd` / `critical_modules` / `slug` / `primary_lang`。
+后续派发 developer / tester / reviewer / dba 时注入：`target_project` / `docs_root` / `lint_cmd_hardcode` / `lint_cmd_density` / `lint_cmd`（三字段任一存在即合法，调用方遍历跑各非空字段并独立判 exit code） / `test_cmd` / `critical_modules` / `slug` / `primary_lang`。
 
 ## Step 0.5: Progress Monitor Setup
 

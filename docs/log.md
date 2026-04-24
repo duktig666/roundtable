@@ -14,6 +14,17 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## fix-rootcause | lint-cmd-multifield-propagation | 2026-04-24
+- 操作者: developer (inline, orchestrator)
+- 影响文件: skills/_detect-project-context.md (L112 output template), commands/workflow.md (L69 注入清单), commands/bugfix.md (L30 注入清单), agents/developer.md (L22 + L87 注入清单 + §约束), agents/reviewer.md (L24 注入清单), docs/bugfixes/lint-cmd-multifield-propagation.md (new, Tier 2 postmortem)
+- 分析:
+  1. 根因：DEC-029 决定 7 post-fix 2026-04-23 拆 `lint_cmd` 为 `lint_cmd_hardcode` + `lint_cmd_density` 多字段（解 `&&` 短路 enforcement 洞），`skills/_detect-project-context.md` §4 正文已加多字段兼容说明，但下游注入面 5 调用点 + 输出模板未同步扩；reviewer W-R03（docs/reviews/2026-04-23-prompt-reference-density-audit.md）在 issue #99 审查阶段已 flag，本 issue 承接
+  2. 修复：α 方向（3-field lineup，user=A per `<decision-needed id="lint-cmd-multifield-propagation-1">`），5 调用点 + 输出模板统一扩 `lint_cmd_hardcode` / `lint_cmd_density` / `lint_cmd`（三字段任一存在即合法，调用方遍历跑各非空字段并独立判 exit code）；back-compat 保：singular `lint_cmd` 作 fallback 字段，外部 target 项目单 lint_cmd 仍合法
+  3. 复现：roundtable 递归 dogfood 场景——CLAUDE.md 声明多字段 → orchestrator Step 0 读 OK → subagent 派发 context prefix singular → subagent lint enforcement 断层
+- 关联 postmortem: docs/bugfixes/lint-cmd-multifield-propagation.md
+- Tier: 2 (critical_modules 命中 skill/agent/command prompt bodies + Refines DEC-029 决定 7 post-fix 传导面)
+- 说明: issue #108 Tier 2 bugfix，5 call sites α propagation 完成；lint_cmd_hardcode exit 1（无命中）+ lint_cmd_density exit 0（无密度回归）；reviewer W-R03 解，follow-up `docs/reviews/2026-04-23-prompt-reference-density-audit.md` 条目可标 resolved
+
 ## design | orchestrator-compliance-gap | 2026-04-24
 - 操作者: architect (skill)
 - 影响文件: docs/design-docs/orchestrator-compliance-gap.md (new); docs/decision-log.md (+DEC-030 Provisional 置顶); docs/exec-plans/active/orchestrator-compliance-gap-plan.md (new); docs/INDEX.md (design-docs + exec-plans + DEC 索引段 3 处追)
