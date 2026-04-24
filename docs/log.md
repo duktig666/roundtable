@@ -14,6 +14,27 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## review | orchestrator-compliance-gap | 2026-04-24
+- 操作者: orchestrator (relay for reviewer subagent a7cfd6845db06dd65)
+- 影响文件: docs/reviews/2026-04-24-orchestrator-compliance-gap.md (new, orchestrator relay), docs/INDEX.md (+reviews 段条目)
+- 说明: issue #113 P1 §Step 5c + postmortem 终审 Approve；0 Critical / 1 Warning 存量 postmortem 模板漂移（DEC-014 决定 5 7-section vs 现 5-section；lint-cmd-multifield 同症非本 PR 引入，建议 follow-up audit issue）/ 2 Suggestion；6 DEC 对齐（DEC-024 / DEC-013 §3.1a / §Step 6 / DEC-030 / DEC-029 / DEC-014）；lint_cmd_hardcode + lint_cmd_density 双 exit 0；title-tag DEC ref 零底线恢复 (orchestrator relay)
+
+## test | orchestrator-compliance-gap | 2026-04-24
+- 操作者: orchestrator (relay for tester subagent a755592c9873d59c2)
+- 影响文件: docs/testing/orchestrator-compliance-gap.md (new, orchestrator relay), docs/INDEX.md (+testing 段条目)
+- 说明: issue #113 P1 §Step 5c 对抗性验证；AC 4 维度（A 类模板 / architect 变体 / Stage 9 变体 / Q&A 循环）全 Pass 结构不冲突；1 Critical C1 DEC-029 §2(a) title-tag DEC ref 零存量底线破坏（workflow.md:338 `## Step 5c: ... (DEC-030)` cleanup 5→0 后唯一命中）+ W1 INDEX bugfixes 段升序顺序 + W2 action 4 未覆盖 Stage 9 b-9 变体；C1+W1+W2 orchestrator inline post-fix 全闭环（~4 行改动）；结论 Pass-with-post-fix (orchestrator relay)
+
+## fix-rootcause | orchestrator-compliance-gap | 2026-04-24
+- 操作者: orchestrator (relay for P1 inline dispatch + post-fix)
+- 影响文件: commands/workflow.md (+§Step 5c Handoff Checklist ~18 行 + §Step 6.1 A 类模板 ref 1 行 + post-fix C1 去 header DEC-030 title tag 移 γ-锚点到 body + W2 action 4 加 Stage 9 b-9 旁注), docs/bugfixes/orchestrator-compliance-gap.md (new, Tier 2 postmortem 五段式), docs/INDEX.md (+bugfixes 段条目 post-fix W1 调升序)
+- 分析:
+  1. 根因：2026-04-22 + 2026-04-23 两次 observed miss，skill→orchestrator A 类 producer-pause 返回漏 §Step 5b 事件类 b/c 转发 + §Step 6.1 A 类菜单 + pause；analyst 3 hypothesis（A rule density / B 无 enforcement / C cognitive load）× 4 mitigation cross-map 无单方向全响应，架构上是 SPEC→RUNTIME 合规性 drift（DEC-024+013+§Step 6 MUST 均 Accepted，非 SPEC 缺失）
+  2. 修复：P1 layout 层 `commands/workflow.md` 新 §Step 5c 6 条按序 action checklist（flush / sync / fwd-c / fwd-b / menu / pause）抽独立小节 + A 类模板末尾 ref 一行；Tier 2 postmortem 五段式落盘 `docs/bugfixes/orchestrator-compliance-gap.md`；P2 runtime enforcement（scripts/orchestrator-compliance-check.sh + JSONL audit log + CLAUDE.md lint_cmd_compliance）归 issue #114
+  3. 复现：decision_mode=text 或 TG active channel sticky + skill → A 类 producer-pause 正常返回 + orchestrator tick 同 1 轮内 6 条 action fire
+- 关联 postmortem: docs/bugfixes/orchestrator-compliance-gap.md
+- Tier: 2 (critical_modules 命中 command prompt body + Refines DEC-024 + DEC-013 §3.1a + §Step 6 非 Supersede)
+- 说明: issue #113 P1 Tier 2 bugfix，§Step 5c 独立小节 + A 类模板 ref + postmortem + INDEX 条目完成；lint_cmd_hardcode exit 0（无硬编码命中）；lint_cmd_density exit 0（DEC +1 < 3 / § 计数无变化，正则 `§[0-9]+` 不匹配 `§Step X` 形式；无需 --update-baseline）；P2 依赖本 PR 结构，issue #114 承接
+
 ## fix-rootcause | lint-cmd-multifield-propagation | 2026-04-24
 - 操作者: developer (inline, orchestrator)
 - 影响文件: skills/_detect-project-context.md (L112 output template), commands/workflow.md (L69 注入清单), commands/bugfix.md (L30 注入清单), agents/developer.md (L22 + L87 注入清单 + §约束), agents/reviewer.md (L24 注入清单), docs/bugfixes/lint-cmd-multifield-propagation.md (new, Tier 2 postmortem)
