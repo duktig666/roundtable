@@ -14,6 +14,16 @@
 
 **合并原则**：agent / skill **不直接写本文件**。每轮 workflow 由 orchestrator 按 `commands/workflow.md` §Step 8 log.md Batching 协议（bugfix 流程按 `commands/bugfix.md` §log.md Batching 简化版）收集各 agent final report 中的 `log_entries:` YAML block 聚合写入；同一 agent 在同一轮产出多份文档（如 architect 同时输出 design-doc + DEC + exec-plan）**合并为一条**，`影响文件` 列全部路径（union）；不拆多条。DEC-009 决定 2 落地。
 
+## design | orchestrator-compliance-gap | 2026-04-24
+- 操作者: architect (skill)
+- 影响文件: docs/design-docs/orchestrator-compliance-gap.md (new); docs/decision-log.md (+DEC-030 Provisional 置顶); docs/exec-plans/active/orchestrator-compliance-gap-plan.md (new); docs/INDEX.md (design-docs + exec-plans + DEC 索引段 3 处追)
+- 说明: issue #111 DEC-030 Provisional Refines DEC-024 + DEC-013 §3.1a + §Step 6 非 Supersede；3 决策 D1=D（保持 YAML + Finding 2 accepted cosmetic）/ D2=C（双层 composite：§Step 5c handoff checklist + runtime enforcement scripts/orchestrator-compliance-check.sh + audit log JSONL + CLAUDE.md lint_cmd_compliance 字段）/ D3=B（2 follow-ups：P1 layout+postmortem ~60-80 行 / P2 enforcement ~40-60 行）；exec-plan P1 10 任务 + P2 12 任务 + 8 风险预案 + 跨阶段约束；复用 DEC-028 scripts/ + DEC-029 双层 enforcement 前例零新基础设施；critical_modules 命中但本 DEC 仅 3 文档落盘不改 prompt 本体（实施归 follow-up）；Stage 4 B 类 Accept/Modify/Reject 待用户裁决
+
+## analyze | orchestrator-compliance-gap | 2026-04-24
+- 操作者: analyst (skill)
+- 影响文件: docs/analyze/orchestrator-compliance-gap.md (new)
+- 说明: issue #111 — orchestrator skill→orchestrator handoff forwarding 合规缺口调研。Finding 1 6 条应 fire 清单 vs 实际观察 4 miss（事件类 b/c + A 类 menu + pause）；非首次证据链 2026-04-22 memory `feedback_tg_workflow_updates_to_tg` + 2026-04-23 本会话 issue #111 共 2 次；Finding 1+2 拆耦论证倾向支持 YAML 是 contributing factor 但无 A/B 实证；3 hypothesis 各独立佐证（A 条款密度 workflow.md 552 行 ≥8 并发检索 / B 现有 lint 面无 orchestrator compliance / C attention shift 论证 + skill vs agent form 对照缺失 n=2）；superpowers `<SUBAGENT-STOP>` 事实校正（skill 自跳过非 handoff sentinel，issue body 参照前提被修正）；4 mitigation 方向 × 3 hypothesis 交叉映射（无单方向全响应）；实施成本 per-file delta 方向 c ~280-400 行 vs 方向 d ~45-65 行；7 事实层开放问题。不做选型推荐（留给 architect）
+
 ## analyze | prompt-language-policy | 2026-04-23
 - 操作者: analyst (skill, 2 轮)
 - 影响文件: docs/analyze/prompt-language-policy.md (new)
