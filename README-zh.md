@@ -125,6 +125,7 @@ roundtable = 流程编排层。叠加：
 
 - [`docs/roundtable.md`](docs/roundtable.md) —— 架构总览
 - [`docs/usage.md`](docs/usage.md) —— 完整使用指南
+- [`docs/case-study-rewrite.md`](docs/case-study-rewrite.md) —— 案例研究：用 roundtable 重构 roundtable 自己
 - [`CHANGELOG.md`](CHANGELOG.md) —— 版本历史
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) —— 如何贡献
 
