@@ -2,284 +2,132 @@
 
 [English](./README.md) · [中文](./README-zh.md)
 
-> **一张圆桌，把分析师、架构师、开发、测试、审查、DBA 请到同一个 Claude Code 会话里，用 plan-then-execute 的纪律逐步推进复杂需求。**
+> **让 analyst、architect、developer、tester、reviewer、DBA 同坐一桌，用 plan-then-execute 纪律推进复杂工作。**
 
-`roundtable` 是一个 [Claude Code](https://code.claude.com) plugin，把一套成熟的多角色 AI 开发工作流打包成"一行命令装完即用"的形态。
+`roundtable` 是 [Claude Code](https://code.claude.com) plugin，把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 2 skill + 3 command + 1 SessionStart hook，全部 prompt+config 约 760 行。
 
-```bash
+## 安装
+
+### 从 marketplace 安装（推荐）
+
+```
 /plugin marketplace add duktig666/roundtable
 /plugin install roundtable@roundtable --scope user
-# 零弹窗，秒装完
 ```
 
-或者本地 clone 直接用（改代码即刻生效，适合跟进未发版改动或自行魔改）：
+### 本地安装（hacking / 跟踪未发布改动）
 
 ```bash
-git clone git@github.com:duktig666/roundtable.git
-claude --plugin-dir /absolute/path/to/roundtable   # 在你的项目目录下执行
+git clone git@github.com:duktig666/roundtable.git ~/code/roundtable
+cd <your-project>
+claude --plugin-dir ~/code/roundtable
 ```
 
-装完即可在任意项目里用：
+或把本地 checkout 注册成 marketplace：
 
-```bash
-/roundtable:workflow 设计 funding-rate 功能
-/roundtable:bugfix 修复 Issue #123
+```
+/plugin marketplace add /absolute/path/to/roundtable
+/plugin install roundtable@roundtable --scope user
+```
+
+本地文件改动**新会话立即生效**。
+
+## 在任何项目里用
+
+```
+/roundtable:workflow 设计资金费率功能
+/roundtable:bugfix 修 Issue #123
 /roundtable:lint
 ```
 
----
+## 为什么叫 "roundtable"
 
-## 为什么叫 roundtable
+> 圆桌骑士的规矩是没有上座 —— 每个骑士平等而坐，把各自的专长汇入共同决策。
 
-> 亚瑟王的圆桌骑士制度有个精髓 —— **没有主位，每位骑士平等地围坐议事，用各自的专长共同做出决策**。
+这就是这个 plugin 的模型：
 
-这个 plugin 做的正是这件事：
-
-- **Analyst**（分析师）先把需求的痛点、竞品、失败模式、6 个月后评价想清楚
-- **Architect**（架构师）拿 analyst 的产出做设计 —— 关键决策用 `AskUserQuestion` 弹窗让你逐个点选，不是单方面推方案
-- **Developer**（开发）在架构确定后才动手，用 plan-then-execute 纪律先出实现计划再写代码
-- **Tester**（测试）对关键模块做对抗性测试和 benchmark，不是应付式的单元测试
-- **Reviewer / DBA**（代码 / 数据库审查）关键模块必过一眼
-
-你不是听一个 Claude 自说自话，而是在主持一场圆桌讨论。
-
----
+- **Analyst** 跑六问框架（失败模式 / 6 个月评价 + 4 个按需问题），只产**事实**——不做推荐
+- **Architect** 消费 analyst 的事实；每个架构决策点都通过 `AskUserQuestion` 让你拍板；medium/large 任务先产 **design-doc**（讨论态），用户确认后再产 exec-plan（执行态）
+- **Developer** 只在 exec-plan 锁定后才动代码；非平凡行为先写失败测试
+- **Tester** 写对抗性 / E2E / Playwright 测试；发现业务 bug 只写复现测试不改业务码
+- **Reviewer / DBA** 只读；reviewer 标 Critical / Warning / Suggestion；DBA 禁所有 SQL 写（不允许 INSERT/UPDATE/ALTER/DROP）
 
 ## 设计原则
 
-1. **零配置安装** —— plugin.json 没有 `userConfig` 弹窗，运行时自动检测工具链（Cargo.toml / package.json / pyproject.toml / go.mod / Move.toml），项目业务规则通过各项目自己的 `CLAUDE.md` 自描述
-2. **自动组织流程 + 文档化每阶段 I/O** —— 从 analyst → architect → developer → tester → reviewer / dba 全流程由 `/roundtable:workflow` 编排（自动识别任务规模 + 派发合适角色），每阶段输入 / 产出（`analyze/` → `design-docs/` → `exec-plans/` → `src/` + `tests/` → `testing/` → `reviews/`）都落盘可追溯；plan-then-execute 纪律贯穿 —— architect 出设计要用户确认再落盘，落盘后再写 exec-plan，developer / tester 中大任务先出实现 / 测试计划再动手
-3. **决策逐点弹窗** —— architect 遇到关键决策点立即 `AskUserQuestion` 让用户点选，不堆砌成文字列表最后一次性问
-4. **交互式 role 用 skill，自主执行 role 用 agent** —— architect / analyst 是 skill（主会话运行，`AskUserQuestion` 可用），developer / tester / reviewer / dba 是 agent（subagent 隔离上下文，避免主会话污染）
-5. **文档三件套分层** —— 关键决策落 `decision-log.md`（append-only，Superseded 不删）、文档变更入 `log.md`（时间索引）、文件清单入 `INDEX.md`（产出分类导航）；参考 Karpathy LLM Wiki 的"Raw Source → Wiki → Schema"分层，让贡献者几分钟内 pin down 项目决策脉络
-6. **Analyst 借鉴 gstack 六问检验** —— 需求不清时先走 analyst skill 的六问框架（为什么现在、失败模式、竞品做法、6 个月后评价、事实 vs 推论、交付对象），把模糊需求变成 architect 能接手的事实清单
-7. **多项目原生支持** —— 根目录启动 Claude Code 时自动识别目标项目（git repo 扫描 + 任务描述正则匹配 + `AskUserQuestion` 兜底）
+1. **零配置安装** —— `plugin.json` 无 userConfig 弹窗；工具链按项目根文件 auto-detect
+2. **architect 双轨产出** —— design-doc（讨论态，频繁迭代）和 exec-plan（执行态，稳定）拆成两份文件用于 medium/large 任务；small 任务合并
+3. **逐决策弹窗** —— architect 每个关键决策当场调 `AskUserQuestion`，不积压成文字列表
+4. **交互角色 → skill / 自主角色 → subagent** —— analyst/architect 主会话执行（需要 `AskUserQuestion`）；developer/tester/reviewer/dba 独立 subagent 上下文
+5. **`[NEED-DECISION]` 模式** —— subagent 不能弹窗，在返回文本印一行，orchestrator grep 后调 `AskUserQuestion` 续派
+6. **SessionStart hook 注入 `docs_root`** —— bash 在 session 开始时检测 docs_root + project_id（env > 向上找 `docs/` > `needs-init` 兜底），所有角色从注入上下文读，不再 inline 检测
+7. **plugin 语言无关** —— prompt 全英文；输出语言由项目自己的 CLAUDE.md 决定（声明 `文档中文` 后所有产出自动中文）
+8. **无机制堆叠** —— 没有 decision-log / log.md / faq.md / progress JSONL / Monitor / `<escalation>` JSON。决策直接写进 exec-plan 的 `## Key Decisions`；FAQ 追加到对应 analyze/design-doc；INDEX.md 由 `/roundtable:lint` 重建
 
----
+## Phase Matrix
 
-## 快速上手（5 分钟）
+`/roundtable:workflow` 实时维护 9 行状态表，每次 phase transition 重新渲染。
 
-### 1. 安装 plugin
+| # | 角色 | 产出 | 可跳过？ |
+|---|------|------|---------|
+| 1 | analyst (skill) | `docs/analyze/<slug>.md` | 是（小任务）|
+| 2 | architect (skill) | `docs/design-docs/<slug>.md` | 是（小任务）|
+| 3 | user | 确认设计文档 | 是（无 design-doc 时跳过）|
+| 4 | architect (skill) | `docs/exec-plans/active/<slug>.md` | 否 |
+| 5 | user | 确认执行计划 | 否 |
+| 6 | developer | `src/`, `tests/`，exec-plan 勾选 | 否 |
+| 7 | tester | `docs/testing/<slug>.md` | 是 |
+| 8 | reviewer | `docs/reviews/<YYYY-MM-DD>-<slug>.md` | 是 |
+| 9 | dba | `docs/reviews/<YYYY-MM-DD>-db-<slug>.md` | 是（仅 DB 改动）|
 
-```bash
-/plugin marketplace add duktig666/roundtable
-/plugin install roundtable@roundtable --scope user
+状态：⏳ 待办 · 🔄 进行中 · ✅ 完成 · ⏩ 跳过
+
+## Commands / Skills / Agents
+
+| 类型 | 名称 | 用途 |
+|------|------|------|
+| command | `/roundtable:workflow <任务>` | 完整编排——自动判规模 / 派发角色 / 用户 gate / 解析 `[NEED-DECISION]` |
+| command | `/roundtable:bugfix <issue>` | 跳过设计阶段，Tier 0/1/2 决策树，必须有回归测试 |
+| command | `/roundtable:lint` | 只读文档检查；重建 `INDEX.md`；报告孤儿文档 / 断链 / 停滞 exec-plan |
+| skill | `@roundtable:analyst` | 六问框架，事实层产出 |
+| skill | `@roundtable:architect` | 双轨产出：design-doc → 用户确认 → exec-plan → 用户确认 |
+| subagent | `@roundtable:developer` | 实施 + 单元测试；勾 exec-plan checkbox |
+| subagent | `@roundtable:tester` | 对抗性 / E2E / Playwright；不改 `src/` |
+| subagent | `@roundtable:reviewer` | 只读评审；输出 `<docs_root>/reviews/<date>-<slug>.md` |
+| subagent | `@roundtable:dba` | 只读 DB 评审；禁所有 SQL 写操作 |
+
+## 文档目录布局
+
+```
+your-project/docs/
+├── INDEX.md                          ← /roundtable:lint 自动重建
+├── analyze/<slug>.md                 ← analyst
+├── design-docs/<slug>.md             ← architect（仅 medium/large）
+├── exec-plans/
+│   ├── active/<slug>.md              ← architect + developer 勾选
+│   └── completed/                    ← 完工归档
+├── testing/<slug>.md                 ← tester
+├── reviews/<YYYY-MM-DD>-<slug>.md    ← reviewer / dba
+└── bugfixes/<slug>.md                ← Tier 2 严重 bug postmortem
 ```
 
-### 2. 在项目的 `CLAUDE.md` 里加配置 section
+每个主题用一个 slug 串起来。exec-plan 的 frontmatter 通过 `source: design-docs/<slug>.md` 链回设计文档。
 
-```markdown
-# 多角色工作流配置
+## 与其它 plugin 协同
 
-## critical_modules（tester / reviewer 必触发）
-- <你项目里"改错了会出大事"的关键模块>
+roundtable = 流程编排层。叠加：
 
-## 设计参考
-- <你的项目对标什么产品、参考什么框架>
+- **[superpowers](https://github.com/obra/superpowers)** 工程纪律（TDD / debug / verification，auto-trigger）
+- **[gstack](https://github.com/garrytan/gstack)** 显式工具（`/cso` 安全审 / `/investigate` 根因调试 / `/codex` 独立 review / `/careful` destructive 防护）
 
-## 工具链覆盖（可选，默认走自动检测）
-- lint: <你项目的 lint 命令>
-- test: <你项目的 test 命令>
-
-## 条件触发规则（可选）
-- <涉及 X → 必须 Y 的业务规则>
-```
-
-完整模板见 [`docs/claude-md-template.md`](docs/claude-md-template.md)（P3 阶段产出）。
-
-### 决策模式（modal | text）
-
-决策默认走 `AskUserQuestion` 模态弹窗（Claude Code 主会话内响应）。远程前端（Telegram / CI / 日志回放）弹窗无法响应会阻塞 workflow，改用 **text 模式** —— 决策以 `<decision-needed>` 块形式 emit 到对话流，用户自由文本回复（`A` / `选 A` / `go with B but tweak X` 皆可）。详见 [DEC-013](docs/decision-log.md) / [设计文档](docs/design-docs/decision-mode-switch.md)。
-
-| 优先级 | 来源 | 示例 |
-|--------|------|------|
-| 1 | CLI 参数 | `/roundtable:workflow --decision=text ...` |
-| 2 | 环境变量 | `ROUNDTABLE_DECISION_MODE=text`（或经 `.claude/settings.json` 的 `env` 块，Claude Code 按 local > project > user 自动合并） |
-| 3 | 默认 | `modal` |
-
-### 3. 跑起来
-
-```bash
-# 在项目内或根目录 workspace 都行
-claude
-> /roundtable:workflow 设计一个 XXX 功能
-
-# roundtable 会：
-#  1. 识别目标项目（根目录启动时自动扫 .git/ 子目录 + 匹配任务描述 → AskUserQuestion 兜底）
-#  2. 检测技术栈（读 Cargo.toml / package.json 等）
-#  3. 加载你项目的 CLAUDE.md 业务规则
-#  4. 激活 architect skill，决策点逐个 AskUserQuestion 弹窗让你点选
-#  5. 落盘 design-doc → 你审阅 → 派发 developer agent 写代码 → tester agent 跑测试 → reviewer agent 审查
-```
-
----
-
-## Orchestrator 编排器
-
-**orchestrator 就是运行 `/roundtable:workflow` 或 `/roundtable:bugfix` 的主会话 Claude** —— 不是独立 agent 或进程，是主会话本身执行 `commands/workflow.md` 的编排逻辑。职责：只编排，不自己做设计 / 编码 / 审查；只派发、gate、聚合。
-
-### 派发机制
-
-| 角色形态 | 派发方式 | 运行位置 |
-|---------|---------|---------|
-| **skill**（analyst / architect） | `Skill` 工具 | 主会话（与 orchestrator 共 context） |
-| **subagent**（tester / reviewer / dba / research） | `Task` 工具 | 独立 subagent context |
-| **inline developer**（DEC-005 逃生门） | orchestrator `Read` `agents/developer.md` 主会话照做 | 主会话 |
-
-### 特权（角色没有）
-
-- **唯一 Writer**：`docs/INDEX.md` / `docs/log.md` / `exec-plans/[slug]-plan.md` checkbox —— 角色只 report `log_entries:` YAML / `created:` path，orchestrator 代写避免 race
-- **唯一 `AskUserQuestion` relayer**：subagent 的 `<escalation>` JSON block 必须过 orchestrator 转弹窗 —— subagent 本体无 AskUserQuestion
-- **唯一 git 执行者**：`commit` / `push` / `branch` / `tag` / `reset` / `stash` 仅在用户显式要求时执行
-
-### 各 Step 做什么
-
-- **Step 0** context 检测 —— `target_project` / `docs_root` / toolchain / CLAUDE.md `critical_modules`
-- **Step 1** 任务规模判定 —— 小 / 中 / 大 → pipeline 选型
-- **Step 3.4** 派发 mode 选择 —— per-session `@<role> bg|fg` → 并行度 → `AskUserQuestion`
-- **Step 3.5** Progress Monitor 启动 —— 仅后台派发（DEC-008 gate）
-- **Step 4** 并行派发判定树 —— PREREQ MET / PATH DISJOINT / SUCCESS-SIGNAL INDEPENDENT / RESOURCE SAFE
-- **Step 5** 解析 `<escalation>` → `AskUserQuestion` relay → 按用户决策重派
-- **Step 6** phase gating —— A 产出-暂停 / B 审批门 / C 验证链（DEC-006）
-- **Step 7/8** A 转场 / C 过桥 / Stage 9 终点批量 flush `INDEX.md` / `log.md`
-
-**类比项目经理**：skill 是请进主办公室开会的专家（共享白板）；subagent 是外包到独立会议室的审阅团队（只带结论回来）；orchestrator 就是 PM —— 排班、写纪要、对客户（用户）说话。
-
----
-
-## 使用：命令 / Skill / Agent
-
-roundtable 共提供 **3 个命令**、**2 个 skill**、**5 个 agent**。命令是入口；skill 是可直接调用的交互式角色；agent 是由编排器派发的隔离 subagent（你也可以用 `@mention` 直接点名）。
-
-### 命令（入口）
-
-| 命令 | 用途 | 什么时候调 |
-|------|------|------------|
-| `/roundtable:workflow <任务>` | 总编排器 —— 自动识别任务规模（小 / 中 / 大），派发对应角色 | 任何非琐碎的功能、重构、调研的默认入口 |
-| `/roundtable:bugfix <issue>` | Bug 工作流 —— 跳过设计阶段，直接 developer → 按需 tester/reviewer/dba，强制带回归测试 | 清晰、定位明确的 Bug；你大致知道它在哪 |
-| `/roundtable:lint` | 文档健康检查 —— 扫描决策漂移、陈旧 exec-plan、孤儿文件、断链、事实 / 推论混淆。**只出报告，不改文件** | 文档高变更的一周后、发版前、或 `design-docs/` / `decision-log.md` 感觉脱节时 |
-
-### Skill（主会话 / 交互式 —— `AskUserQuestion` 可用）
-
-调用方式：`@roundtable:<name>` 或让 `/roundtable:workflow` 自动激活。
-
-| Skill | 做什么 | 典型触发 |
-|-------|--------|----------|
-| `@roundtable:analyst` | 技术调研、竞品分析、可行性评估；跑六问框架分离事实与推论 | 需求模糊，架构师接手前需要一份事实清单 |
-| `@roundtable:architect` | 三阶段：决策弹窗（`AskUserQuestion`）→ 落盘 `design-docs/<slug>.md` + `decision-log.md` DEC → 按需 `exec-plans/` | 新功能或重大重构；希望每个 trade-off 在落盘前都被点出来 |
-
-### Agent（subagent 隔离 / 自主执行）
-
-Agent 在全新上下文中运行；一般由编排器派发，但你也可以 `@mention` 直接调用做一次性任务。
-
-| Agent | 做什么 | 什么时候自动触发 |
-|-------|--------|--------------------|
-| `@roundtable:developer` | plan-then-code、TDD，支持任意语言 / 技术栈（Rust / TS / Python / Go / Move / …），工具链从项目根自动检测 | 设计确认后，或任何小型编码任务 |
-| `@roundtable:tester` | 对抗性测试、E2E 场景、性能 benchmark；**只写测试代码，不动业务代码** | `critical_modules` 命中或性能敏感路径 |
-| `@roundtable:reviewer` | 只读代码审查：质量、安全、性能、设计一致性、测试覆盖 | 关键模块或合入大改动前 |
-| `@roundtable:dba` | 只读数据库审查：schema、查询优化、迁移安全、索引策略 | diff 涉 DB schema / migrations / 热路径查询 |
-| `@roundtable:research` | 短生命周期 worker，由 architect skill 派发，针对**单一备选方案**做深度事实层调研；返回结构化 `<research-result>` JSON | architect 专属派发 —— 不是用户入口 |
-
-### 直接调用示例
-
-```bash
-# 让编排器选路径
-/roundtable:workflow 新增 WebSocket 行情推送
-
-# 只跑调研 —— 不出设计也不动代码
-@roundtable:analyst 对比 QuickFIX 和自研 FIX parser 在我们 OMS 的取舍
-
-# 只出设计 —— 设计文档 + 决策日志，不实现
-@roundtable:architect 为亚毫秒级延迟重新设计撮合引擎
-
-# 跳过设计，直接改代码
-/roundtable:bugfix Issue #42: 订单簿重启后漂移
-
-# 不跑整套 workflow，单独拉一次 review
-@roundtable:reviewer 审计 auth/middleware.rs 里的 session token 存储
-
-# 仅对迁移做数据库审查
-@roundtable:dba 检查 migration 0042 在 5000 万行表上是否安全
-```
-
----
-
-## Phase Matrix 机制
-
-`/roundtable:workflow` 全程维护一张 **9 阶段状态表**，每次 phase 切换或用户问进度时即时报告，让编排状态始终可视。
-
-| 阶段 | 主角 | 产出 | Gate |
-|-----|------|------|------|
-| 1. Context detection | inline | `target_project` / `docs_root` / 工具链 / `critical_modules` | C |
-| 2. Research（可选） | analyst | `analyze/[slug].md` | A |
-| 3. Design | architect | `design-docs/[slug].md` + `decision-log.md` DEC | A |
-| 4. Design confirmation | 用户 | Accept / Modify / Reject | B |
-| 5. Implementation | developer | `src/` + `tests/`、exec-plan checkbox | C |
-| 6. Adversarial testing | tester | 测试代码 + `testing/[slug].md` | C |
-| 7. Review | reviewer | 对话 或 `reviews/[date]-[slug].md` | C |
-| 8. DB review | dba | 对话 或 `reviews/[date]-db-[slug].md` | C |
-| 9. Closeout | 用户 | 汇总 findings；用户驱动 commit / PR | A |
-
-**状态图例**：⏳ 待办 · 🔄 进行中 · ✅ 完成 · ⏩ skipped
-
-**Gate 分类（DEC-006）决定 phase transition 节奏**：
-
-- **A producer-pause** —— 阶段以用户可消费产物结尾；orchestrator 给 3 行 summary 后**停手不调工具**，等用户 `go` / `调范围: ...` / 问题
-- **B approval-gate** —— 方向性锁（仅 Stage 4）；按 Option Schema 调 `AskUserQuestion`，每选项含 `rationale` + `tradeoff` + 可选 `★recommended`
-- **C verification-chain** —— 内部交接自动推进，emit 一行 `🔄 X 完成 → dispatching Y`；`critical_modules` 命中 / `<escalation>` / lint+test 失败立即打断走 escalation
-
-产出类（Step 7 INDEX / Step 8 log.md）由 orchestrator 在 **A 转场 + C 过桥 + Stage 9 终点**批量 flush，角色绝不自写共享索引。
-
----
-
-## workflow 流程图
-
-```mermaid
-flowchart TD
-    Start(["/roundtable:workflow &lt;task&gt;"]) --> S0["Step 0<br/>Context Detection<br/>inline"]
-    S0 --> S1{"Step 1<br/>任务规模"}
-    S1 -->|小| Bugfix["/roundtable:bugfix<br/>或 @developer 直派"]
-    S1 -->|中| Analyst2["analyst 可选"]
-    S1 -->|大| Analyst["analyst"]
-    Analyst --> Arch
-    Analyst2 --> Arch["architect<br/>决策逐点 AskUserQuestion<br/>落 design-doc + DEC"]
-    Arch --> Confirm{"Stage 4<br/>Design Confirm<br/>B gate"}
-    Confirm -->|Reject| Arch
-    Confirm -->|Modify| Arch
-    Confirm -->|Accept| Dev
-    Bugfix --> Dev["developer<br/>plan-then-code<br/>lint + test"]
-    Dev --> CritCheck{"命中<br/>critical_modules?"}
-    CritCheck -->|是| Tester["tester<br/>对抗性 + benchmark<br/>bug 走 escalation"]
-    CritCheck -->|否| DBCheck
-    Tester --> DBCheck{"涉 DB<br/>变更?"}
-    DBCheck -->|是| DBA["dba<br/>schema / 迁移 / 索引"]
-    DBCheck -->|否| Reviewer
-    DBA --> Reviewer["reviewer<br/>命中 critical 写 reviews/"]
-    Reviewer --> Closeout(["Stage 9 Closeout<br/>A gate<br/>用户 commit / PR / amend"])
-
-    classDef skill fill:#e3f2fd,stroke:#1976d2
-    classDef agent fill:#fff3e0,stroke:#f57c00
-    classDef gate fill:#fce4ec,stroke:#c2185b
-    class Analyst,Analyst2,Arch skill
-    class Dev,Tester,Reviewer,DBA agent
-    class Confirm,CritCheck,DBCheck gate
-```
-
-**跨阶段关键编排**：
-
-- **Step 3.5 Progress Monitor**（DEC-004 / DEC-008）—— 每个 `run_in_background: true` 的 `Task` 配独立 Monitor 流，前台派发跳过（子 agent 输出已实时缩进回显）
-- **Step 4 并行判定** —— PREREQ MET / PATH DISJOINT / SUCCESS-SIGNAL INDEPENDENT / RESOURCE SAFE **四条全中**且加速 >30% 才并行，否则串行
-- **Step 5 Escalation** —— agent final report 的 `<escalation>` JSON block → orchestrator 调 `AskUserQuestion` 给用户 → 决策注入 prompt 重派同一 agent（scope 限 `remaining_work`）
-- **Step 6b Developer 形态**（DEC-005）—— per-session `@...inline` > per-project `developer_form_default` > per-dispatch 弹窗；tester / reviewer / dba 永远 subagent
-- **Step 7 / 8 批量 flush** —— `INDEX.md` 与 `log.md` 由 orchestrator 聚合 flush，触发点：A 转场 / C 过桥 / Stage 9 终点
-
----
+完整推荐 + 冲突劝退见 [`docs/usage.md` §6](docs/usage.md)。
 
 ## 延伸阅读
 
-- 英文版：[README.md](./README.md)
-- 架构决策：[`docs/decision-log.md`](docs/decision-log.md)
-- Plan-then-execute 规范：[`docs/exec-plans/active/roundtable-plan.md`](docs/exec-plans/active/roundtable-plan.md)
-- 目标项目 `CLAUDE.md` 模板：[`docs/claude-md-template.md`](docs/claude-md-template.md)
-- Changelog：[`CHANGELOG.md`](CHANGELOG.md)
-- 贡献指南：[`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`docs/roundtable.md`](docs/roundtable.md) —— 架构总览
+- [`docs/usage.md`](docs/usage.md) —— 完整使用指南
+- [`CHANGELOG.md`](CHANGELOG.md) —— 版本历史
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) —— 如何贡献
+
+## 许可
+
+[Apache-2.0](LICENSE)
