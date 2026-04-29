@@ -6,6 +6,58 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-04-29
+
+Minimal rewrite: dropped 64% of prompt code and removed five auxiliary documentation mechanisms. Plugin is now language-neutral (output language follows the project's CLAUDE.md). Architect runs a two-track output flow for medium/large tasks (separate design-doc + exec-plan with two user gates) and a single-artifact flow for small tasks.
+
+### Added
+
+- `docs/roundtable.md` (architecture overview, 139 lines).
+- `docs/usage.md` (5-min quickstart + install methods + plugin composition with superpowers / gstack + FAQ; renamed from `onboarding.md`).
+- `docs/case-study-rewrite.md` (recursive dogfood case study covering both rounds of this rewrite).
+- `[NEED-DECISION] <topic> | options: A) ... B) ...` line-based decision-relay pattern: subagents print one line in their return text, orchestrator parses and calls `AskUserQuestion`.
+- SessionStart hook (`hooks/session-start`) that detects `docs_root` + `project_id` once per session and injects them as standard `additionalContext` (invisible to user, readable by all roles).
+- Two-track architect output: `docs/design-docs/<slug>.md` (discussion-state) followed by `docs/exec-plans/active/<slug>.md` (execution-state) for medium/large tasks; `source: design-docs/<slug>.md` frontmatter links them.
+- Local install instructions in README (both `claude --plugin-dir` and registering the local checkout as a marketplace).
+
+### Changed
+
+- All `agents/`, `skills/`, `commands/` prompt files rewritten in English.
+- Output language is now driven by the project's CLAUDE.md (declare `文档中文` to get Chinese docs); plugin templates use English section names which the LLM translates at write time.
+- `commands/lint.md` rebuilds `INDEX.md` instead of relying on every doc-creator to maintain it inline.
+- 4 agents (developer / tester / reviewer / dba) now run as subagents only; analyst / architect remain skills (need `AskUserQuestion`).
+- README.md / README-zh.md rewritten to match the new design (down from 285 → 133 lines each).
+- `commands/workflow.md` Phase Matrix expanded from 7 to 9 rows (added design-doc emit + design confirmation gate).
+- `docs/exec-plans/active/<slug>.md` frontmatter carries `source: design-docs/<slug>.md` when a design-doc exists.
+
+### Removed
+
+- `docs/decision-log.md` mechanism (architectural decisions now live in each exec-plan's `## Key Decisions` section and travel with it).
+- `docs/log.md` mechanism (`git log` is authoritative for change history).
+- `docs/faq.md` mechanism (slug-level FAQ stays inside the relevant analyze / design-doc).
+- `<escalation>` JSON schema and the `Monitor` / progress JSONL pipeline (replaced by `[NEED-DECISION]` and short markdown summaries).
+- `decision_mode` (modal/text) and `auto_mode` bootstrap (channel hooks now own remote rendering).
+- `subagent` / `inline` dual execution form for developer/tester/reviewer/dba.
+- `research` subagent (architect now dispatches general-purpose `Agent` for parallel research).
+- `skills/_detect-project-context.md` (replaced by SessionStart hook).
+- `skills/_progress-content-policy.md`.
+- `scripts/preflight.sh`, `scripts/ref-density-check.sh`, `scripts/ref-density.baseline`.
+- All v0.0.4-era internal dogfood records under `docs/{analyze,bugfixes,exec-plans,reviews,testing}/` and the `docs/_archive/` historical bundle (git history retained via prior commits).
+- `examples/` snippets (3 v0.0.4-era CLAUDE.md templates per language; the minimal config style is documented in `docs/usage.md` §3).
+- DEC-001..030 references throughout.
+
+### Fixed
+
+- SessionStart hook output uses the standard JSON `hookSpecificOutput.additionalContext` protocol and is invisible to the user (no more raw stdout leaking into the chat).
+- Plugin no longer hardcodes Chinese section names in templates, restoring portability to English-only projects.
+
+### Migration notes
+
+- v0.0.4 historical docs are retained in git history (see commit 5472371 and earlier).
+- New work should not link to `docs/_archive/` (now removed; references will 404).
+- Project-level CLAUDE.md should declare `文档中文` if Chinese output is desired (otherwise the LLM follows the English template).
+- If your project relied on `docs/decision-log.md`, migrate decisions into the relevant exec-plan's `## Key Decisions` section.
+
 ## [0.0.1] - 2026-04-20
 
 首个公开 release —— 完整多角色工作流编排可用（analyst / architect / developer / tester / reviewer / dba），Phase Matrix + A/B/C gate 分类 + Escalation Protocol + Monitor 实时进度全部就绪。
