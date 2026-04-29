@@ -125,6 +125,7 @@ See [`docs/usage.md` §6](docs/usage.md) for which skills/commands to enable vs 
 
 - [`docs/roundtable.md`](docs/roundtable.md) — architecture overview
 - [`docs/usage.md`](docs/usage.md) — full usage guide
+- [`docs/case-study-rewrite.md`](docs/case-study-rewrite.md) — case study: how we used roundtable to refactor itself
 - [`CHANGELOG.md`](CHANGELOG.md) — version history
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
 
