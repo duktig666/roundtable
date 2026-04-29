@@ -1,25 +1,43 @@
 #!/usr/bin/env bash
 # SessionStart hook for roundtable plugin.
 #
-# Surfaces raw ROUNDTABLE_AUTO / ROUNDTABLE_DECISION_MODE env values into
-# Claude Code's sessionContext so the /roundtable:workflow orchestrator can
-# read authoritative state instead of inferring from higher-level harness
-# signals (e.g. Claude Code Auto Mode system prompt).
-#
-# Design: see docs/design-docs/orchestrator-bootstrap-hardening.md
-# DEC:    DEC-028 (scripts/ directory convention; raw-echo-only contract)
+# Detects docs_root + project_id and injects them into Claude Code session
+# context via the standard SessionStart hook JSON protocol. Skills, agents, and
+# commands read this context at runtime — no inline 4-step detection needed.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PREFLIGHT_SCRIPT="${PLUGIN_ROOT}/scripts/preflight.sh"
+cwd="$(pwd)"
 
-if [ -x "$PREFLIGHT_SCRIPT" ]; then
-    preflight_output="$("$PREFLIGHT_SCRIPT" 2>&1 || echo "PREFLIGHT error: scripts/preflight.sh exited non-zero")"
+docs_root=""
+status="ok"
+if [ -n "${ROUNDTABLE_DOCS_ROOT:-}" ] && [ -d "${ROUNDTABLE_DOCS_ROOT}" ]; then
+    docs_root="${ROUNDTABLE_DOCS_ROOT}"
 else
-    preflight_output="PREFLIGHT error: scripts/preflight.sh not executable at ${PREFLIGHT_SCRIPT}"
+    dir="$cwd"
+    while [ "$dir" != "/" ]; do
+        if [ -d "$dir/docs" ]; then
+            docs_root="$dir/docs"; break
+        elif [ -d "$dir/documentation" ]; then
+            docs_root="$dir/documentation"; break
+        fi
+        dir="$(dirname "$dir")"
+    done
 fi
+[ -z "$docs_root" ] && status="needs-init"
+
+if git_top="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)"; then
+    project_id="$(basename "$git_top")"
+else
+    project_id="$(basename "$cwd")"
+fi
+
+context="Roundtable context:
+docs_root: ${docs_root:-<none>}
+project_id: ${project_id}
+status: ${status}"
+[ "$status" = "needs-init" ] && context="${context}
+note: docs_root not found; commands should AskUserQuestion to set one."
 
 escape_for_json() {
     local s="$1"
@@ -30,23 +48,12 @@ escape_for_json() {
     s="${s//$'\t'/\\t}"
     printf '%s' "$s"
 }
-
-session_context="<roundtable-preflight>
-Captured at session start. These are the authoritative source for resolving auto_mode / decision_mode during /roundtable:workflow invocations.
-
-${preflight_output}
-
-HARD-GATE: The orchestrator must NOT conflate 'roundtable auto_mode' with any higher-level harness Auto Mode signal. Memory: feedback_roundtable_auto_mode_source. For role dispatch, see commands/workflow.md Step 3 role-form mapping table before invoking any role (skill vs agent).
-</roundtable-preflight>"
-
-escaped="$(escape_for_json "$session_context")"
+escaped="$(escape_for_json "$context")"
 
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
-    printf '{\n  "additional_context": "%s"\n}\n' "$escaped"
+    printf '{"additional_context":"%s"}\n' "$escaped"
 elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
-    printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$escaped"
+    printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$escaped"
 else
-    printf '{\n  "additionalContext": "%s"\n}\n' "$escaped"
+    printf '{"additionalContext":"%s"}\n' "$escaped"
 fi
-
-exit 0

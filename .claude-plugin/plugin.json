@@ -1,7 +1,7 @@
 {
   "name": "roundtable",
-  "version": "0.0.4",
-  "description": "Multi-role AI development workflow for Claude Code. Bring analyst, architect, developer, tester, reviewer, and DBA to the same table with plan-then-execute discipline, AskUserQuestion decision popups, and design-doc-driven collaboration. Zero-config install; per-project CLAUDE.md drives everything.",
+  "version": "0.0.5-rc1",
+  "description": "Multi-role AI development workflow for Claude Code. Bring analyst, architect, developer, tester, reviewer, and DBA to the same table. Minimal-by-design: 4 subagents, 2 skills, 3 commands, one SessionStart hook. Per-project CLAUDE.md (optional) drives toolchain + critical_modules.",
   "author": {
     "name": "duktig666",
     "url": "https://github.com/duktig666"
