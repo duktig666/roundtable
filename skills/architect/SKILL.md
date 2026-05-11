@@ -23,7 +23,7 @@ You produce one or two artifacts depending on task size. Output language follows
 
 Determine size from the task. If unclear, ask the user once.
 
-### design-doc template (medium / large only)
+### design-doc skeleton (medium / large only)
 
 ```
 ---
@@ -34,17 +34,18 @@ status: draft
 
 # <title>
 
-## Background & Goals
-## Non-Goals
-## Solution
-## Key Decisions
-- <decision> — <one-line reason>
-## Alternatives Considered
-## Risks
-## FAQ
+## Background & Goals      # required
+## Solution                # required
+## Key Decisions           # required if any non-trivial choice made; one line each: <decision> — <reason>
+## Non-Goals               # optional
+## Alternatives            # optional — only if real alternatives were weighed
+## Risks                   # optional
+## FAQ                     # optional — append-only on follow-ups
 ```
 
-### exec-plan template
+Required sections are always present. Optional sections: include only if they have real content — **never write empty placeholders**.
+
+### exec-plan skeleton
 
 ```
 ---
@@ -56,52 +57,29 @@ status: active
 
 # <title> — Execution Plan
 
-## Steps
-- [ ] P0.1 <step>
-- [ ] P0.2 <step>
-
-## Verification
-- lint passes
-- tests pass
-- <task-specific signals>
-
-## Risks & Mitigations
-
-## Change Log
+## Solution           # required for small tasks (2-3 lines, no design-doc); omit if design-doc exists
+## Steps              # required — checkbox list, P0.1 / P0.2 / P1.1 …
+## Verification       # required — lint / tests / task-specific signals
+## Risks & Mitigations  # optional
+## Change Log         # optional — append on user revisions
 ```
-
-For small tasks (no design-doc), prepend a `## Solution` section before `## Steps` with 2-3 lines summarizing the approach.
 
 ## Workflow
 
 1. Read session-start context, analyst report (if any), prior exec-plans / design-docs (skim for collisions or constraints).
 2. Determine size. Ask user if unclear.
 3. **Optional research fan-out**: if 2–4 candidates need non-trivial external research, dispatch up to 3 general-purpose `Agent` subagents in parallel (one assistant message, multiple tool calls).
-4. For each architectural decision point, call `AskUserQuestion`. One decision per call; batch only **independent** decisions.
+4. For each architectural decision point, ask the user. **Channel-aware**: if the session has the telegram MCP server loaded (check system-reminders), post the question as a TG `reply` with labeled options (`a) … b) … c) …`) and wait for a text reply — do **not** call `AskUserQuestion` (it blocks TG). Otherwise call `AskUserQuestion`. One decision per call; batch only **independent** decisions.
 5. **Medium / large**: write design-doc → tell user the path → wait for `accept / modify / reject`. On `accept`, write exec-plan → tell user → wait for second `accept / modify / reject`. On `modify`, edit the relevant file and re-prompt.
 6. **Small**: write a single exec-plan with `## Solution` section → wait for `accept / modify / reject`.
 7. On final accept, hand off to the orchestrator (which dispatches developer).
 
-## AskUserQuestion shape
+## Decision shape
 
-Pack rationale + tradeoff + (optional) recommendation into the `description` string. The tool only knows `{label, description}`.
+2–4 mutually exclusive options. Each option: `<label> — <rationale + tradeoff>`. At most one marked `★ Recommended`. If no preference, recommend nothing.
 
-```
-AskUserQuestion({
-  questions: [{
-    header: "Persistence",
-    question: "Persistence layer for <module>?",
-    multiSelect: false,
-    options: [
-      {label: "SQLite", description: "★ Recommended: matches single-process constraint. Tradeoff: no concurrent writer."},
-      {label: "Postgres", description: "Rationale: future-proofs multi-node. Tradeoff: extra infra."},
-      {label: "Files", description: "Rationale: zero deps. Tradeoff: no index."}
-    ]
-  }]
-})
-```
-
-Rules: at most one `★ Recommended`; 2–4 options; mutually exclusive. If you have no preference, say so in `question` and recommend nothing.
+- Terminal: `AskUserQuestion` (pack rationale into `description`).
+- TG: reply text `<question>\na) <label> — <rationale>\nb) …`, wait for `a/b/c` reply.
 
 ## Boundaries
 

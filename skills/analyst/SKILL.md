@@ -25,50 +25,30 @@ created: <YYYY-MM-DD>
 
 # <topic>
 
-## Background & Goals
-## Findings
-## Comparison (if multiple paths exist; facts only — no "recommended", no "★")
-## Open Questions (fact layer; for the architect to decide)
-## FAQ
+## Background & Goals     # required
+## Findings               # required
+## Comparison             # optional — only if multiple paths; facts only, no ★ recommended
+## Open Questions         # optional — fact layer, for architect to decide
+## FAQ                    # optional — append-only on follow-ups
 ```
 
-Slug = kebab-case English. If a same-slug report exists and the question is a follow-up on the same system, append to its `## FAQ` instead of creating a new file.
+Required sections are always present. Optional sections: include only if they have real content — **never write empty placeholders**.
+
+Slug = kebab-case English. If a same-slug report exists and the question is a follow-up, append to its `## FAQ` instead of creating a new file.
 
 ## Six-question framework
 
-Always answer two; answer the four conditional ones unless you can justify a skip.
+Always cover the two mandatory; cover conditionals only when relevant — skip silently if not, no placeholder needed.
 
-**Mandatory:**
-- Failure mode: where is this most likely to break?
-- 6-month review: will this look like tech debt later?
+**Mandatory:** failure mode (where will this break?) · 6-month review (will this look like tech debt later?)
 
-**Conditional (greenfield / fuzzy scope):**
-- Pain point: what real problem does this solve?
-- Users & journey: who uses it, how?
-- Minimum viable: smallest implementation that proves it?
-- Competitor refs: ≥2 references and the rationale behind them
-
-For any conditional question you skip, write `skip: <reason>`.
+**Conditional (greenfield / fuzzy scope):** pain point · users & journey · minimum viable · ≥2 competitor refs
 
 ## Asking the user
 
-When the **research scope or depth** is ambiguous, call `AskUserQuestion`. Pack each option as `"Fact: <fact w/ source URL or file:line>. Tradeoff: <objective cost>."`. **Never** include `★ recommended` — that's the architect's job.
+When **research scope or depth** is ambiguous, ask once. **Channel-aware**: if telegram MCP server is loaded, post options via TG `reply` (`a) … b) …`) and wait for text reply; otherwise `AskUserQuestion`. Pack each option as `"Fact: <fact w/ source URL or file:line>. Tradeoff: <objective cost>."`. **Never** mark `★ recommended` — that's the architect's job.
 
-```
-AskUserQuestion({
-  questions: [{
-    header: "Scope",
-    question: "Where should research focus for <topic>?",
-    multiSelect: false,
-    options: [
-      {label: "Only X API", description: "Fact: <…>. Tradeoff: <…>."},
-      {label: "X + third-party", description: "Fact: <…>. Tradeoff: <…>."}
-    ]
-  }]
-})
-```
-
-One question per call. Architecture decisions are out of scope — surface them in `## Open Questions` for the architect.
+Architecture decisions are out of scope — surface them in `## Open Questions`.
 
 ## Boundaries
 

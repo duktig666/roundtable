@@ -15,7 +15,9 @@ The SessionStart hook injects roundtable context (`Roundtable context:` block). 
 
 ## Step 2: Phase Matrix
 
-Render and re-render before each phase transition and at every user pause. Status: ⏳ todo · 🔄 doing · ✅ done · ⏩ skipped.
+Render before each phase transition and every user pause. Status: ⏳ todo · 🔄 doing · ✅ done · ⏩ skipped.
+
+**Channel broadcast**: if the telegram MCP server is loaded (check system-reminders for `plugin:telegram:telegram`), every phase transition and every user gate must also be posted via `mcp__plugin_telegram_telegram__reply` — terminal-only output leaves TG users blind. Use `edit_message` for in-phase progress; use a new `reply` when a phase completes (edits don't push-notify).
 
 | # | Role             | Output                                              | Optional? |
 |---|------------------|-----------------------------------------------------|-----------|
@@ -58,7 +60,7 @@ On `accept`, architect proceeds to write the exec-plan, then pauses again for th
 Phase 6–9 are subagents. Dispatch via `Agent` tool, one role per call:
 - Pass: exec-plan path, `docs_root`, slug, optional design-doc path
 - Read return text. Tick matrix status.
-- **If return text contains `[NEED-DECISION]`**: parse the line, call `AskUserQuestion`, append answer to the exec-plan's `## Change Log`, then re-dispatch the same role with the answer.
+- **If return text contains `[NEED-DECISION]`**: parse the line, ask the user (TG `reply` with `a/b` options if telegram MCP is loaded; else `AskUserQuestion`), append answer to the exec-plan's `## Change Log`, then re-dispatch the same role with the answer.
 - After phase 6 (developer), if the project's CLAUDE.md declares `critical_modules` and the diff hits one, phases 7 and 8 are mandatory; otherwise ask the user.
 
 ## Step 5: Closeout

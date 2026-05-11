@@ -25,7 +25,7 @@ Inherit the four baselines from the parent CLAUDE.md at the workspace root: Thin
 Specific to this repo:
 - **Two artifacts per task** (medium / large): architect first writes a design-doc (problem + solution + decisions, iterates with user), then writes an exec-plan (steps + verification, stable after design confirm). Small tasks combine both into a single exec-plan with a `## Solution` section.
 - Subagents return short markdown summaries. If they need a decision, they print one line: `[NEED-DECISION] <topic> | options: A) <…> B) <…>`. The orchestrator parses it and calls `AskUserQuestion`.
-- Channel rendering (TG / etc.) is the channel hook's job, not the skill's. Skills call `AskUserQuestion` plainly.
+- Channel-aware user prompts: if the telegram MCP server is loaded, skills + orchestrator post questions via TG `reply` (`a) … b) …` text protocol) and wait for a text reply; otherwise they call `AskUserQuestion`. The workflow orchestrator also broadcasts phase transitions to TG when the MCP is present (use `edit_message` for in-phase updates, new `reply` for phase completion so the device push-notifies).
 
 ## Toolchain
 
