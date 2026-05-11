@@ -6,6 +6,21 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.6] - 2026-05-11
+
+Post-rewrite polish: channel-aware user prompts and phase broadcast, looser doc templates, leftover DEC-numbering cleanup.
+
+### Added
+
+- Channel-aware decision prompts in `skills/architect/SKILL.md`, `skills/analyst/SKILL.md`, `commands/workflow.md`: if the telegram MCP server is loaded, skills + orchestrator post `a) … b) …` text-protocol options via TG `reply` and wait for a text reply instead of calling `AskUserQuestion` (which blocks the TG flow).
+- Phase-transition broadcast to TG in `commands/workflow.md` Step 2: when the telegram MCP is present, every phase transition and user gate is also posted via `reply`; in-phase progress uses `edit_message`, phase completion uses a new `reply` so the device push-notifies.
+
+### Changed
+
+- `skills/architect/SKILL.md` design-doc + exec-plan templates and `skills/analyst/SKILL.md` analyze template: marked sections `# required` vs `# optional`; agents must omit optional sections that have no real content (no empty placeholders). Visual skeleton retained as a code block for stable formatting.
+- `skills/analyst/SKILL.md` six-question framework: dropped the `skip: <reason>` placeholder requirement — conditional questions are now skipped silently when not relevant.
+- `CLAUDE.md` coding-principles bullet updated to document the channel-aware user-prompt + phase-broadcast behavior (previously said "Skills call AskUserQuestion plainly").
+
 ## [0.0.5] - 2026-04-29
 
 Minimal rewrite: dropped 64% of prompt code and removed five auxiliary documentation mechanisms. Plugin is now language-neutral (output language follows the project's CLAUDE.md). Architect runs a two-track output flow for medium/large tasks (separate design-doc + exec-plan with two user gates) and a single-artifact flow for small tasks.
