@@ -13,6 +13,8 @@ Fast path for fixing a bug. Skip analyst, design-doc, and user gates around desi
 
 SessionStart hook injects `docs_root` + `project_id`. Pick a slug.
 
+**Channel broadcast**: same rule as `/roundtable:workflow` Step 2 — if telegram MCP is loaded, post a new `reply` at workflow start, each phase completion (Step 4 developer / Step 5 reviewer or dba / Step 6 postmortem), and closeout. Terminal-only output is a bug.
+
 ## Step 2: Locate the bug
 
 - If the input is an issue # (`#123`, `gh issue view 123`, GitLab / Jira / URL), fetch the body

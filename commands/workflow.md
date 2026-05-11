@@ -17,7 +17,14 @@ The SessionStart hook injects roundtable context (`Roundtable context:` block). 
 
 Render before each phase transition and every user pause. Status: ⏳ todo · 🔄 doing · ✅ done · ⏩ skipped.
 
-**Channel broadcast**: if the telegram MCP server is loaded (check system-reminders for `plugin:telegram:telegram`), every phase transition and every user gate must also be posted via `mcp__plugin_telegram_telegram__reply` — terminal-only output leaves TG users blind. Use `edit_message` for in-phase progress; use a new `reply` when a phase completes (edits don't push-notify).
+**Channel broadcast**: if the telegram MCP server is loaded (check system-reminders for `plugin:telegram:telegram`), the orchestrator must post a new `mcp__plugin_telegram_telegram__reply` at each of these points — terminal-only output is a bug:
+
+- workflow start (matrix + config)
+- each phase completion (1 / 2 / 4 / 6 / 7 / 8 / 9): one-line summary + output path + next phase
+- each user gate (3 / 5): the `accept / modify / reject / ask` prompt
+- workflow closeout (commit / PR bundle)
+
+Use `edit_message` only for in-phase progress updates; phase *completion* must always be a new `reply` (edits don't push-notify). Skills own their own in-phase decision prompts; the orchestrator owns transition broadcasts — never assume a skill posted the completion message.
 
 | # | Role             | Output                                              | Optional? |
 |---|------------------|-----------------------------------------------------|-----------|

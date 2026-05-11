@@ -6,6 +6,11 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- `commands/workflow.md` Step 2: replaced the abstract "every phase transition must be posted" sentence with an explicit checklist of broadcast points (workflow start / phase 1·2·4·6·7·8·9 completion / user gates 3·5 / closeout). The v0.0.6 rule was too easy to miss at runtime — observed in practice: workflow start posted to TG, phase 1 completion did not.
+- `commands/bugfix.md` Step 1: added a one-line reference to the workflow.md broadcast rule so bugfix runs don't go silent on TG either.
+
 ## [0.0.6] - 2026-05-11
 
 Post-rewrite polish: channel-aware user prompts and phase broadcast, looser doc templates, leftover DEC-numbering cleanup.
