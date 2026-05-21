@@ -40,3 +40,14 @@ Keep working on unblocked steps. The orchestrator parses this line and asks the 
 - Modifying CLAUDE.md, design-docs, the exec-plan body (only checkboxes), or files outside the project source + `<docs_root>`
 - Any git write operation
 - Adding scope, refactors, or comments not required by the exec-plan
+
+## Codex Runtime Note
+
+When running under Codex, the `tools:` frontmatter is not enforced. Tool equivalents:
+- `Read` → `shell` with `cat`/`rg`/`head`/`tail`
+- `Grep` → `shell` with `rg`
+- `Glob` → `shell` with `find`/`rg --files`
+- `Bash` → `shell` (native)
+- `Write`/`Edit` → `apply_patch` (unified diff format)
+
+Behavior is identical; only invocation differs.

@@ -4,7 +4,7 @@
 
 > **让 analyst、architect、developer、tester、reviewer、DBA 同坐一桌，用 plan-then-execute 纪律推进复杂工作。**
 
-`roundtable` 是 [Claude Code](https://code.claude.com) plugin，把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 2 skill + 3 command + 1 SessionStart hook，全部 prompt+config 约 760 行。
+`roundtable` 是多 runtime plugin（Claude Code + Codex CLI + Codex App），把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 2 skill + 3 command + 1 SessionStart hook，全部 prompt+config 约 760 行。
 
 ## 安装
 
@@ -32,6 +32,24 @@ claude --plugin-dir ~/code/roundtable
 
 本地文件改动**新会话立即生效**。
 
+### Codex CLI
+
+```
+codex plugin add github.com/duktig666/roundtable
+```
+
+装完后在 Codex 里跑 `/skills`，确认 `workflow / bugfix / lint / analyst / architect` 都加载。触发方式：直接描述意图（如「跑多角色工作流」）或从 `/skills` 列表选。
+
+### Codex App
+
+在 Codex App plugin UI 里加 `github.com/duktig666/roundtable`，App 负责安装 + worktree 配置。App 管理的 worktree（detached HEAD）下走 closeout 时会输出 handoff payload，不会调 `git push` / `gh pr create` —— 用 App 原生的「Create branch」/「Hand off to local」按钮收口。
+
+### Codex troubleshooting
+
+- **`spawn_agent` 报 unknown tool** —— 检查 `~/.codex/config.toml` 含 `[features] multi_agent = true`（当前 Codex 默认值为 `true`）。
+- **SessionStart 注入的 `Roundtable context:` block 不见** —— 检查 `~/.codex/config.toml` 含 `[features] plugin_hooks = true`，并确认 `hooks/session-start` 有执行权限。
+- **TG MCP 在 Codex 下可选** —— 无 TG MCP 时 phase 广播自动降级到终端模式。如需启用：`codex mcp add telegram -- <你的 telegram MCP 命令>`，channel-aware 逻辑会自动路由到 Codex 侧 TG MCP 工具名（见 `codex /mcp` 输出）。
+
 ## 在任何项目里用
 
 ```
@@ -39,6 +57,8 @@ claude --plugin-dir ~/code/roundtable
 /roundtable:bugfix 修 Issue #123
 /roundtable:lint
 ```
+
+Claude Code 下用上面的 slash command。Codex CLI / App 下描述意图或从 `/skills` 选 skill —— 同一份 `skills/<name>/SKILL.md` 在两 runtime 都执行。
 
 ## 为什么叫 "roundtable"
 
