@@ -6,6 +6,48 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- `commands/workflow.md` Step 2: replaced the abstract "every phase transition must be posted" sentence with an explicit checklist of broadcast points (workflow start / phase 1·2·4·6·7·8·9 completion / user gates 3·5 / closeout). The v0.0.6 rule was too easy to miss at runtime — observed in practice: workflow start posted to TG, phase 1 completion did not.
+- `commands/bugfix.md` Step 1: added a one-line reference to the workflow.md broadcast rule so bugfix runs don't go silent on TG either.
+
+## [0.0.7-rc1] - 2026-05-21
+
+Release candidate. Final v0.0.7 will follow after user verification of P0.1-P0.3 in docs/exec-plans/active/codex-compatibility.md and supply of assets/icon.svg + assets/logo.png.
+
+Codex CLI + Codex App compatibility. Workflow / bugfix / lint move from `commands/*` to `skills/*` so a single canonical definition powers both runtimes. Subagent runtime safety hardened via prose under Codex (where the `tools:` frontmatter is not enforced). Workflow closeout learns about Codex App's detached-HEAD sandbox.
+
+### Added
+
+- `.codex-plugin/plugin.json` — Codex manifest with full `interface` block (displayName / category / capabilities / defaultPrompt / brandColor / composerIcon / logo placeholder) and inline `hooks.sessionStart` referencing `${PLUGIN_ROOT}/hooks/session-start`. Codex users install via `codex plugin add github.com/duktig666/roundtable`.
+- `AGENTS.md` — single-line `CLAUDE.md` text pointer. Codex reads it as project memory; no content duplication.
+- `skills/workflow/SKILL.md` + `skills/bugfix/SKILL.md` + `skills/lint/SKILL.md` — canonical workflow definitions migrated from `commands/*`. Same body in both runtimes.
+- `skills/{workflow,bugfix,lint,analyst,architect}/references/codex-tools.md` — tool-mapping tables (Claude Code → Codex), TG MCP optional section, `spawn_agent`/`wait_agent`/`close_agent` usage, `request_user_input` decision protocol, `multi_agent` + `plugin_hooks` troubleshooting.
+- `skills/workflow/SKILL.md` Step 5 — environment detection (`GIT_DIR` vs `GIT_COMMON`, `BRANCH`) and Path A handoff payload (commit SHA + suggested branch name + PR title/body) for Codex App's detached-HEAD `workspace-write` sandbox. Standard 4-option closeout still runs in all other cases.
+- README / README-zh — Codex CLI + Codex App install sections + troubleshooting (`multi_agent`, `plugin_hooks`, optional TG MCP).
+- CONTRIBUTING.md — `Codex 本地测试` checklist + AGENTS.md pointer note.
+
+### Changed
+
+- `commands/{workflow,bugfix,lint}.md` are now thin shells (single-line `Skill(...)` wrapper). Canonical body lives in `skills/<name>/SKILL.md`. Claude Code users keep their `/roundtable:<name>` muscle memory; Codex loads the same skill body.
+- `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` bumped to v0.0.7.
+- `agents/reviewer.md` Forbidden section — explicit Codex-runtime prose: no `apply_patch`, no mutating shell (`sed -i`, `mv`, `rm`, `tee`, `>`); read-only `cat`/`rg`/`find`/`git log|diff|show|blame` only.
+- `agents/dba.md` Forbidden section — explicit Codex-runtime prose: no file mutations and no SQL writes (INSERT/UPDATE/DELETE/ALTER/DROP/TRUNCATE/MERGE/REPLACE) via shell, psql, mysql, or any MCP DB tool; SELECT/EXPLAIN/SHOW only.
+- `agents/developer.md` + `agents/tester.md` — new `## Codex Runtime Note` section with Read/Grep/Glob/Bash/Write/Edit → Codex tool equivalents.
+
+### Notes
+
+- Subagent `tools:` frontmatter retained per DEC-0003. Under Claude Code the frontmatter is a hard rail; under Codex (where it is not enforced) the prose rails above carry the same constraints.
+- TG MCP is optional under Codex. With no TG MCP loaded, the channel-aware logic degrades to terminal mode automatically (`request_user_input` for decision gates, plain stdout for phase summaries).
+- Cursor / Gemini CLI / Copilot CLI / OpenCode adapters are explicit follow-ups; the `references/<runtime>-tools.md` pattern is ready to extend.
+- Three pre-flight validation steps (P0.1 Claude `/<plugin>:<skill>` syntax, P0.2 Codex hook stdout schema, P0.3 Codex subagent filesystem IO) are deferred to the tester phase — see `docs/exec-plans/active/codex-compatibility.md` Change Log for details and safe defaults applied.
+
+### Migration Notes (v0.0.6 → v0.0.7-rc1)
+
+**No breaking changes for Claude Code users**: `/roundtable:workflow`, `/roundtable:bugfix`, and `/roundtable:lint` continue to work. The commands now dispatch to skills (`Skill(skill: "roundtable:<name>", args: ...)`) where the canonical workflow definitions live. If you were directly reading `commands/*.md` in tooling, switch to `skills/<name>/SKILL.md`.
+
+**For Codex users**: ensure `[features] multi_agent = true` and `[features] plugin_hooks = true` in `~/.codex/config.toml`. See README Troubleshooting.
+
 ## [0.0.6] - 2026-05-11
 
 Post-rewrite polish: channel-aware user prompts and phase broadcast, looser doc templates, leftover DEC-numbering cleanup.

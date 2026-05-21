@@ -2,9 +2,9 @@
 
 [English](./README.md) · [中文](./README-zh.md)
 
-> **Sit the analyst, architect, developer, tester, reviewer, and DBA at the same Claude Code session, and push complex work forward with plan-then-execute discipline.**
+> **Sit the analyst, architect, developer, tester, reviewer, and DBA at the same session, and push complex work forward with plan-then-execute discipline.**
 
-`roundtable` is a [Claude Code](https://code.claude.com) plugin that packages a multi-role AI development workflow into a one-line install. **Minimal-by-design**: 4 subagents + 2 skills + 3 commands + 1 SessionStart hook, ~760 lines of prompt+config total.
+`roundtable` is a multi-runtime plugin (Claude Code + Codex CLI + Codex App) that packages a multi-role AI development workflow into a one-line install. **Minimal-by-design**: 4 subagents + 2 skills + 3 commands + 1 SessionStart hook, ~760 lines of prompt+config total.
 
 ## Install
 
@@ -32,6 +32,24 @@ Or register the local checkout as a marketplace:
 
 Edits to the local files take effect on the **next session**.
 
+### Codex CLI
+
+```
+codex plugin add github.com/duktig666/roundtable
+```
+
+Then run `/skills` inside Codex to confirm `workflow`, `bugfix`, `lint`, `analyst`, `architect` are loaded. Trigger by description (e.g. "run the multi-role workflow on this task") or pick from `/skills`.
+
+### Codex App
+
+In the Codex App plugin UI, add `github.com/duktig666/roundtable`. The App handles install + worktree provisioning. Closeout under an App-managed worktree (detached HEAD) emits a handoff payload instead of running `git push` / `gh pr create` — use the App's native "Create branch" / "Hand off to local" controls.
+
+### Codex troubleshooting
+
+- **`spawn_agent` reports unknown tool** — verify `~/.codex/config.toml` has `[features] multi_agent = true` (default `true` on current builds).
+- **SessionStart `Roundtable context:` block missing** — verify `~/.codex/config.toml` has `[features] plugin_hooks = true`, and that `hooks/session-start` is executable.
+- **TG MCP is optional under Codex** — phase broadcasts automatically degrade to terminal mode when no TG MCP server is configured. To enable: `codex mcp add telegram -- <your-telegram-mcp-command>`; channel-aware logic then routes via the Codex-side TG MCP tool name (visible in `codex /mcp`).
+
 ## Use it in any project
 
 ```
@@ -39,6 +57,8 @@ Edits to the local files take effect on the **next session**.
 /roundtable:bugfix fix Issue #123
 /roundtable:lint
 ```
+
+Under Claude Code use the slash commands above. Under Codex CLI / App, describe the intent or select the skill from `/skills` — the same `skills/<name>/SKILL.md` definition executes in both runtimes.
 
 ## Why "roundtable"
 

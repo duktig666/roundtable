@@ -48,8 +48,26 @@ claude --plugin-dir /path/to/your/workspace/roundtable
 
 v0.1 尚无自动化 CI，手动测试清单：
 
-- [ ] `plugin.json` JSON 合法
-- [ ] `marketplace.json` JSON 合法
+- [ ] `.claude-plugin/plugin.json` JSON 合法
+- [ ] `.claude-plugin/marketplace.json` JSON 合法
+- [ ] `.codex-plugin/plugin.json` JSON 合法
 - [ ] `/plugin install` 在本地 `--plugin-dir` 模式下能装上
-- [ ] 各 skill / agent / command 在本地模拟触发能执行（参考 `docs/onboarding.md`）
+- [ ] 各 skill / agent / command 在本地模拟触发能执行（参考 `docs/usage.md`）
 - [ ] grep 硬编码：`grep -rEi "<project-specific-term>|<language-specific-cmd>" skills/ agents/ commands/` 应返回空 —— 所有业务 / 语言特定术语都应在 skill/agent prompt 里用占位符（`{target_project}` / `{docs_root}` 等），运行时从检测或 CLAUDE.md 声明填充
+
+## Codex 本地测试
+
+Codex CLI / App 路径的手动测试清单：
+
+- [ ] 装 Codex CLI（参 Codex 官方文档）
+- [ ] `codex plugin add /absolute/path/to/roundtable`（或 git 仓库 URL）
+- [ ] 启动 Codex session 后 `/skills` 列表能看到 `workflow / bugfix / lint / analyst / architect`
+- [ ] 用「跑多角色工作流」之类描述触发 workflow skill，跑通 phase 1-5
+- [ ] developer / tester / reviewer / dba subagent 通过 `spawn_agent` + `wait_agent` + `close_agent` 派出
+- [ ] 决策点弹 `request_user_input`；TG MCP 未配置时自动降级到终端
+- [ ] SessionStart hook 注入的 `Roundtable context:` block 能在 skill 里读到
+- [ ] Codex App 管理的 worktree（detached HEAD）下走 closeout，输出 handoff payload 而非 4-option menu
+
+## AGENTS.md
+
+`AGENTS.md` 是 Codex 用的文本指针，内容仅一行 `CLAUDE.md`。无需同步 CLAUDE.md 内容；Codex 读到指针后会去读 `CLAUDE.md` 主体。

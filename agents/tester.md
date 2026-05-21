@@ -44,3 +44,14 @@ Print: `[NEED-DECISION] <topic> | options: A) <…> B) <…>`. Continue with unb
 - Modifying anything under `src/` (only `tests/` and the testing report)
 - Modifying CLAUDE.md, design-docs, or the exec-plan body
 - git write operations
+
+## Codex Runtime Note
+
+When running under Codex, the `tools:` frontmatter is not enforced. Tool equivalents:
+- `Read` → `shell` with `cat`/`rg`/`head`/`tail`
+- `Grep` → `shell` with `rg`
+- `Glob` → `shell` with `find`/`rg --files`
+- `Bash` → `shell` (native)
+- `Write`/`Edit` → `apply_patch` (unified diff format)
+
+Behavior is identical; only invocation differs.

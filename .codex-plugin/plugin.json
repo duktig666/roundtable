@@ -1,0 +1,48 @@
+{
+  "name": "roundtable",
+  "version": "0.0.7-rc1",
+  "description": "Multi-role AI development workflow. Bring analyst, architect, developer, tester, reviewer, and DBA to the same table. Minimal-by-design: 4 subagents, 2 skills, 3 commands, one SessionStart hook. Per-project CLAUDE.md (optional) drives toolchain + critical_modules.",
+  "author": {
+    "name": "duktig666",
+    "url": "https://github.com/duktig666"
+  },
+  "homepage": "https://github.com/duktig666/roundtable",
+  "repository": "https://github.com/duktig666/roundtable",
+  "license": "Apache-2.0",
+  "keywords": [
+    "workflow",
+    "multi-agent",
+    "design-doc",
+    "exec-plan",
+    "code-review",
+    "dba",
+    "claude-code",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "*",
+      "hooks": [{
+        "type": "command",
+        "command": "${PLUGIN_ROOT}/hooks/session-start",
+        "async": false
+      }]
+    }]
+  },
+  "interface": {
+    "displayName": "Roundtable",
+    "shortDescription": "Multi-role AI development workflow: analyst, architect, developer, tester, reviewer, DBA",
+    "longDescription": "Roundtable orchestrates a plan-then-execute development workflow across six specialised roles. The analyst produces facts only; the architect surfaces every decision via a structured prompt and emits a design-doc plus an exec-plan; the developer implements against the locked plan with failing tests first; the tester writes adversarial, E2E, and Playwright cases; the reviewer and DBA run strictly read-only audits. Decisions, design, plan, and review artifacts all live under `docs/` with a single kebab-case slug threading them together.",
+    "developerName": "duktig666",
+    "category": "Coding",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": [
+      "Run the multi-role workflow on this task",
+      "Apply a quick bug-fix workflow",
+      "Lint documentation index"
+    ],
+    "brandColor": "#3B82F6",
+    "screenshots": []
+  }
+}

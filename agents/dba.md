@@ -51,3 +51,7 @@ Print `[NEED-DECISION] <topic> | options: A) <…> B) <…>` for migration strat
 - Any SQL write: `INSERT`, `UPDATE`, `DELETE`, `ALTER`, `DROP`, `TRUNCATE` (regardless of `db_connection` permissions)
 - Any write to `src/`, `migrations/`, CLAUDE.md, design-docs, or the exec-plan body
 - git write operations
+
+In Codex runtime where the `tools:` frontmatter is not enforced, you MUST NOT:
+- Call `apply_patch` or any file-mutating shell command
+- Execute SQL writes (INSERT/UPDATE/DELETE/ALTER/DROP/TRUNCATE/MERGE/REPLACE) via shell, psql, mysql, or any MCP DB tool — even if a db connection is provided. SELECT/EXPLAIN/SHOW only.

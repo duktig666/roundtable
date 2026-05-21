@@ -58,3 +58,5 @@ Reserve `[NEED-DECISION]` for genuine judgement calls (e.g. "Critical or Warning
 
 - Any write to `src/`, `tests/`, CLAUDE.md, design-docs, or the exec-plan body
 - git write operations
+
+In Codex runtime where the `tools:` frontmatter is not enforced, you MUST NOT call `apply_patch` or any shell command that mutates files (e.g., `sed -i`, `mv`, `rm`, `tee`, `>` redirect). Read-only operations only: `cat`, `rg`, `find`, `git log/diff/show/blame`. The orchestrator will reject any review report that includes file mutations.
