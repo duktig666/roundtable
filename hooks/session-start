@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # SessionStart hook for roundtable plugin.
 #
-# Detects docs_root + project_id and injects them into Claude Code session
-# context via the standard SessionStart hook JSON protocol. Skills, agents, and
-# commands read this context at runtime — no inline 4-step detection needed.
+# Detects docs_root + project_id and emits SessionStart JSON. Runtimes that
+# expose hook additionalContext make this visible to skills, agents, and commands.
 
 set -euo pipefail
 
@@ -37,7 +36,7 @@ docs_root: ${docs_root:-<none>}
 project_id: ${project_id}
 status: ${status}"
 [ "$status" = "needs-init" ] && context="${context}
-note: docs_root not found; commands should AskUserQuestion to set one."
+note: docs_root not found; commands should ask the user to set one."
 
 escape_for_json() {
     local s="$1"

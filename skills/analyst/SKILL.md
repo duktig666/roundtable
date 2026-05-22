@@ -46,7 +46,7 @@ Always cover the two mandatory; cover conditionals only when relevant — skip s
 
 ## Asking the user
 
-When **research scope or depth** is ambiguous, ask once. **Channel-aware**: if telegram MCP server is loaded, post options via TG `reply` (`a) … b) …`) and wait for text reply; otherwise `AskUserQuestion`. Pack each option as `"Fact: <fact w/ source URL or file:line>. Tradeoff: <objective cost>."`. **Never** mark `★ recommended` — that's the architect's job.
+When **research scope or depth** is ambiguous, ask once. **Channel-aware**: if telegram MCP server is loaded, post options via TG `reply` (`a) … b) …`) and wait for text reply; otherwise use the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not). Pack each option as `"Fact: <fact w/ source URL or file:line>. Tradeoff: <objective cost>."`. **Never** mark `★ recommended` — that's the architect's job.
 
 Architecture decisions are out of scope — surface them in `## Open Questions`.
 

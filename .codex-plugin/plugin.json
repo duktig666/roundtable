@@ -20,16 +20,6 @@
     "codex"
   ],
   "skills": "./skills/",
-  "hooks": {
-    "SessionStart": [{
-      "matcher": "*",
-      "hooks": [{
-        "type": "command",
-        "command": "${PLUGIN_ROOT}/hooks/session-start",
-        "async": false
-      }]
-    }]
-  },
   "interface": {
     "displayName": "Roundtable",
     "shortDescription": "Multi-role AI development workflow: analyst, architect, developer, tester, reviewer, DBA",
