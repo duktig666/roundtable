@@ -332,4 +332,4 @@ git log --oneline -5   # 不应有 reviewer / dba 名义的 commit
 
 当前分支的 Codex manifest、root `hooks.json`、Claude `hooks/hooks.json`、skill references、README / CHANGELOG 文档已按当前 Codex tool schema 修正，静态验证通过。最重要的设计调整是：Codex manifest 不再内联 `hooks`；Codex subagent 文档不再假设 `task_name` 或自动注册 `agents/*.md`；所有用户决策都描述为 runtime-specific prompt with fallback。
 
-仍不能把 SessionStart 注入声明为“已完全跑通”：Codex CLI v0.133 的 `codex exec` nonce smoke test 未看到 `additionalContext` 进入模型上下文。因此 v0.0.7-rc1 的合理发布口径应是：hook 脚本和 discovery 文件合法，Claude 路径保持兼容，Codex 路径有 `docs_root` fallback；还需要在交互式 Codex CLI / Codex App 里继续确认 hooks、`/skills`、workflow subagent 编排和 App handoff。
+仍不能把 SessionStart 注入声明为“已完全跑通”：Codex CLI v0.133 的 `codex exec` nonce smoke test 未看到 `additionalContext` 进入模型上下文。因此 v0.0.7-rc2 的合理发布口径应是：hook 脚本和 discovery 文件合法，Claude 路径保持兼容，Codex 路径有 `docs_root` fallback；还需要在交互式 Codex CLI / Codex App 里继续确认 hooks、`/skills`、workflow subagent 编排和 App handoff。

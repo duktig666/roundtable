@@ -6,6 +6,10 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.7-rc2] - 2026-05-22
+
+Release candidate refresh after Claude review and Codex CLI v0.133 retest. Claude Code behaviour is unchanged; Codex install/runtime guidance is tightened while SessionStart hook context remains a runtime caveat with fallback.
+
 ### Changed
 
 - Codex SessionStart hooks now use a root-level `hooks.json`, matching current Codex plugin discovery. `.codex-plugin/plugin.json` no longer carries an inline `hooks` field, so it passes Codex manifest validation while Claude Code keeps using `hooks/hooks.json`.
