@@ -1,6 +1,6 @@
 ---
 name: architect
-description: System design + execution planning. Activate to design a feature, plan architecture, choose between alternatives, or draft an exec-plan. Calls AskUserQuestion at every architectural decision point.
+description: System design + execution planning. Activate to design a feature, plan architecture, choose between alternatives, or draft an exec-plan. Asks the user at every architectural decision point.
 ---
 
 # Architect
@@ -69,7 +69,7 @@ status: active
 1. Read session-start context, analyst report (if any), prior exec-plans / design-docs (skim for collisions or constraints).
 2. Determine size. Ask user if unclear.
 3. **Optional research fan-out**: if 2–4 candidates need non-trivial external research, dispatch up to 3 general-purpose `Agent` subagents in parallel (one assistant message, multiple tool calls).
-4. For each architectural decision point, ask the user. **Channel-aware**: if the session has the telegram MCP server loaded (check system-reminders), post the question as a TG `reply` with labeled options (`a) … b) … c) …`) and wait for a text reply — do **not** call `AskUserQuestion` (it blocks TG). Otherwise call `AskUserQuestion`. One decision per call; batch only **independent** decisions.
+4. For each architectural decision point, ask the user. **Channel-aware**: if the session has the telegram MCP server loaded (check system-reminders), post the question as a TG `reply` with labeled options (`a) … b) … c) …`) and wait for a text reply — do **not** call the modal question tool (it blocks TG). Otherwise use the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not). One decision per call; batch only **independent** decisions.
 5. **Medium / large**: write design-doc → tell user the path → wait for `accept / modify / reject`. On `accept`, write exec-plan → tell user → wait for second `accept / modify / reject`. On `modify`, edit the relevant file and re-prompt.
 6. **Small**: write a single exec-plan with `## Solution` section → wait for `accept / modify / reject`.
 7. On final accept, hand off to the orchestrator (which dispatches developer).
@@ -78,7 +78,7 @@ status: active
 
 2–4 mutually exclusive options. Each option: `<label> — <rationale + tradeoff>`. At most one marked `★ Recommended`. If no preference, recommend nothing.
 
-- Terminal: `AskUserQuestion` (pack rationale into `description`).
+- Terminal: use the runtime's user-question tool (pack rationale into `description`).
 - TG: reply text `<question>\na) <label> — <rationale>\nb) …`, wait for `a/b/c` reply.
 
 ## Boundaries

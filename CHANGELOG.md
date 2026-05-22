@@ -6,8 +6,16 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.7-rc2] - 2026-05-22
+
+Release candidate refresh after Claude review and Codex CLI v0.133 retest. Claude Code behaviour is unchanged; Codex install/runtime guidance is tightened while SessionStart hook context remains a runtime caveat with fallback.
+
 ### Changed
 
+- Codex SessionStart hooks now use a root-level `hooks.json`, matching current Codex plugin discovery. `.codex-plugin/plugin.json` no longer carries an inline `hooks` field, so it passes Codex manifest validation while Claude Code keeps using `hooks/hooks.json`.
+- Codex docs now treat SessionStart `additionalContext` as an optimization with a `docs_root` prompt fallback; Codex CLI v0.133 `codex exec` did not reliably surface hook context to the model in nonce testing.
+- Codex subagent instructions now use the current `spawn_agent(agent_type=..., message=...)` / `wait_agent(targets=[id])` / `close_agent(target=id)` shape and explicitly embed `agents/<role>.md` in worker messages.
+- User decision prompts are described as runtime-specific (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat fallback) instead of assuming one modal tool exists everywhere.
 - `commands/workflow.md` Step 2: replaced the abstract "every phase transition must be posted" sentence with an explicit checklist of broadcast points (workflow start / phase 1·2·4·6·7·8·9 completion / user gates 3·5 / closeout). The v0.0.6 rule was too easy to miss at runtime — observed in practice: workflow start posted to TG, phase 1 completion did not.
 - `commands/bugfix.md` Step 1: added a one-line reference to the workflow.md broadcast rule so bugfix runs don't go silent on TG either.
 
