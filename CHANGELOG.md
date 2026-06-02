@@ -6,6 +6,12 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.7-rc3] - 2026-06-02
+
+### Changed
+
+- `workflow`, `bugfix`, and `lint` now recover from missing SessionStart `docs_root` by scanning child git projects for existing `docs/` or `documentation/` roots, auto-selecting only when the task text or candidate set is unambiguous, and otherwise asking the user to choose.
+
 ## [0.0.7-rc2] - 2026-05-22
 
 Release candidate refresh after Claude review and Codex CLI v0.133 retest. Claude Code behaviour is unchanged; Codex install/runtime guidance is tightened while SessionStart hook context remains a runtime caveat with fallback.

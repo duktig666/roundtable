@@ -10,7 +10,16 @@ Read-only docs sweep. Rebuilds `<docs_root>/INDEX.md`. Reports issues; does not 
 
 ## Step 1: Read context
 
-If `$ARGUMENTS` is an absolute path or `.`, use that as `target_project`. Otherwise read `docs_root` from session start context. If `docs_root` isn't set, abort with a one-line message asking the user to invoke from inside the target project or pass a path.
+If `$ARGUMENTS` is an absolute path or `.`, use that as `target_project`; otherwise read `docs_root` from session start context.
+
+If `docs_root` isn't set, resolve it before aborting:
+
+1. Scan `target_project` (or CWD when no target was passed) for child git projects with docs:
+   `find <base> -maxdepth 2 -type d -name .git 2>/dev/null | sed 's|/.git$||'`
+2. Keep only candidates with `docs/` or `documentation/`; their `docs_root` is that directory.
+3. If `$ARGUMENTS` uniquely mentions one candidate basename or path segment, use it. Prefer exact basename matches; if a shorter candidate name is embedded in a longer candidate name, treat that as ambiguous. If exactly one candidate exists, use it and report the choice.
+4. If multiple candidates remain, ask the user to choose one using the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not).
+5. If no candidate exists, abort with a one-line message asking the user to invoke from inside the target project or pass a path.
 
 ## Step 2: Rebuild INDEX.md
 

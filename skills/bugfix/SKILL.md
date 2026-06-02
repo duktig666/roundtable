@@ -12,7 +12,14 @@ Fast path for fixing a bug. Skip analyst, design-doc, and user gates around desi
 
 ## Step 1: Read context
 
-SessionStart hook may inject `docs_root` + `project_id`. Pick a slug. If context is missing, ask for `docs_root` using the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not).
+SessionStart hook may inject `docs_root` + `project_id`. Pick a slug. If context is missing or `status: needs-init`, resolve `docs_root` before asking:
+
+1. Scan CWD for child git projects with docs:
+   `find . -maxdepth 2 -type d -name .git 2>/dev/null | sed 's|/.git$||' | sed 's|^\./||'`
+2. Keep only candidates with `docs/` or `documentation/`; their `docs_root` is that directory.
+3. If `$ARGUMENTS` uniquely mentions one candidate basename or path segment, use it. Prefer exact basename matches; if a shorter candidate name is embedded in a longer candidate name, treat that as ambiguous. If exactly one candidate exists, use it and report the choice.
+4. If multiple candidates remain, ask the user to choose one using the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not).
+5. If no candidate exists, ask the user where to put `docs/`.
 
 **Channel broadcast**: same rule as `/roundtable:workflow` Step 2 — if telegram MCP is loaded, post a new `reply` at workflow start, each phase completion (Step 4 developer / Step 5 reviewer or dba / Step 6 postmortem), and closeout. Terminal-only output is a bug.
 
