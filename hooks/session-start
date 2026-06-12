@@ -1,43 +1,223 @@
 #!/usr/bin/env bash
-# SessionStart hook for roundtable plugin.
+# roundtable plugin 的 SessionStart hook（issue #127 重写为双模式）。
 #
-# Detects docs_root + project_id and injects them into Claude Code session
-# context via the standard SessionStart hook JSON protocol. Skills, agents, and
-# commands read this context at runtime — no inline 4-step detection needed.
+# - project 模式（cwd 在 git repo 内）：按 env ROUNDTABLE_DOCS_ROOT >
+#   <git_top>/.roundtable.json > 以 git_top 为界的 walk-up 顺序解析 docs_root，
+#   绝不越过 repo 边界爬到父级目录。
+# - workspace 模式（cwd 不在 git repo 内且有 git 子项目）：扫一层子目录注入
+#   项目清单，docs_root 由 skills 按任务的目标子项目延迟解析。
+#
+# 输出协议（DEC-1）：单行 JSON 无条件同时含 additionalContext +
+# hookSpecificOutput 两键，各 runtime 各取所需、忽略不认识的键。
 
 set -euo pipefail
 
-cwd="$(pwd)"
+# DEC-7: pwd 失败时回退 $PWD
+cwd="$(pwd 2>/dev/null || echo "$PWD")"
 
-docs_root=""
-status="ok"
-if [ -n "${ROUNDTABLE_DOCS_ROOT:-}" ] && [ -d "${ROUNDTABLE_DOCS_ROOT}" ]; then
-    docs_root="${ROUNDTABLE_DOCS_ROOT}"
-else
-    dir="$cwd"
-    while [ "$dir" != "/" ]; do
-        if [ -d "$dir/docs" ]; then
-            docs_root="$dir/docs"; break
-        elif [ -d "$dir/documentation" ]; then
-            docs_root="$dir/documentation"; break
+# DEC-4: 候选目录须含七目录之一或 INDEX.md 才算结构完整
+has_structure() {
+    local d sub
+    d="$1"
+    for sub in analyze design-docs exec-plans testing reviews bugfixes; do
+        if [ -d "$d/$sub" ]; then
+            return 0
         fi
-        dir="$(dirname "$dir")"
     done
-fi
-[ -z "$docs_root" ] && status="needs-init"
+    if [ -f "$d/INDEX.md" ]; then
+        return 0
+    fi
+    return 1
+}
+
+# DEC-3: 从 .roundtable.json 提取平铺字符串键（仅认 docs_root / project_id）。
+# 有 python3 走标准 json 解析；否则退化为 sed，仅支持平铺的 "key": "value"
+# 形式（不支持转义引号与嵌套对象）。
+read_config_key() {
+    local file key
+    file="$1"
+    key="$2"
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - "$file" "$key" 2>/dev/null <<'PYEOF' || true
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        v = json.load(f).get(sys.argv[2], "")
+except Exception:
+    v = ""
+if isinstance(v, str):
+    sys.stdout.write(v)
+PYEOF
+    else
+        sed -n 's/.*"'"$key"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$file" 2>/dev/null | head -n 1 || true
+    fi
+}
+
+mode="project"
+git_top=""
+project_id=""
+docs_root=""
+docs_root_source=""
+projects=""
+status="ok"
+warnings=""
+note=""
 
 if git_top="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)"; then
-    project_id="$(basename "$git_top")"
+    # ---- project 模式 ----
+    # DEC-2: worktree 下用 common-dir 回推主仓根，project_id 取主仓根 basename
+    common_dir="$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "$git_top/.git")"
+    if [ "$(basename "$common_dir")" = ".git" ]; then
+        project_id="$(basename "$(dirname "$common_dir")")"
+    else
+        project_id="$(basename "$git_top")"
+    fi
+
+    # 解析链 1: env 显式指定（DEC-4: 不做结构校验；无效则 warning 后继续）
+    if [ -n "${ROUNDTABLE_DOCS_ROOT:-}" ]; then
+        if [ -d "${ROUNDTABLE_DOCS_ROOT}" ]; then
+            docs_root="${ROUNDTABLE_DOCS_ROOT}"
+            docs_root_source="env"
+        else
+            warnings="${warnings}warning: ROUNDTABLE_DOCS_ROOT=${ROUNDTABLE_DOCS_ROOT} does not exist; ignored.
+"
+        fi
+    fi
+
+    # 解析链 2: <git_top>/.roundtable.json（DEC-3）
+    config_file="$git_top/.roundtable.json"
+    if [ -f "$config_file" ]; then
+        cfg_project_id="$(read_config_key "$config_file" project_id)"
+        if [ -n "$cfg_project_id" ]; then
+            project_id="$cfg_project_id"
+        fi
+        if [ -z "$docs_root" ]; then
+            cfg_docs_root="$(read_config_key "$config_file" docs_root)"
+            if [ -n "$cfg_docs_root" ]; then
+                # 相对路径以 git_top 为基准
+                case "$cfg_docs_root" in
+                    /*) : ;;
+                    *) cfg_docs_root="$git_top/$cfg_docs_root" ;;
+                esac
+                if [ -d "$cfg_docs_root" ]; then
+                    docs_root="$cfg_docs_root"
+                    docs_root_source="config"
+                else
+                    warnings="${warnings}warning: .roundtable.json docs_root=${cfg_docs_root} does not exist; ignored.
+"
+                fi
+            fi
+        fi
+    fi
+
+    # 解析链 3: walk-up，终止边界为 git_top（含自身），修 #127 越界 bug。
+    # 带结构的候选直接 ok；全程无结构候选则取最先命中者并报 needs-init（DEC-4）。
+    if [ -z "$docs_root" ]; then
+        fallback=""
+        dir="$cwd"
+        while :; do
+            for cand in docs documentation; do
+                if [ -d "$dir/$cand" ]; then
+                    if has_structure "$dir/$cand"; then
+                        docs_root="$dir/$cand"
+                        break 2
+                    fi
+                    if [ -z "$fallback" ]; then
+                        fallback="$dir/$cand"
+                    fi
+                fi
+            done
+            if [ "$dir" = "$git_top" ] || [ "$dir" = "/" ]; then
+                break
+            fi
+            dir="$(dirname "$dir")"
+        done
+        if [ -n "$docs_root" ]; then
+            docs_root_source="walk-up"
+        elif [ -n "$fallback" ]; then
+            docs_root="$fallback"
+            docs_root_source="walk-up"
+            status="needs-init"
+            note="docs_root exists but lacks roundtable structure; prompt the user to confirm initialization."
+        fi
+    fi
+
+    if [ -z "$docs_root" ]; then
+        status="needs-init"
+        note="docs_root not found; prompt the user to set one."
+    fi
 else
-    project_id="$(basename "$cwd")"
+    # ---- cwd 不在 git repo 内 ----
+    # DEC-5: 扫一层子目录，-e <d>/.git 兼容 worktree / submodule 的 .git 文件
+    shopt -s nullglob
+    for d in "$cwd"/*/; do
+        d="${d%/}"
+        if [ -e "$d/.git" ]; then
+            name="$(basename "$d")"
+            if [ -d "$d/docs" ] || [ -d "$d/documentation" ]; then
+                name="$name (docs)"
+            fi
+            if [ -n "$projects" ]; then
+                projects="$projects, $name"
+            else
+                projects="$name"
+            fi
+        fi
+    done
+    shopt -u nullglob
+
+    if [ -n "$projects" ]; then
+        # workspace 模式：docs_root 留给 skills 按任务目标子项目解析（DEC-6）
+        mode="workspace"
+        note="resolve docs_root per task as <workspace_root>/<project>/docs; see workflow Step 1."
+    else
+        # 无 git 子项目：仅检查 cwd 自身的 docs|documentation，不向上爬（无边界可依）
+        project_id="$(basename "$cwd")"
+        for cand in docs documentation; do
+            if [ -d "$cwd/$cand" ]; then
+                docs_root="$cwd/$cand"
+                docs_root_source="walk-up"
+                break
+            fi
+        done
+        if [ -z "$docs_root" ]; then
+            status="needs-init"
+            note="docs_root not found; prompt the user to set one."
+        elif ! has_structure "$docs_root"; then
+            status="needs-init"
+            note="docs_root exists but lacks roundtable structure; prompt the user to confirm initialization."
+        fi
+    fi
 fi
 
-context="Roundtable context:
-docs_root: ${docs_root:-<none>}
-project_id: ${project_id}
+# ---- 组装 context（字段集见 DEC-6） ----
+if [ "$mode" = "workspace" ]; then
+    context="Roundtable context:
+mode: workspace
+workspace_root: ${cwd}
+projects: ${projects}
 status: ${status}"
-[ "$status" = "needs-init" ] && context="${context}
-note: docs_root not found; commands should AskUserQuestion to set one."
+else
+    context="Roundtable context:
+mode: project
+docs_root: ${docs_root:-<none>}"
+    if [ -n "$docs_root_source" ]; then
+        context="${context}
+docs_root_source: ${docs_root_source}"
+    fi
+    context="${context}
+project_id: ${project_id}
+git_top: ${git_top:-<none>}
+status: ${status}"
+fi
+if [ -n "$warnings" ]; then
+    context="${context}
+${warnings%$'\n'}"
+fi
+if [ -n "$note" ]; then
+    context="${context}
+note: ${note}"
+fi
 
 escape_for_json() {
     local s="$1"
@@ -46,14 +226,11 @@ escape_for_json() {
     s="${s//$'\n'/\\n}"
     s="${s//$'\r'/\\r}"
     s="${s//$'\t'/\\t}"
+    s="${s//$'\b'/\\b}"
+    s="${s//$'\f'/\\f}"
     printf '%s' "$s"
 }
 escaped="$(escape_for_json "$context")"
 
-if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
-    printf '{"additional_context":"%s"}\n' "$escaped"
-elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
-    printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$escaped"
-else
-    printf '{"additionalContext":"%s"}\n' "$escaped"
-fi
+# DEC-1: 双键单行输出，不再做任何 runtime env 探测
+printf '{"additionalContext":"%s","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$escaped" "$escaped"
