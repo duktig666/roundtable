@@ -112,3 +112,30 @@ diff 中 11 个文件全部可追溯到 #127：hook 重写、hooks.json 删 asyn
 | minor | MINOR-3 | git<2.31 worktree project_id 静默降级 |
 | minor | MINOR-4 | 测试套件用 `${@Q}`/硬编码 `/usr/bin/bash`，macOS bash 3.2 跑不了 |
 | minor | MINOR-5 | workspace 清单 `, ` 分隔可被目录名伪造（建议级） |
+
+---
+
+## 复核记录（2026-06-12，commit c1b0899）
+
+逐项核对 developer 修复 commit `c1b0899` 并本机独立复跑全部验证：
+
+| 项 | 核对结果 |
+|----|---------|
+| MAJOR-1 | ✅ 已修。`hooks/session-start:22` 改为 `pwd -P 2>/dev/null \|\| pwd 2>/dev/null \|\| echo "$PWD"`，cwd 统一物理路径。复核时用修复前 hook（`c1b0899^`）独立复现原越界（symlink cwd → `docs_root: <t>/link/docs, status: ok`），同 fixture 在新 hook 上输出 `docs_root: <none>, status: needs-init` —— 先红后绿独立验证成立 |
+| MAJOR-1 回归 case | ✅ 真实。`tests/session-start.test.sh:255-271` 新增 T9：harness 经 `cd "$t/link/proj"` 让 hook 继承逻辑 symlink PWD（非物理路径规避），断言 not-contains 父级 docs 的物理/symlink 两种写法 + `docs_root: <none>` + `status: needs-init`，共 5 断言（44→49 对账一致） |
+| MINOR-1 | ✅ 已修。`README.md:148` / `README-zh.md:148` / `CHANGELOG.md:17` seven/七 → six/六，`hooks/session-start:24` 注释同步；全仓 grep 无残留 seven/七目录表述 |
+| MINOR-2 | ✅ 已修。`skills/lint/SKILL.md:13` 补 "(canonical rule: workflow Step 1)"，workflow/CHANGELOG 的交叉引用声明现为真 |
+| MINOR-4 | ✅ 已修（声明式）。两处硬编码 `/usr/bin/bash` 改 `"$BASH"`（`tests/session-start.adversarial.test.sh:68,388`）；`${var@Q}` 保留但两套测试文件头显式声明「需 bash ≥ 4.4，仅开发侧」，hook 本体 bash 3.2 兼容不受影响 —— 对开发侧资产可接受 |
+| MINOR-3 / MINOR-5 | 按前轮结论接受不修，维持原记录（git<2.31 worktree 降级安全；workspace 清单分隔符伪造为建议级） |
+
+修复自身无新引入问题：
+
+- 回退链核验：cwd 被删场景实测 hook 仍 exit 0、单行合法 JSON、降级 `needs-init`（`pwd -P` 失败 → `pwd` → `$PWD` 逐级兜底；stderr 的 shell-init 告警是 bash 进程启动自身行为，修复前已存在）
+- `pwd -P` 同时使 GAP-1 相对路径归一化受益，与前轮预期一致
+- CHANGELOG 测试计数更新（11/44 → 12/49）与实际一致
+
+测试复跑：`tests/session-start.test.sh` 49 passed / 0 failed；`STRICT=1 tests/session-start.adversarial.test.sh` 301 passed / 0 failed / 0 known-bug。
+
+### 终态结论：CLEAN-WITH-NOTES
+
+MAJOR-1 与 MINOR-1/2/4 全部确认修复且无新问题；notes 指已接受不修的 MINOR-3（git<2.31 worktree project_id 静默降级）与 MINOR-5（workspace 清单分隔符可伪造，建议级），均不阻塞 merge。
