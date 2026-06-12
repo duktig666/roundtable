@@ -145,7 +145,7 @@ A: 工具不可用时（MCP 断开等）skill 会以文字问。重启 Claude Co
 A: 会。project level 同名 agent 覆盖 plugin level。改名或删除即可。
 
 **Q: 旧版 design-docs / decision-log 在哪？**
-A: `docs/_archive/`，git history 完整保留。新工作不要再链到 `_archive/`。
+A: 已随 v0.0.5 清理出仓（`docs/_archive/` 目录也已删除），完整内容在 git history 里可追溯。
 
 **Q: 我项目 CLAUDE.md 没声明文档语言？**
 A: LLM 会按 plugin 模板的英文 section 名输出英文文档。要中文请加`文档中文`那行。

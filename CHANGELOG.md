@@ -13,6 +13,7 @@ All notable changes to **roundtable** will be documented in this file.
 - `hooks/session-start` **workspace mode** (#127): when cwd is not inside a git repo, the hook scans one level of subdirectories for git projects and injects `workspace_root` + the project list (`(docs)` marker); skills resolve `docs_root = <workspace_root>/<project>/docs` per task. Canonical resolution rule lives in `skills/workflow/SKILL.md` Step 1; bugfix / lint reference it (lint asks the user to pick **one** project, never sweeps all).
 - `<git_top>/.roundtable.json` (#127): flat JSON config with two optional string keys — `docs_root` (absolute or relative to the repo root) and `project_id` (overrides the default id). Sits between the `ROUNDTABLE_DOCS_ROOT` env override and the walk-up in the project-mode resolution chain.
 - `tests/session-start.test.sh` — pure-bash test harness for the hook (mktemp fixtures + python3 JSON assertions), 12 cases / 49 assertions including the #127 boundary-escape regression (plain and symlinked-cwd variants).
+- `tests/session-start.adversarial.test.sh` — adversarial suite for the hook (hostile path names, env pollution, `.roundtable.json` edge cases, workspace at scale, git anomalies), 301 assertions; `STRICT=1` turns known-bug reproductions into failures.
 
 ### Fixed
 

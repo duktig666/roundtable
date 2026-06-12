@@ -99,8 +99,11 @@ bash 脚本，每次 session start / clear / compact 触发。流程：
 
 ```
 Roundtable context:
+mode: project
 docs_root: /abs/path/to/docs
+docs_root_source: walk-up
 project_id: <slug>
+git_top: /abs/path/to/repo
 status: ok
 ```
 
@@ -133,7 +136,7 @@ roundtable 提供"流程编排层"。其它两层可叠加但与 roundtable **�
 ## 10. 风险 / 限制
 
 - **subagent 无中间反馈**：长任务（30+ tool call）只能等返回；用户可中断但不可流式观察。如反馈迫切再加回 Monitor，但门槛是先在实战中证明缺失。
-- **legacy 文档链接失效**：v0.0.4 老 docs 在 `docs/_archive/`，新工作不要再链到 `_archive/`。
+- **legacy 文档链接失效**：v0.0.4 老 docs 已随 v0.0.5 清理出仓（含 `docs/_archive/`），需要时从 git history 找。
 - **不强制 RFC-style 评审**：design-doc 是 architect 单方产出 + 用户确认，没有多角色 review design-doc 的环节（reviewer 只 review 实现）。如需要可在 architect 之后补一道 reviewer 派发审 design-doc。
 
 ## 变更记录
