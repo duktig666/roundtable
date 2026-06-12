@@ -22,7 +22,7 @@ Codex:
 ```
 result = spawn_agent(
   agent_type="worker",
-  message="<contents of agents/developer.md>\n\nbug: <description>\ntier: <0|1|2>\nslug: <slug>\ndocs_root: <path>\n\nMust add a regression test. Do not refactor unrelated code.\nYou are not alone in the codebase; do not revert edits made by others."
+  message="<contents of agents/developer.md>\n\nexec-plan: <docs_root>/exec-plans/active/<slug>.md\nbug: <description>\ntier: <0|1|2>\nslug: <slug>\ndocs_root: <path>\n\nMust add a regression test. Do not refactor unrelated code.\nYou are not alone in the codebase; do not revert edits made by others."
 )
 wait_agent(targets=[result.id])
 close_agent(target=result.id)
