@@ -4,7 +4,7 @@
 
 > **让 analyst、architect、developer、tester、reviewer、DBA 同坐一桌，用 plan-then-execute 纪律推进复杂工作。**
 
-`roundtable` 是多 runtime plugin（Claude Code + Codex CLI + Codex App），把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 2 skill + 3 command + 1 SessionStart hook，prompt+config 保持紧凑。
+`roundtable` 是多 runtime plugin（Claude Code + Codex CLI + Codex App），把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 5 skill + 3 command 薄壳 + 1 SessionStart hook，prompt+config 保持紧凑。
 
 ## 安装
 
@@ -105,15 +105,17 @@ Claude Code 下用上面的 slash command。Codex CLI / App 下描述意图或�
 
 | 类型 | 名称 | 用途 |
 |------|------|------|
-| command | `/roundtable:workflow <任务>` | 完整编排——自动判规模 / 派发角色 / 用户 gate / 解析 `[NEED-DECISION]` |
-| command | `/roundtable:bugfix <issue>` | 跳过设计阶段，Tier 0/1/2 决策树，必须有回归测试 |
-| command | `/roundtable:lint` | 只读文档检查；重建 `INDEX.md`；报告孤儿文档 / 断链 / 停滞 exec-plan |
+| command → skill | `/roundtable:workflow <任务>` | 完整编排——自动判规模 / 派发角色 / 用户 gate / 解析 `[NEED-DECISION]` |
+| command → skill | `/roundtable:bugfix <issue>` | 跳过设计阶段，Tier 0/1/2 决策树，必须有回归测试 |
+| command → skill | `/roundtable:lint` | 只读文档检查；重建 `INDEX.md`；报告孤儿文档 / 断链 / 停滞 exec-plan |
 | skill | `@roundtable:analyst` | 六问框架，事实层产出 |
 | skill | `@roundtable:architect` | 双轨产出：design-doc → 用户确认 → exec-plan → 用户确认 |
 | subagent | `@roundtable:developer` | 实施 + 单元测试；勾 exec-plan checkbox |
 | subagent | `@roundtable:tester` | 对抗性 / E2E / Playwright；不改 `src/` |
 | subagent | `@roundtable:reviewer` | 只读评审；输出 `<docs_root>/reviews/<date>-<slug>.md` |
 | subagent | `@roundtable:dba` | 只读 DB 评审；禁所有 SQL 写操作 |
+
+三个 command 是薄壳，canonical 正文在 `skills/{workflow,bugfix,lint}/SKILL.md` —— 加上 `analyst` / `architect` 共 5 个 skill。
 
 ## 文档目录布局
 

@@ -17,10 +17,13 @@ roundtable/
 │   ├── tester.md               # 对抗性测试 + E2E + Playwright
 │   ├── reviewer.md             # 代码 review（只读）
 │   └── dba.md                  # DB schema / SQL / migration review（只读）
-├── skills/                     # 2 skills（主会话，可 AskUserQuestion）
+├── skills/                     # 5 skills（主会话）
 │   ├── analyst/SKILL.md        # 调研 / 六问 / 事实层
-│   └── architect/SKILL.md      # 设计 / 决策 / 双轨产出
-├── commands/                   # 3 slash commands
+│   ├── architect/SKILL.md      # 设计 / 决策 / 双轨产出
+│   ├── workflow/SKILL.md       # 多角色编排（canonical 正文）
+│   ├── bugfix/SKILL.md         # bug 修复，跳过 design 阶段（canonical 正文）
+│   └── lint/SKILL.md           # 文档健康检查 + 重建 INDEX.md（canonical 正文）
+├── commands/                   # 3 slash commands（薄壳，转发到同名 skill）
 │   ├── workflow.md             # 多角色编排入口
 │   ├── bugfix.md               # bug 修复（跳过 design 阶段）
 │   └── lint.md                 # 文档健康检查 + 重建 INDEX.md
@@ -82,7 +85,7 @@ subagent 不直接调 AskUserQuestion（运行在独立上下文）。需决策�
 [NEED-DECISION] <topic> | options: A) <…> B) <…> C) <…>
 ```
 
-主会话（orchestrator）grep 关键字 → 调 AskUserQuestion → 把答案写入 exec-plan `## Change Log` → 重派同一 subagent 续做。
+主会话（orchestrator）grep 关键字 → 按 canonical relay 规则（`skills/workflow/SKILL.md` Step 4，channel-aware：TG MCP 在场走 TG `reply`，否则用 runtime 的用户提问工具）转问用户 → 把答案写入 exec-plan `## Change Log` → 重派同一 subagent 续做。
 
 无 Monitor / 无 JSON schema / 无 escalation block —— subagent 完成后只返回简短 markdown 摘要。
 
@@ -90,10 +93,9 @@ subagent 不直接调 AskUserQuestion（运行在独立上下文）。需决策�
 
 bash 脚本，每次 session start / clear / compact 触发。流程：
 
-1. 优先读 `ROUNDTABLE_DOCS_ROOT` 环境变量
-2. 否则向上找最近的 `docs/` 或 `documentation/` 目录
-3. 找不到 → 标 `status: needs-init`，让 command 启动时 AskUserQuestion 询问
-4. 通过标准 SessionStart JSON 协议（`hookSpecificOutput.additionalContext`）注入会话——用户不可见，subagent 上下文可读
+1. **project 模式**（cwd 在 git repo 内）：按 env `ROUNDTABLE_DOCS_ROOT` → `<git_top>/.roundtable.json` → 以 repo 根为界的向上查找解析 `docs_root`；找不到 → 标 `status: needs-init`，workflow 启动时兜底询问
+2. **workspace 模式**（cwd 不在 git repo 内）：扫一层子目录注入 `workspace_root` + 项目清单，docs_root 按任务延迟解析
+3. 输出单行 JSON 同时含 `additionalContext` 与 `hookSpecificOutput.additionalContext` 两键注入会话——用户不可见，subagent 上下文可读（细节见 README「SessionStart hook」节）
 
 ```
 Roundtable context:

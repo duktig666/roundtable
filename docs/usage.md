@@ -89,7 +89,7 @@ claude
 5. **停**等用户 `accept` / `modify` / `reject`（设计 gate）
 6. architect 出**执行计划** → `docs/exec-plans/active/<slug>.md`（仅含步骤 / 验证 / 风险）
 7. **停**等用户 `accept` / `modify` / `reject`（计划 gate）
-8. developer subagent 实施，勾 exec-plan checkbox；如需决策返回 `[NEED-DECISION]`，主会话弹 AskUserQuestion 后续派发
+8. developer subagent 实施，勾 exec-plan checkbox；如需决策返回 `[NEED-DECISION]`，主会话按 canonical relay 规则（`skills/workflow/SKILL.md` Step 4，channel-aware：TG MCP 在场走 TG `reply`，否则用 runtime 的用户提问工具）转问用户后续派发
 9. 按需 tester / reviewer / dba subagent
 10. closeout：渲染 commit msg + PR draft，等用户 `go-commit` / `go-pr` / `go-all` / `stop`
 
@@ -136,7 +136,7 @@ cd ~/.claude/skills/gstack && ./setup
 ## 7. 常见问题
 
 **Q: SessionStart hook 注入失败？**
-A: 在 cwd 向上找 `docs/` 或 `documentation/` 目录，找不到时标 `status: needs-init`。command 启动会 AskUserQuestion 让你确认。也可设环境变量 `ROUNDTABLE_DOCS_ROOT=/abs/path` 强制。
+A: hook 分双模式——project 模式（cwd 在 git repo 内）按 env `ROUNDTABLE_DOCS_ROOT` → `<git_top>/.roundtable.json` → 以 repo 根为界的向上查找解析 `docs_root`；workspace 模式（cwd 不在 git repo 内）注入项目清单，docs_root 按任务解析。找不到时标 `status: needs-init`，workflow 启动时会兜底询问。细节见 README「SessionStart hook」一节。
 
 **Q: AskUserQuestion 没弹窗？**
 A: 工具不可用时（MCP 断开等）skill 会以文字问。重启 Claude Code 试试。
@@ -151,4 +151,4 @@ A: `docs/_archive/`，git history 完整保留。新工作不要再链到 `_arch
 A: LLM 会按 plugin 模板的英文 section 名输出英文文档。要中文请加`文档中文`那行。
 
 **Q: subagent 需要决策怎么办？**
-A: subagent 不直接弹窗，在返回文本里印 `[NEED-DECISION] <topic> | options: A) ... B) ...`。主会话 grep 后调 AskUserQuestion，把答案写入 exec-plan `## Change Log`，重派同一 subagent 续做。
+A: subagent 不直接弹窗，在返回文本里印 `[NEED-DECISION] <topic> | options: A) ... B) ...`。主会话 grep 后按 canonical relay 规则（`skills/workflow/SKILL.md` Step 4，channel-aware：TG MCP 在场走 TG `reply`，否则用 runtime 的用户提问工具）转问用户，把答案写入 exec-plan `## Change Log`，重派同一 subagent 续做。

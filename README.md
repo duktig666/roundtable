@@ -4,7 +4,7 @@
 
 > **Sit the analyst, architect, developer, tester, reviewer, and DBA at the same session, and push complex work forward with plan-then-execute discipline.**
 
-`roundtable` is a multi-runtime plugin (Claude Code + Codex CLI + Codex App) that packages a multi-role AI development workflow into a one-line install. **Minimal-by-design**: 4 subagents + 2 skills + 3 commands + 1 SessionStart hook, with compact prompt+config files.
+`roundtable` is a multi-runtime plugin (Claude Code + Codex CLI + Codex App) that packages a multi-role AI development workflow into a one-line install. **Minimal-by-design**: 4 subagents + 5 skills + 3 command shells + 1 SessionStart hook, with compact prompt+config files.
 
 ## Install
 
@@ -105,15 +105,17 @@ Status: ⏳ todo · 🔄 doing · ✅ done · ⏩ skipped
 
 | Type | Name | Purpose |
 |------|------|---------|
-| command | `/roundtable:workflow <task>` | Full orchestrator — auto-sizes, dispatches roles, handles user gates and `[NEED-DECISION]` |
-| command | `/roundtable:bugfix <issue>` | Skip design phase, Tier 0/1/2 decision tree, mandatory regression test |
-| command | `/roundtable:lint` | Read-only docs sweep; rebuilds `INDEX.md`; reports orphans / broken links / stale exec-plans |
+| command → skill | `/roundtable:workflow <task>` | Full orchestrator — auto-sizes, dispatches roles, handles user gates and `[NEED-DECISION]` |
+| command → skill | `/roundtable:bugfix <issue>` | Skip design phase, Tier 0/1/2 decision tree, mandatory regression test |
+| command → skill | `/roundtable:lint` | Read-only docs sweep; rebuilds `INDEX.md`; reports orphans / broken links / stale exec-plans |
 | skill | `@roundtable:analyst` | Six-question framework, fact-only output |
 | skill | `@roundtable:architect` | Two-track output: design-doc → user confirm → exec-plan → user confirm |
 | subagent | `@roundtable:developer` | Implementation + unit tests; ticks exec-plan checkboxes |
 | subagent | `@roundtable:tester` | Adversarial / E2E / Playwright; never touches `src/` |
 | subagent | `@roundtable:reviewer` | Read-only review; emits `<docs_root>/reviews/<date>-<slug>.md` |
 | subagent | `@roundtable:dba` | Read-only DB review; bans all SQL writes |
+
+The three commands are thin shells; their canonical bodies live in `skills/{workflow,bugfix,lint}/SKILL.md` — 5 skills total alongside `analyst` / `architect`.
 
 ## Layout
 
