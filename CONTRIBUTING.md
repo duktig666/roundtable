@@ -37,7 +37,7 @@ claude --plugin-dir /path/to/your/workspace/roundtable
 本仓库的文档体系（架构总览见 `docs/roundtable.md`）：用户产出文档统一落在 `docs/` 下 7 个目录 —— `analyze/`、`design-docs/`、`exec-plans/active|completed/`、`testing/`、`reviews/`、`bugfixes/`。
 
 - `docs/INDEX.md` 由 `/roundtable:lint` 生成，禁止手改
-- 决策写进对应 exec-plan 的 `## Key Decisions` / `## Change Log`，跟随 exec-plan 一起归档（不维护独立 decision-log / log.md）
+- 决策写进对应 exec-plan 的 `## Key Decisions` / `## Change Log`，跟随 exec-plan 一起归档（不另设独立的决策日志 / 时间索引文件）
 - 文件名用统一 slug（kebab-case），一个主题从 analyze → design-docs → exec-plans → testing 贯穿
 
 ## 本地测试
