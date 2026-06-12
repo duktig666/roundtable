@@ -326,14 +326,13 @@ fi
 # ============================================================
 # C. ROUNDTABLE_DOCS_ROOT 边界
 # ============================================================
-# C1 相对路径（相对 cwd 存在）→ 当前实现原样接受并输出相对路径（特征化；
-# 报告中列为 gap：消费方 cwd 不同会解析失败）
+# C1 相对路径（相对 cwd 存在）→ 基于 cwd 归一化为绝对路径（GAP-1 已修）
 t="$(new_tmp)"
 mkdir -p "$t/repo/docs/analyze"
 git_init "$t/repo"
 run_hook "$t/repo" ROUNDTABLE_DOCS_ROOT=docs
 if contract "C1 [relative env path]"; then
-    assert_contains "C1 relative value accepted as-is (characterization)" "$CTX" $'docs_root: docs\n'
+    assert_contains "C1 [GAP-1 fixed] relative value normalized to absolute" "$CTX" "docs_root: $t/repo/docs"$'\n'
     assert_contains "C1 source=env" "$CTX" $'docs_root_source: env\n'
 fi
 
@@ -504,19 +503,16 @@ fi
 # ============================================================
 # F. git 环境异常
 # ============================================================
-# F1 [BUG-2]: GIT_DIR 污染 → 非 git 的 cwd 被 git 当作 worktree 顶层，
-# hook 误报 project 模式（git_top=cwd、project_id 取自外部仓）
+# F1 [BUG-2 已修]: GIT_DIR 污染 → hook 开头 unset，git 探测只看 cwd 物理位置，
+# 不得把 cwd 报成外部仓的 worktree 顶层（git_top=cwd、project_id 取自外部仓）
 t="$(new_tmp)"
 mkdir -p "$t/foreign" "$t/plain"
 git_init "$t/foreign"
 run_hook "$t/plain" GIT_DIR="$t/foreign/.git"
 if contract "F1 [GIT_DIR pollution]"; then
-    if [[ "$CTX" != *$'mode: project\n'* ]]; then
-        pass "F1 [BUG-2 fixed] GIT_DIR pollution ignored"
-    else
-        known_bug "F1 GIT_DIR pollution ignored" \
-            "非 git cwd + 外部 GIT_DIR 被误判为 project 模式: git_top=$t/plain, project_id=foreign"
-    fi
+    assert_not_contains "F1 [BUG-2 fixed] foreign repo not claimed" "$CTX" "project_id: foreign"
+    assert_not_contains "F1 [BUG-2 fixed] cwd not claimed as git_top" "$CTX" "git_top: $t/plain"
+    assert_contains "F1 needs-init (non-git path)" "$CTX" $'status: needs-init\n'
 fi
 
 # F2: GIT_WORK_TREE 单独污染（无 GIT_DIR）→ git 报错退出，应安全落入非 git 分支

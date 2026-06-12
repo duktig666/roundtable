@@ -12,6 +12,11 @@
 
 set -euo pipefail
 
+# BUG-2(#127): 清洗父进程可能继承的 git env 污染——带 GIT_DIR 时 git 会把任意
+# cwd 当作外部仓的 worktree 顶层，致非 git 目录误判为 project 模式。
+# hook 语义始终基于 cwd 物理位置探测，不受调用方 env 影响。
+unset GIT_DIR GIT_WORK_TREE
+
 # DEC-7: pwd 失败时回退 $PWD
 cwd="$(pwd 2>/dev/null || echo "$PWD")"
 
@@ -76,7 +81,11 @@ if git_top="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)"; then
     # 解析链 1: env 显式指定（DEC-4: 不做结构校验；无效则 warning 后继续）
     if [ -n "${ROUNDTABLE_DOCS_ROOT:-}" ]; then
         if [ -d "${ROUNDTABLE_DOCS_ROOT}" ]; then
-            docs_root="${ROUNDTABLE_DOCS_ROOT}"
+            # GAP-1(#127): 相对路径基于 cwd 归一化为绝对路径，避免消费方 cwd 不同时解析落空
+            case "${ROUNDTABLE_DOCS_ROOT}" in
+                /*) docs_root="${ROUNDTABLE_DOCS_ROOT}" ;;
+                *) docs_root="$cwd/${ROUNDTABLE_DOCS_ROOT}" ;;
+            esac
             docs_root_source="env"
         else
             warnings="${warnings}warning: ROUNDTABLE_DOCS_ROOT=${ROUNDTABLE_DOCS_ROOT} does not exist; ignored.
@@ -228,6 +237,14 @@ escape_for_json() {
     s="${s//$'\t'/\\t}"
     s="${s//$'\b'/\\b}"
     s="${s//$'\f'/\\f}"
+    # BUG-1(#127): 其余 C0 控制字符（0x01-0x1F 中未具名处理者）兜底转为 \u00XX，
+    # 防止原样进入 JSON 字符串致输出不可解析（NUL 在 bash 字符串中不存在，无需处理）
+    local i ch esc
+    for i in 1 2 3 4 5 6 7 11 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31; do
+        printf -v ch '%b' "\\$(printf '%03o' "$i")"
+        printf -v esc '\\u%04x' "$i"
+        s="${s//$ch/$esc}"
+    done
     printf '%s' "$s"
 }
 escaped="$(escape_for_json "$context")"
