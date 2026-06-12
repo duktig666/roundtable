@@ -79,7 +79,7 @@ That's the model:
 3. **Decision-by-decision prompts** — architect asks at every key decision point, never piles them up at the end
 4. **Interactive roles → skills, autonomous roles → subagents** — analyst/architect run in main session (need user decisions); developer/tester/reviewer/dba run as isolated subagents (clean context)
 5. **`[NEED-DECISION]` pattern** — subagents can't pop dialogs; they print one line in their return text, the orchestrator parses it and asks the user, then re-dispatches
-6. **SessionStart hook for `docs_root`** — bash detects `docs_root` + `project_id` once at session start (env override → walk-up tree → `needs-init` fallback); roles read the injected context when the runtime exposes it, otherwise the skill asks once
+6. **SessionStart hook for `docs_root`** — bash detects context once at session start, in two modes: **project** (cwd inside a git repo: env override → `.roundtable.json` → repo-bounded walk-up) and **workspace** (cwd above multiple git projects: inject the project list, resolve docs_root per task). Roles read the injected context when the runtime exposes it, otherwise the skill falls back per workflow Step 1. See [SessionStart hook](#sessionstart-hook-docs_root-detection)
 7. **Language-neutral plugin** — prompts in English; output language follows your project's CLAUDE.md (e.g. declare `文档中文` and all docs come out in Chinese)
 8. **No mechanism bloat** — no decision-log / log.md / faq.md / progress JSONL / Monitor / `<escalation>` JSON. Decisions live inside exec-plan `## Key Decisions`; FAQ appends to the relevant analyze/design-doc; INDEX.md is rebuilt by `/roundtable:lint`
 
@@ -131,6 +131,27 @@ your-project/docs/
 ```
 
 One slug per task (`user-auth`, `payment-idempotency`). exec-plan frontmatter carries `source: design-docs/<slug>.md` for linkage.
+
+## SessionStart hook: docs_root detection
+
+The hook runs on `startup|clear|compact` and injects a `Roundtable context:` block. Two modes:
+
+**Project mode** (cwd inside a git repo). `docs_root` resolution order:
+
+1. `ROUNDTABLE_DOCS_ROOT` env var — used as-is when the directory exists (no structure check); otherwise a `warning:` line is emitted and resolution falls through
+2. `<git_top>/.roundtable.json` — flat JSON with two optional string keys: `docs_root` (absolute, or relative to the repo root; no structure check) and `project_id` (overrides the default id)
+
+   ```json
+   { "docs_root": "documents", "project_id": "my-project" }
+   ```
+
+3. Walk-up from cwd looking for `docs/` (then `documentation/`), **bounded by the repo root** — it never escapes into parent directories. A candidate counts as `status: ok` only if it contains one of the six roundtable dirs or `INDEX.md`; an unstructured hit is still reported, with `status: needs-init`.
+
+Context fields: `mode / docs_root / docs_root_source (env|config|walk-up) / project_id / git_top / status`. In a linked worktree, `project_id` is the **main** repo's directory name.
+
+**Workspace mode** (cwd not in a git repo, e.g. a parent dir holding several projects). The hook scans one level of subdirectories for git projects and injects `workspace_root` + the project list (`(docs)` marks projects that have a docs dir). Skills then resolve `docs_root = <workspace_root>/<project>/docs` per task — see workflow Step 1.
+
+Output protocol: a single JSON line carrying both `additionalContext` and `hookSpecificOutput.additionalContext`; each runtime reads the key it understands and ignores the other.
 
 ## Compose with other plugins
 

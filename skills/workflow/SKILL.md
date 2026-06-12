@@ -12,14 +12,17 @@ Orchestrate the workflow. Don't design or code — dispatch each substantive ste
 
 ## Step 1: Read context
 
-The SessionStart hook may inject roundtable context (`Roundtable context:` block). Extract `docs_root`, `project_id`, `status` when present. If the block is missing or `status: needs-init`, resolve `docs_root` before asking:
+The SessionStart hook may inject roundtable context (`Roundtable context:` block) when the runtime exposes hook additionalContext. Check `mode` first:
 
-1. Scan CWD for child git projects with docs:
-   `find . -maxdepth 2 -type d -name .git 2>/dev/null | sed 's|/.git$||' | sed 's|^\./||'`
-2. Keep only candidates with `docs/` or `documentation/`; their `docs_root` is that directory.
-3. If `$ARGUMENTS` uniquely mentions one candidate basename or path segment, use it. Prefer exact basename matches; if a shorter candidate name is embedded in a longer candidate name, treat that as ambiguous. If exactly one candidate exists, use it and report the choice.
-4. If multiple candidates remain, ask the user to choose one using the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not).
-5. If no candidate exists, ask the user where to put `docs/`.
+- **`mode: project`** — extract `docs_root`, `project_id`, `status`.
+- **`mode: workspace`** — cwd is a parent workspace, not a single project; the context lists the git subprojects under `workspace_root` (`(docs)` marks those with a docs dir). Infer the **target subproject** from the task description / issue / files involved; if it can't be inferred, ask the user (channel-aware: TG `reply` if telegram MCP is loaded, else `AskUserQuestion`; options = the project list). Then resolve `docs_root = <workspace_root>/<project>/docs` and pass that `docs_root` in **every** role dispatch. This paragraph is the canonical workspace-resolution rule — `bugfix` and `lint` reference it.
+- **Block missing** (runtime doesn't surface hook context) or **`status: needs-init`** — recover `docs_root` before asking:
+  1. Scan CWD for child git projects with docs:
+     `find . -maxdepth 2 -type d -name .git 2>/dev/null | sed 's|/.git$||' | sed 's|^\./||'`
+  2. Keep only candidates with `docs/` or `documentation/`; their `docs_root` is that directory.
+  3. If `$ARGUMENTS` uniquely mentions one candidate basename or path segment, use it. Prefer exact basename matches; if a shorter candidate name is embedded in a longer candidate name, treat that as ambiguous. If exactly one candidate exists, use it and report the choice.
+  4. If multiple candidates remain, ask the user to choose one using the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not).
+  5. If no candidate exists, ask the user where to put `docs/`.
 
 Pick a kebab-case `slug` for this task (or ask).
 
