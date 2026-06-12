@@ -79,7 +79,7 @@ Claude Code 下用上面的 slash command。Codex CLI / App 下描述意图或�
 3. **逐决策弹窗** —— architect 每个关键决策当场调 `AskUserQuestion`，不积压成文字列表
 4. **交互角色 → skill / 自主角色 → subagent** —— analyst/architect 主会话执行（需要 `AskUserQuestion`）；developer/tester/reviewer/dba 独立 subagent 上下文
 5. **`[NEED-DECISION]` 模式** —— subagent 不能弹窗，在返回文本印一行，orchestrator grep 后调 `AskUserQuestion` 续派
-6. **SessionStart hook 注入 `docs_root`** —— bash 在 session 开始时检测 docs_root + project_id（env > 向上找 `docs/` > `needs-init` 兜底），所有角色从注入上下文读，不再 inline 检测
+6. **SessionStart hook 注入 `docs_root`** —— bash 在 session 开始时检测一次上下文，分两模式：**project**（cwd 在 git repo 内：env 覆盖 > `.roundtable.json` > 以 repo 根为界的向上查找）和 **workspace**（cwd 是多 git 项目的父级工作区：注入项目清单，docs_root 按任务延迟解析）。所有角色从注入上下文读，不再 inline 检测。详见 [SessionStart hook](#sessionstart-hookdocs_root-检测)
 7. **plugin 语言无关** —— prompt 全英文；输出语言由项目自己的 CLAUDE.md 决定（声明 `文档中文` 后所有产出自动中文）
 8. **无机制堆叠** —— 没有 decision-log / log.md / faq.md / progress JSONL / Monitor / `<escalation>` JSON。决策直接写进 exec-plan 的 `## Key Decisions`；FAQ 追加到对应 analyze/design-doc；INDEX.md 由 `/roundtable:lint` 重建
 
@@ -131,6 +131,27 @@ your-project/docs/
 ```
 
 每个主题用一个 slug 串起来。exec-plan 的 frontmatter 通过 `source: design-docs/<slug>.md` 链回设计文档。
+
+## SessionStart hook：docs_root 检测
+
+hook 在 `startup|clear|compact` 时运行，注入 `Roundtable context:` block。分两模式：
+
+**project 模式**（cwd 在 git repo 内）。`docs_root` 解析顺序：
+
+1. env `ROUNDTABLE_DOCS_ROOT` —— 目录存在则直接采用（不做结构校验）；不存在则输出 `warning:` 行并继续走下一级
+2. `<git_top>/.roundtable.json` —— 平铺 JSON，两个可选字符串键：`docs_root`（绝对路径，或相对 repo 根；不做结构校验）和 `project_id`（覆盖默认 id）
+
+   ```json
+   { "docs_root": "documents", "project_id": "my-project" }
+   ```
+
+3. 从 cwd 向上查找 `docs/`（其次 `documentation/`），**以 repo 根为界** —— 绝不越界爬到父级目录。候选目录须含七个 roundtable 目录之一或 `INDEX.md` 才算 `status: ok`；无结构的命中仍会报告，但状态为 `status: needs-init`。
+
+context 字段：`mode / docs_root / docs_root_source (env|config|walk-up) / project_id / git_top / status`。在 linked worktree 下 `project_id` 取**主仓**目录名。
+
+**workspace 模式**（cwd 不在 git repo 内，例如挂着多个项目的父级工作区）。hook 扫一层子目录找 git 项目，注入 `workspace_root` + 项目清单（带 docs 目录的项目标 `(docs)`）。skills 按任务解析 `docs_root = <workspace_root>/<project>/docs` —— 见 workflow Step 1。
+
+输出协议：单行 JSON 同时含 `additionalContext` 与 `hookSpecificOutput.additionalContext` 两键，各 runtime 读自己认识的键、忽略另一个。
 
 ## 与其它 plugin 协同
 

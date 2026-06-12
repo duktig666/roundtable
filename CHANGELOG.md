@@ -6,7 +6,20 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `hooks/session-start` **workspace mode** (#127): when cwd is not inside a git repo, the hook scans one level of subdirectories for git projects and injects `workspace_root` + the project list (`(docs)` marker); skills resolve `docs_root = <workspace_root>/<project>/docs` per task. Canonical resolution rule lives in `skills/workflow/SKILL.md` Step 1; bugfix / lint reference it (lint asks the user to pick **one** project, never sweeps all).
+- `<git_top>/.roundtable.json` (#127): flat JSON config with two optional string keys — `docs_root` (absolute or relative to the repo root) and `project_id` (overrides the default id). Sits between the `ROUNDTABLE_DOCS_ROOT` env override and the walk-up in the project-mode resolution chain.
+- `tests/session-start.test.sh` — pure-bash test harness for the hook (mktemp fixtures + python3 JSON assertions), 11 cases / 44 assertions including the #127 boundary-escape regression.
+
+### Fixed
+
+- `hooks/session-start` boundary escape (#127): in project mode the docs walk-up is now bounded by the git toplevel, so a repo without `docs/` reports `needs-init` instead of leaking a parent directory's `docs/` (observed: `docs_root: ~/docs` under Codex). Walk-up candidates are also structure-checked (must contain one of the seven roundtable dirs or `INDEX.md` to be `status: ok`).
+- `hooks/session-start` worktree identity: `project_id` now derives from the main repo root via `git rev-parse --git-common-dir`, so linked worktrees no longer report the worktree directory name.
+
 ### Changed
+
+- `hooks/session-start` output protocol: unconditionally emits one JSON line with **both** `additionalContext` and `hookSpecificOutput.additionalContext`; all runtime env-sniffing branches (`CURSOR_PLUGIN_ROOT` / `COPILOT_CLI`) removed. `hooks/hooks.json` drops the non-standard `"async"` field.
 
 - `commands/workflow.md` Step 2: replaced the abstract "every phase transition must be posted" sentence with an explicit checklist of broadcast points (workflow start / phase 1·2·4·6·7·8·9 completion / user gates 3·5 / closeout). The v0.0.6 rule was too easy to miss at runtime — observed in practice: workflow start posted to TG, phase 1 completion did not.
 - `commands/bugfix.md` Step 1: added a one-line reference to the workflow.md broadcast rule so bugfix runs don't go silent on TG either.

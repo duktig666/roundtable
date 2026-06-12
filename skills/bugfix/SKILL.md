@@ -12,7 +12,7 @@ Fast path for fixing a bug. Skip analyst, design-doc, and user gates around desi
 
 ## Step 1: Read context
 
-SessionStart hook injects `docs_root` + `project_id`. Pick a slug.
+SessionStart hook injects `docs_root` + `project_id`. If the context shows `mode: workspace`, resolve the target subproject and `docs_root` per the canonical rule in `/roundtable:workflow` Step 1. Pick a slug.
 
 **Channel broadcast**: same rule as `/roundtable:workflow` Step 2 — if telegram MCP is loaded, post a new `reply` at workflow start, each phase completion (Step 4 developer / Step 5 reviewer or dba / Step 6 postmortem), and closeout. Terminal-only output is a bug.
 

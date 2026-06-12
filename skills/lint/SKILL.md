@@ -10,7 +10,7 @@ Read-only docs sweep. Rebuilds `<docs_root>/INDEX.md`. Reports issues; does not 
 
 ## Step 1: Read context
 
-If `$ARGUMENTS` is an absolute path or `.`, use that as `target_project`. Otherwise read `docs_root` from session start context. If `docs_root` isn't set, abort with a one-line message asking the user to invoke from inside the target project or pass a path.
+If `$ARGUMENTS` is an absolute path or `.`, use that as `target_project`. Otherwise read `docs_root` from session start context. If the context shows `mode: workspace` and no path argument was given, list the projects from the context and ask the user to pick **one** target project (never default to sweeping all), then use `<workspace_root>/<project>/docs`. If `docs_root` isn't set, abort with a one-line message asking the user to invoke from inside the target project or pass a path.
 
 ## Step 2: Rebuild INDEX.md
 

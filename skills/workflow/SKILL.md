@@ -12,7 +12,12 @@ Orchestrate the workflow. Don't design or code — dispatch each substantive ste
 
 ## Step 1: Read context
 
-The SessionStart hook injects roundtable context (`Roundtable context:` block). Extract `docs_root`, `project_id`, `status`. If `status: needs-init`, call `AskUserQuestion` to confirm where to put `docs/`. Pick a kebab-case `slug` for this task (or ask).
+The SessionStart hook injects roundtable context (`Roundtable context:` block). Check `mode` first:
+
+- **`mode: project`** — extract `docs_root`, `project_id`, `status`. If `status: needs-init`, ask the user (channel-aware: TG `reply` if telegram MCP is loaded, else `AskUserQuestion`) where to put `docs/` before proceeding.
+- **`mode: workspace`** — cwd is a parent workspace, not a single project; the context lists the git subprojects under `workspace_root` (`(docs)` marks those with a docs dir). Infer the **target subproject** from the task description / issue / files involved; if it can't be inferred, ask the user (channel-aware, options = the project list). Then resolve `docs_root = <workspace_root>/<project>/docs` and pass that `docs_root` in **every** role dispatch. This paragraph is the canonical workspace-resolution rule — `bugfix` and `lint` reference it.
+
+Pick a kebab-case `slug` for this task (or ask).
 
 ## Step 2: Phase Matrix
 
