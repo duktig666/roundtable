@@ -86,8 +86,9 @@ On `accept`, architect proceeds to write the exec-plan, then pauses again for th
 Phase 6–9 are subagents. Dispatch one role per call:
 - Claude Code: use `Agent(subagent_type: "roundtable:<role>", prompt: ...)`.
 - Codex: first read `agents/<role>.md`, then call `spawn_agent` with `agent_type: "worker"` and a `message` containing that role prompt plus exec-plan path, `docs_root`, slug, optional design-doc path, and "You are not alone in the codebase; do not revert edits made by others." Keep the returned agent id for `wait_agent(targets: [id])` and `close_agent(target: id)`.
+- For reviewer (phase 8), the dispatch prompt/message must also include the diff scope (git range or file list), per `agents/reviewer.md` inputs.
 - Read return text. Tick matrix status.
-- **If return text contains `[NEED-DECISION]`**: parse the line, ask the user (TG `reply` with `a/b` options if telegram MCP is loaded; else the runtime's user-question tool, falling back to normal chat when needed), append answer to the exec-plan's `## Change Log`, then re-dispatch the same role with the answer.
+- **If return text contains `[NEED-DECISION]`** (canonical NEED-DECISION relay rule — `bugfix` and the plugin CLAUDE.md reference it): parse the line, ask the user (TG `reply` with `a/b` options if telegram MCP is loaded; else the runtime's user-question tool, falling back to normal chat when needed), append answer to the exec-plan's `## Change Log`, then re-dispatch the same role with the answer.
 - After phase 6 (developer), if the project's CLAUDE.md declares `critical_modules` and the diff hits one, phases 7 and 8 are mandatory; otherwise ask the user.
 
 ## Step 5: Closeout
@@ -136,7 +137,7 @@ Codex App cannot push from a sandboxed worktree. Use the App's native controls:
   - "Create branch" — names the branch, commits/pushes via App UI, opens PR
   - "Hand off to local" — transfers work to your local checkout
 
-Move the exec-plan to completed/ after the App finishes the branch / PR.
+The exec-plan stays in active/ for now; after the App finishes the branch / PR, the next orchestrator session moves it to completed/ at closeout (lint will suggest the move once all checkboxes are ticked).
 ```
 
 ### Standard closeout (other paths)
@@ -152,7 +153,7 @@ suggested PR title / body: …
 reply: `go-commit` / `go-pr` / `go-all` / `modify: <…>` / `stop`
 ```
 
-Never auto-run `git commit` / `git push` / `gh pr create` without an explicit `go-*`. Move the exec-plan from `active/` to `completed/` only after `go-commit` or `go-all`.
+Never auto-run `git commit` / `git push` / `gh pr create` without an explicit `go-*`. Move the exec-plan from `active/` to `completed/` only after `go-commit` or `go-all`. At closeout, also move any leftover fully-ticked exec-plans in `active/` (e.g. from a prior Path A handoff whose branch / PR has since finished).
 
 ## Forbidden
 

@@ -25,8 +25,7 @@ Implement what the exec-plan says. Write unit tests. Tick exec-plan checkboxes. 
 1. Read exec-plan end-to-end. If `source:` points to a design-doc, read it for context. Pick the next unchecked step.
 2. Write a failing test first when behavior is non-trivial; then implement.
 3. Run lint + tests. Use `lint_cmd` / `test_cmd` from project CLAUDE.md if declared. Otherwise auto-detect: Rust→`cargo clippy`+`cargo test`, JS/TS→`pnpm lint`+`pnpm test`, Python→`ruff check`+`pytest`, Go→`go vet`+`go test`.
-4. Tick the exec-plan checkbox.
-5. When all steps done, move the exec-plan from `active/` to `completed/`.
+4. Tick the exec-plan checkbox. Your responsibility ends at ticking checkboxes — the orchestrator moves the exec-plan to `completed/` at closeout.
 
 ## When you need a decision
 

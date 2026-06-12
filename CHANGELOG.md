@@ -19,6 +19,10 @@ All notable changes to **roundtable** will be documented in this file.
 
 ### Changed
 
+- exec-plan lifecycle single owner (#129): only the orchestrator moves an exec-plan from `active/` to `completed/`, at closeout (after `go-commit` / `go-all`). Removed `agents/developer.md` step 5 (developer self-move) and the "user moves it" wording in the plugin `CLAUDE.md`; `bugfix` closeout now states the same rule.
+- `bugfix` Step 3.5 (#129): writes a mini exec-plan (`<docs_root>/exec-plans/active/<slug>.md` — frontmatter + `## Solution` + checkboxes + `## Change Log`) for every tier; Step 4 dispatches developer with that path, so developer's exec-plan input holds in both workflows.
+- `[NEED-DECISION]` relay rule (#129): canonicalized in `skills/workflow/SKILL.md` Step 4; `bugfix` and the plugin `CLAUDE.md` now reference it instead of restating (drops the narrower "calls `AskUserQuestion`" wording).
+- workflow Step 4 (#129): reviewer (phase 8) dispatch must include the diff scope (git range or file list), matching `agents/reviewer.md` required inputs.
 - `hooks/session-start` output protocol: unconditionally emits one JSON line with **both** `additionalContext` and `hookSpecificOutput.additionalContext`; all runtime env-sniffing branches (`CURSOR_PLUGIN_ROOT` / `COPILOT_CLI`) removed. `hooks/hooks.json` drops the non-standard `"async"` field.
 
 ## [0.0.7-rc3] - 2026-06-02

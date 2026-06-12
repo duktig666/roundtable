@@ -32,6 +32,30 @@ SessionStart hook may inject `docs_root` + `project_id`. If the context shows `m
 
 LOC = `git diff --numstat` insertions + deletions. If unclear, ask the user.
 
+## Step 3.5: Write the mini exec-plan
+
+Write `<docs_root>/exec-plans/active/<slug>.md` for **every** tier (tier 0 included — it's a 4-5 line file). Keep it minimal; no design-doc exists, so no `source:` in the frontmatter:
+
+```
+---
+slug: <slug>
+issue: <N, if any>
+tier: <0|1|2>
+---
+
+# <slug>
+
+## Solution
+
+Root cause: <one line>. Fix: <one line>.
+
+- [ ] Reproduction / regression test
+- [ ] Fix
+- [ ] Verify (lint + tests pass)
+
+## Change Log
+```
+
 ## Step 4: Dispatch developer
 
 Dispatch developer:
@@ -39,11 +63,14 @@ Dispatch developer:
 - Claude Code: `Agent(subagent_type: "roundtable:developer", ...)`
 - Codex: read `agents/developer.md`, then call `spawn_agent` with `agent_type: "worker"` and a `message` containing that role prompt plus:
 
+- exec-plan path (`<docs_root>/exec-plans/active/<slug>.md`, from Step 3.5)
+- `docs_root`
+- slug
 - bug description + root-cause analysis
 - tier (0 / 1 / 2)
 - explicit instruction: **must add a regression test**; do not refactor unrelated code
 
-If developer returns `[NEED-DECISION]`, ask with the runtime's user-question tool and re-dispatch.
+If developer returns `[NEED-DECISION]`, follow the canonical NEED-DECISION relay rule in `/roundtable:workflow` Step 4: channel-aware ask, append the answer to the exec-plan's `## Change Log`, re-dispatch developer with the answer.
 
 ## Step 5: Verify + optional review
 
@@ -69,7 +96,7 @@ Before closeout, if `tier == 2` and `<docs_root>/bugfixes/<slug>.md` doesn't exi
 
 ## Step 7: Closeout
 
-Same as `/roundtable:workflow` Step 5 — render commit / PR draft, wait for `go-commit` / `go-pr` / `go-all` / `stop`. Never auto-run git or gh.
+Same as `/roundtable:workflow` Step 5 — render commit / PR draft, wait for `go-commit` / `go-pr` / `go-all` / `stop`. Never auto-run git or gh. Move the exec-plan from `active/` to `completed/` only after `go-commit` or `go-all`.
 
 ## Forbidden
 
