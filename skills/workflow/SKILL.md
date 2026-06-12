@@ -153,7 +153,7 @@ suggested PR title / body: …
 reply: `go-commit` / `go-pr` / `go-all` / `modify: <…>` / `stop`
 ```
 
-Never auto-run `git commit` / `git push` / `gh pr create` without an explicit `go-*`. Move the exec-plan from `active/` to `completed/` only after `go-commit` or `go-all`.
+Never auto-run `git commit` / `git push` / `gh pr create` without an explicit `go-*`. Move the exec-plan from `active/` to `completed/` only after `go-commit` or `go-all`. At closeout, also move any leftover fully-ticked exec-plans in `active/` (e.g. from a prior Path A handoff whose branch / PR has since finished).
 
 ## Forbidden
 
