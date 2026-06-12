@@ -137,7 +137,7 @@ Codex App cannot push from a sandboxed worktree. Use the App's native controls:
   - "Create branch" — names the branch, commits/pushes via App UI, opens PR
   - "Hand off to local" — transfers work to your local checkout
 
-Move the exec-plan to completed/ after the App finishes the branch / PR.
+The exec-plan stays in active/ for now; after the App finishes the branch / PR, the next orchestrator session moves it to completed/ at closeout (lint will suggest the move once all checkboxes are ticked).
 ```
 
 ### Standard closeout (other paths)

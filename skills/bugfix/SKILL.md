@@ -64,6 +64,8 @@ Dispatch developer:
 - Codex: read `agents/developer.md`, then call `spawn_agent` with `agent_type: "worker"` and a `message` containing that role prompt plus:
 
 - exec-plan path (`<docs_root>/exec-plans/active/<slug>.md`, from Step 3.5)
+- `docs_root`
+- slug
 - bug description + root-cause analysis
 - tier (0 / 1 / 2)
 - explicit instruction: **must add a regression test**; do not refactor unrelated code
