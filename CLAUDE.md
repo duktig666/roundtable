@@ -6,11 +6,15 @@ analyst → architect → developer → tester → reviewer → dba.
 ## Layout
 
 - `agents/` — 4 subagents (developer, tester, reviewer, dba), English prompts
-- `skills/` — 2 skills (analyst, architect), English prompts
-- `commands/` — 3 commands (workflow, bugfix, lint), English prompts
-- `hooks/` — SessionStart hook injects `docs_root` + `project_id`
+- `skills/` — 5 skills (analyst, architect, workflow, bugfix, lint), English prompts
+- `skills/*/references/` — per-skill `codex-tools.md` (Claude Code → Codex tool-mapping tables)
+- `commands/` — 3 thin command shells (workflow, bugfix, lint), each dispatching to the same-named skill
+- `hooks/` — `session-start` script (injects `docs_root` + `project_id`) + `hooks/hooks.json` (Claude Code-side registration, matcher `startup|clear|compact`)
+- `hooks.json` (root) — Codex-side hook declaration (matcher `*`); the fork from `hooks/hooks.json` is intentional: each runtime discovers its own file
+- `tests/` — two hook test suites (`session-start.test.sh`, `session-start.adversarial.test.sh`)
+- `.codex-plugin/` — Codex manifest (`plugin.json`)
+- `AGENTS.md` — single-line pointer file (`CLAUDE.md`) for Codex
 - `docs/` — user-facing artifacts (analyze, design-docs, exec-plans, testing, reviews, bugfixes)
-- `docs/_archive/` — pre-rewrite history kept for `git log` traceability; do not link to from new docs
 
 ## Output language
 

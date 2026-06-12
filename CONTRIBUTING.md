@@ -34,15 +34,11 @@ claude --plugin-dir /path/to/your/workspace/roundtable
 
 ## 文档变更纪律
 
-本仓库的文档体系采用"三件套"（见 `docs/design-docs/roundtable.md`）：
+本仓库的文档体系（架构总览见 `docs/roundtable.md`）：用户产出文档统一落在 `docs/` 下 7 个目录 —— `analyze/`、`design-docs/`、`exec-plans/active|completed/`、`testing/`、`reviews/`、`bugfixes/`。
 
-| 位置 | 记录什么 |
-|------|---------|
-| 文档内"变更记录"章节 | 具体改了什么、为什么改 |
-| `docs/log.md` | 哪个文档在何时被更新（时间索引） |
-| `docs/decision-log.md` | 决策层面演进（含 Superseded 机制） |
-
-目录结构见 `docs/INDEX.md`。文件名用统一 slug（kebab-case），一个主题从 analyze → design-docs → exec-plans → testing 贯穿。
+- `docs/INDEX.md` 由 `/roundtable:lint` 生成，禁止手改
+- 决策写进对应 exec-plan 的 `## Key Decisions` / `## Change Log`，跟随 exec-plan 一起归档（不另设独立的决策日志 / 时间索引文件）
+- 文件名用统一 slug（kebab-case），一个主题从 analyze → design-docs → exec-plans → testing 贯穿
 
 ## 本地测试
 
@@ -70,4 +66,4 @@ Codex CLI / App 路径的手动测试清单：
 
 ## AGENTS.md
 
-`AGENTS.md` 是 Codex 用的文本指针，内容仅一行 `CLAUDE.md`。无需同步 CLAUDE.md 内容；Codex 读到指针后会去读 `CLAUDE.md` 主体。
+`AGENTS.md` 是 Codex 用的文本指针，内容仅一行 `CLAUDE.md`。无需同步 CLAUDE.md 内容；它只是指针文件，实际效果取决于 runtime 是否跟随指针去读 `CLAUDE.md` 主体。

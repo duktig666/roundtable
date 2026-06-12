@@ -93,7 +93,7 @@ Phase 6–9 are subagents. Dispatch one role per call:
 
 ## Step 5: Closeout
 
-### Step 0: Detect environment
+### Environment detection
 
 Before rendering the closeout bundle, detect git state with read-only commands:
 
