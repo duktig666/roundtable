@@ -6,6 +6,7 @@
 #
 # 已知 bug 的复现断言用 KNOWN-BUG 标记：默认不影响退出码（便于 CI），
 # STRICT=1 时计入失败。bug 清单见 docs/testing/hook-workspace-docs-root.md。
+# 注意：本测试套件用 ${var@Q} 需 bash ≥ 4.4（仅开发侧；hook 本体兼容 bash 3.2）。
 
 set -euo pipefail
 
@@ -64,7 +65,7 @@ run_hook_path() {
     RC=0
     OUT="$( (cd "$dir" && env -u ROUNDTABLE_DOCS_ROOT -u CLAUDE_PLUGIN_ROOT \
         -u GIT_DIR -u GIT_WORK_TREE -u GIT_CEILING_DIRECTORIES \
-        PATH="$path" "$@" /usr/bin/bash "$HOOK") 2>"$ERR_FILE" )" || RC=$?
+        PATH="$path" "$@" "$BASH" "$HOOK") 2>"$ERR_FILE" )" || RC=$?
     ERR="$(cat "$ERR_FILE")"
 }
 
@@ -384,7 +385,7 @@ for b in git sed head basename dirname; do
     ln -s "$(command -v "$b")" "$FAKEBIN/$b"
 done
 # 守卫：确认该 PATH 下 python3 不可见
-if env PATH="$FAKEBIN" /usr/bin/bash -c 'command -v python3' >/dev/null 2>&1; then
+if env PATH="$FAKEBIN" "$BASH" -c 'command -v python3' >/dev/null 2>&1; then
     fail "D0 guard python3 hidden" "python3 still resolvable in FAKEBIN PATH"
 else
     pass "D0 guard python3 hidden"

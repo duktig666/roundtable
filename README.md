@@ -145,7 +145,7 @@ The hook runs on `startup|clear|compact` and injects a `Roundtable context:` blo
    { "docs_root": "documents", "project_id": "my-project" }
    ```
 
-3. Walk-up from cwd looking for `docs/` (then `documentation/`), **bounded by the repo root** — it never escapes into parent directories. A candidate counts as `status: ok` only if it contains one of the seven roundtable dirs or `INDEX.md`; an unstructured hit is still reported, with `status: needs-init`.
+3. Walk-up from cwd looking for `docs/` (then `documentation/`), **bounded by the repo root** — it never escapes into parent directories. A candidate counts as `status: ok` only if it contains one of the six roundtable dirs or `INDEX.md`; an unstructured hit is still reported, with `status: needs-init`.
 
 Context fields: `mode / docs_root / docs_root_source (env|config|walk-up) / project_id / git_top / status`. In a linked worktree, `project_id` is the **main** repo's directory name.
 

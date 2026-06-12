@@ -145,7 +145,7 @@ hook 在 `startup|clear|compact` 时运行，注入 `Roundtable context:` block�
    { "docs_root": "documents", "project_id": "my-project" }
    ```
 
-3. 从 cwd 向上查找 `docs/`（其次 `documentation/`），**以 repo 根为界** —— 绝不越界爬到父级目录。候选目录须含七个 roundtable 目录之一或 `INDEX.md` 才算 `status: ok`；无结构的命中仍会报告，但状态为 `status: needs-init`。
+3. 从 cwd 向上查找 `docs/`（其次 `documentation/`），**以 repo 根为界** —— 绝不越界爬到父级目录。候选目录须含六个 roundtable 目录之一或 `INDEX.md` 才算 `status: ok`；无结构的命中仍会报告，但状态为 `status: needs-init`。
 
 context 字段：`mode / docs_root / docs_root_source (env|config|walk-up) / project_id / git_top / status`。在 linked worktree 下 `project_id` 取**主仓**目录名。
 

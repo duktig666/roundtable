@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # hooks/session-start 单元测试（slug: hook-workspace-docs-root, issue #127）。
 # 纯 bash harness：mktemp -d 造 fixture，python3 校验 JSON 与断言字段。
+# 注意：本测试套件用 ${var@Q} 需 bash ≥ 4.4（仅开发侧；hook 本体兼容 bash 3.2）。
 
 set -euo pipefail
 
@@ -249,6 +250,24 @@ if ctx="$(get_ctx <<<"$out" 2>/dev/null)"; then
     assert_contains "T8 docs_root inside worktree" "$ctx" "docs_root: $t/wt/docs"$'\n'
 else
     json_fail "T8" "$out"
+fi
+
+# ---------- T9: symlink cwd 越界回归（MAJOR-1）：经 symlink 进入 repo，repo 无
+# docs/、父级有结构化 docs/ → 必须 needs-init，不得报父级（逻辑 cwd 与 git
+# rev-parse 物理路径不等会致 walk-up 边界失效） ----------
+t="$(new_tmp)"
+mkdir -p "$t/real/proj/src" "$t/real/docs/design-docs"
+git_init "$t/real/proj"
+ln -s "$t/real" "$t/link"
+out="$(run_hook "$t/link/proj")"
+if ctx="$(get_ctx <<<"$out" 2>/dev/null)"; then
+    json_ok "T9"
+    assert_not_contains "T9 no parent escape (physical)" "$ctx" "$t/real/docs"
+    assert_not_contains "T9 no parent escape (symlinked)" "$ctx" "$t/link/docs"
+    assert_contains "T9 docs_root=<none>" "$ctx" $'docs_root: <none>\n'
+    assert_contains "T9 status=needs-init" "$ctx" $'status: needs-init\n'
+else
+    json_fail "T9" "$out"
 fi
 
 # ---------- 汇总 ----------

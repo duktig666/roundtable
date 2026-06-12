@@ -17,10 +17,11 @@ set -euo pipefail
 # hook 语义始终基于 cwd 物理位置探测，不受调用方 env 影响。
 unset GIT_DIR GIT_WORK_TREE
 
-# DEC-7: pwd 失败时回退 $PWD
-cwd="$(pwd 2>/dev/null || echo "$PWD")"
+# DEC-7: pwd 失败时回退 $PWD。MAJOR-1(#127): 用 -P 取物理路径——git_top 来自
+# git rev-parse（物理路径），逻辑 cwd 含 symlink 时两者永不相等，walk-up 边界失效。
+cwd="$(pwd -P 2>/dev/null || pwd 2>/dev/null || echo "$PWD")"
 
-# DEC-4: 候选目录须含七目录之一或 INDEX.md 才算结构完整
+# DEC-4: 候选目录须含六目录之一或 INDEX.md 才算结构完整
 has_structure() {
     local d sub
     d="$1"
