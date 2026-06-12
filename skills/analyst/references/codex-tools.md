@@ -1,6 +1,6 @@
 # Codex tool mapping — analyst skill
 
-This skill is read-only by design. Under Codex the mapping is small; behaviour is identical.
+This skill is read-only by design. Under Codex the mapping is small; keep the same analyst semantics.
 
 ## Tool equivalents
 
@@ -14,14 +14,15 @@ This skill is read-only by design. Under Codex the mapping is small; behaviour i
 | `WebSearch(query=...)` | `web.run` (Codex web tool) | Use the same query; analyst still produces facts only |
 | `Write(file_path=..., content=...)` | `apply_patch` with `*** Add File:` | Used to create `<docs_root>/analyze/<slug>.md` |
 | `Edit(file_path=..., old=..., new=...)` | `apply_patch` with `*** Update File:` | Used to append to `## FAQ` on follow-up |
-| `AskUserQuestion(...)` | `request_user_input(prompt=..., options=[...])` | When research scope is ambiguous |
+| `AskUserQuestion(...)` | `request_user_input(questions=[...])` when available; otherwise ask in normal chat and wait | When research scope is ambiguous |
 | `mcp__plugin_telegram_telegram__reply` | TG MCP optional under Codex | See workflow `references/codex-tools.md` TG section |
 
 ## Channel-aware decision prompt
 
 Under Claude Code with TG MCP loaded, the analyst posts `a) … b) …` options via TG `reply` and waits for a text reply. Under Codex:
 
-- If no TG MCP server is configured, use `request_user_input` with structured options. Each option label packs the fact + source URL/file:line + objective tradeoff (per SKILL.md "Asking the user").
+- If no TG MCP server is configured and `request_user_input` is available, use `request_user_input(questions=[...])` with structured options. Each option label packs the fact + source URL/file:line + objective tradeoff (per SKILL.md "Asking the user").
+- If `request_user_input` is not available in the current Codex mode, ask the same options in normal chat and stop until the user replies.
 - If a TG MCP server is configured (see workflow `references/codex-tools.md` TG section), the same channel-aware logic applies; use the Codex-side TG MCP tool name visible in `codex /mcp`.
 
 Never mark `★ recommended` regardless of runtime — that is the architect's job.

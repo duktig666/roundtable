@@ -12,7 +12,7 @@ Fast path for fixing a bug. Skip analyst, design-doc, and user gates around desi
 
 ## Step 1: Read context
 
-SessionStart hook injects `docs_root` + `project_id`. If the context shows `mode: workspace`, resolve the target subproject and `docs_root` per the canonical rule in `/roundtable:workflow` Step 1. Pick a slug.
+SessionStart hook may inject `docs_root` + `project_id`. If the context shows `mode: workspace`, or the block is missing, or `status: needs-init`, resolve the target subproject and `docs_root` per the canonical rule in `/roundtable:workflow` Step 1. Pick a slug.
 
 **Channel broadcast**: same rule as `/roundtable:workflow` Step 2 — if telegram MCP is loaded, post a new `reply` at workflow start, each phase completion (Step 4 developer / Step 5 reviewer or dba / Step 6 postmortem), and closeout. Terminal-only output is a bug.
 
@@ -34,12 +34,16 @@ LOC = `git diff --numstat` insertions + deletions. If unclear, ask the user.
 
 ## Step 4: Dispatch developer
 
-`Agent(subagent_type: "roundtable:developer", ...)` with:
+Dispatch developer:
+
+- Claude Code: `Agent(subagent_type: "roundtable:developer", ...)`
+- Codex: read `agents/developer.md`, then call `spawn_agent` with `agent_type: "worker"` and a `message` containing that role prompt plus:
+
 - bug description + root-cause analysis
 - tier (0 / 1 / 2)
 - explicit instruction: **must add a regression test**; do not refactor unrelated code
 
-If developer returns `[NEED-DECISION]`, call `AskUserQuestion` and re-dispatch.
+If developer returns `[NEED-DECISION]`, ask with the runtime's user-question tool and re-dispatch.
 
 ## Step 5: Verify + optional review
 

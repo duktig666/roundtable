@@ -4,7 +4,7 @@
 
 > **Sit the analyst, architect, developer, tester, reviewer, and DBA at the same session, and push complex work forward with plan-then-execute discipline.**
 
-`roundtable` is a multi-runtime plugin (Claude Code + Codex CLI + Codex App) that packages a multi-role AI development workflow into a one-line install. **Minimal-by-design**: 4 subagents + 2 skills + 3 commands + 1 SessionStart hook, ~760 lines of prompt+config total.
+`roundtable` is a multi-runtime plugin (Claude Code + Codex CLI + Codex App) that packages a multi-role AI development workflow into a one-line install. **Minimal-by-design**: 4 subagents + 2 skills + 3 commands + 1 SessionStart hook, with compact prompt+config files.
 
 ## Install
 
@@ -47,7 +47,7 @@ In the Codex App plugin UI, add `github.com/duktig666/roundtable`. The App handl
 ### Codex troubleshooting
 
 - **`spawn_agent` reports unknown tool** — verify `~/.codex/config.toml` has `[features] multi_agent = true` (default `true` on current builds).
-- **SessionStart `Roundtable context:` block missing** — verify `~/.codex/config.toml` has `[features] plugin_hooks = true`, and that `hooks/session-start` is executable.
+- **SessionStart `Roundtable context:` block missing** — verify `~/.codex/config.toml` has `[features] plugin_hooks = true`, the plugin root contains `hooks.json`, and `hooks/session-start` is executable. Some Codex CLI builds may not surface hook `additionalContext` in `codex exec`; in that case the workflow asks for `docs_root` as a fallback.
 - **TG MCP is optional under Codex** — phase broadcasts automatically degrade to terminal mode when no TG MCP server is configured. To enable: `codex mcp add telegram -- <your-telegram-mcp-command>`; channel-aware logic then routes via the Codex-side TG MCP tool name (visible in `codex /mcp`).
 
 ## Use it in any project
@@ -67,7 +67,7 @@ Under Claude Code use the slash commands above. Under Codex CLI / App, describe 
 That's the model:
 
 - **Analyst** runs the six-question framework (failure mode / 6-month review + 4 conditional questions) and emits **facts only** — no recommendations
-- **Architect** consumes the analyst's facts; surfaces every architectural decision via `AskUserQuestion`; produces a **design-doc** for medium/large tasks (then a separate exec-plan after design confirm)
+- **Architect** consumes the analyst's facts; surfaces every architectural decision via the runtime's user-question mechanism; produces a **design-doc** for medium/large tasks (then a separate exec-plan after design confirm)
 - **Developer** only touches code after the exec-plan is locked; writes failing tests first when behavior is non-trivial
 - **Tester** writes adversarial / E2E / Playwright tests; finds business bugs without modifying business code
 - **Reviewer / DBA** are read-only; reviewer flags Critical / Warning / Suggestion; DBA bans all SQL writes (no INSERT/UPDATE/ALTER/DROP)
@@ -76,10 +76,10 @@ That's the model:
 
 1. **Zero-config install** — `plugin.json` has no userConfig prompts; toolchain auto-detected from project root files
 2. **Two-track architect output** — design-doc (discussion-state, churns) and exec-plan (execution-state, stable) are separate files for medium/large tasks; small tasks combine both
-3. **Decision-by-decision popups** — architect fires `AskUserQuestion` at every key decision point, never piles them up at the end
-4. **Interactive roles → skills, autonomous roles → subagents** — analyst/architect run in main session (need `AskUserQuestion`); developer/tester/reviewer/dba run as isolated subagents (clean context)
+3. **Decision-by-decision prompts** — architect asks at every key decision point, never piles them up at the end
+4. **Interactive roles → skills, autonomous roles → subagents** — analyst/architect run in main session (need user decisions); developer/tester/reviewer/dba run as isolated subagents (clean context)
 5. **`[NEED-DECISION]` pattern** — subagents can't pop dialogs; they print one line in their return text, the orchestrator parses it and asks the user, then re-dispatches
-6. **SessionStart hook for `docs_root`** — bash detects context once at session start, in two modes: **project** (cwd inside a git repo: env override → `.roundtable.json` → repo-bounded walk-up) and **workspace** (cwd above multiple git projects: inject the project list, resolve docs_root per task). All roles read from injected context, no inline detection. See [SessionStart hook](#sessionstart-hook-docs_root-detection)
+6. **SessionStart hook for `docs_root`** — bash detects context once at session start, in two modes: **project** (cwd inside a git repo: env override → `.roundtable.json` → repo-bounded walk-up) and **workspace** (cwd above multiple git projects: inject the project list, resolve docs_root per task). Roles read the injected context when the runtime exposes it, otherwise the skill falls back per workflow Step 1. See [SessionStart hook](#sessionstart-hook-docs_root-detection)
 7. **Language-neutral plugin** — prompts in English; output language follows your project's CLAUDE.md (e.g. declare `文档中文` and all docs come out in Chinese)
 8. **No mechanism bloat** — no decision-log / log.md / faq.md / progress JSONL / Monitor / `<escalation>` JSON. Decisions live inside exec-plan `## Key Decisions`; FAQ appends to the relevant analyze/design-doc; INDEX.md is rebuilt by `/roundtable:lint`
 

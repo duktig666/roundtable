@@ -8,7 +8,8 @@
 #   项目清单，docs_root 由 skills 按任务的目标子项目延迟解析。
 #
 # 输出协议（DEC-1）：单行 JSON 无条件同时含 additionalContext +
-# hookSpecificOutput 两键，各 runtime 各取所需、忽略不认识的键。
+# hookSpecificOutput 两键，各 runtime 各取所需、忽略不认识的键；透传
+# additionalContext 的 runtime 会把本 context 暴露给 skills、agents 与 commands。
 
 set -euo pipefail
 

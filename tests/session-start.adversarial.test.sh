@@ -616,7 +616,9 @@ else
 fi
 
 # ============================================================
-# G. hook 声明一致性（hooks/hooks.json vs .codex-plugin/plugin.json）
+# G. hook 声明一致性（hooks/hooks.json vs 根级 hooks.json）
+# upstream rc2 起 codex 改用根级 hooks.json 发现 hook，
+# .codex-plugin/plugin.json 不再内联 hooks 字段（matcher/async 分叉留档 PR-3）
 # ============================================================
 g_out="$("$PY" - "$REPO_ROOT" <<'PYEOF' 2>&1
 import json, os, sys
@@ -628,14 +630,16 @@ cmd = entries[0]["hooks"][0]["command"]
 assert "hooks/session-start" in cmd, f"hooks.json command: {cmd}"
 assert entries[0]["matcher"] == "startup|clear|compact", f"matcher: {entries[0]['matcher']}"
 assert "async" not in entries[0]["hooks"][0], "non-standard async leaked back into hooks.json"
-codex = json.load(open(os.path.join(root, ".codex-plugin/plugin.json")))
+codex = json.load(open(os.path.join(root, "hooks.json")))
 ccmd = codex["hooks"]["SessionStart"][0]["hooks"][0]["command"]
-assert "hooks/session-start" in ccmd, f"codex command: {ccmd}"
+assert "hooks/session-start" in ccmd, f"root hooks.json command: {ccmd}"
+assert "hooks" not in json.load(open(os.path.join(root, ".codex-plugin/plugin.json"))), \
+    "codex plugin.json should not carry inline hooks (moved to root hooks.json in rc2)"
 print("OK")
 PYEOF
 )" || true
 if [ "$g_out" = "OK" ]; then
-    pass "G1 hooks.json + codex plugin.json both reference hooks/session-start; hooks.json matcher/async per exec-plan 1.5"
+    pass "G1 hooks/hooks.json + root hooks.json both reference hooks/session-start; hooks.json matcher/async per exec-plan 1.5"
 else
     fail "G1 hook declarations consistency" "$g_out"
 fi

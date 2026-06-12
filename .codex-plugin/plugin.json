@@ -1,6 +1,6 @@
 {
   "name": "roundtable",
-  "version": "0.0.7-rc1",
+  "version": "0.0.7-rc3",
   "description": "Multi-role AI development workflow. Bring analyst, architect, developer, tester, reviewer, and DBA to the same table. Minimal-by-design: 4 subagents, 2 skills, 3 commands, one SessionStart hook. Per-project CLAUDE.md (optional) drives toolchain + critical_modules.",
   "author": {
     "name": "duktig666",
@@ -20,16 +20,6 @@
     "codex"
   ],
   "skills": "./skills/",
-  "hooks": {
-    "SessionStart": [{
-      "matcher": "*",
-      "hooks": [{
-        "type": "command",
-        "command": "${PLUGIN_ROOT}/hooks/session-start",
-        "async": false
-      }]
-    }]
-  },
   "interface": {
     "displayName": "Roundtable",
     "shortDescription": "Multi-role AI development workflow: analyst, architect, developer, tester, reviewer, DBA",

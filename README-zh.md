@@ -4,7 +4,7 @@
 
 > **让 analyst、architect、developer、tester、reviewer、DBA 同坐一桌，用 plan-then-execute 纪律推进复杂工作。**
 
-`roundtable` 是多 runtime plugin（Claude Code + Codex CLI + Codex App），把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 2 skill + 3 command + 1 SessionStart hook，全部 prompt+config 约 760 行。
+`roundtable` 是多 runtime plugin（Claude Code + Codex CLI + Codex App），把多角色 AI 开发工作流封装成一行安装。**极简设计**：4 subagent + 2 skill + 3 command + 1 SessionStart hook，prompt+config 保持紧凑。
 
 ## 安装
 
@@ -47,7 +47,7 @@ codex plugin add github.com/duktig666/roundtable
 ### Codex troubleshooting
 
 - **`spawn_agent` 报 unknown tool** —— 检查 `~/.codex/config.toml` 含 `[features] multi_agent = true`（当前 Codex 默认值为 `true`）。
-- **SessionStart 注入的 `Roundtable context:` block 不见** —— 检查 `~/.codex/config.toml` 含 `[features] plugin_hooks = true`，并确认 `hooks/session-start` 有执行权限。
+- **SessionStart 注入的 `Roundtable context:` block 不见** —— 检查 `~/.codex/config.toml` 含 `[features] plugin_hooks = true`、plugin 根目录含 `hooks.json`，并确认 `hooks/session-start` 有执行权限。部分 Codex CLI build 可能不会在 `codex exec` 中暴露 hook 的 `additionalContext`；这种情况下 workflow 会 fallback 询问 `docs_root`。
 - **TG MCP 在 Codex 下可选** —— 无 TG MCP 时 phase 广播自动降级到终端模式。如需启用：`codex mcp add telegram -- <你的 telegram MCP 命令>`，channel-aware 逻辑会自动路由到 Codex 侧 TG MCP 工具名（见 `codex /mcp` 输出）。
 
 ## 在任何项目里用
@@ -67,7 +67,7 @@ Claude Code 下用上面的 slash command。Codex CLI / App 下描述意图或�
 这就是这个 plugin 的模型：
 
 - **Analyst** 跑六问框架（失败模式 / 6 个月评价 + 4 个按需问题），只产**事实**——不做推荐
-- **Architect** 消费 analyst 的事实；每个架构决策点都通过 `AskUserQuestion` 让你拍板；medium/large 任务先产 **design-doc**（讨论态），用户确认后再产 exec-plan（执行态）
+- **Architect** 消费 analyst 的事实；每个架构决策点都通过当前 runtime 的用户提问机制让你拍板；medium/large 任务先产 **design-doc**（讨论态），用户确认后再产 exec-plan（执行态）
 - **Developer** 只在 exec-plan 锁定后才动代码；非平凡行为先写失败测试
 - **Tester** 写对抗性 / E2E / Playwright 测试；发现业务 bug 只写复现测试不改业务码
 - **Reviewer / DBA** 只读；reviewer 标 Critical / Warning / Suggestion；DBA 禁所有 SQL 写（不允许 INSERT/UPDATE/ALTER/DROP）
@@ -76,10 +76,10 @@ Claude Code 下用上面的 slash command。Codex CLI / App 下描述意图或�
 
 1. **零配置安装** —— `plugin.json` 无 userConfig 弹窗；工具链按项目根文件 auto-detect
 2. **architect 双轨产出** —— design-doc（讨论态，频繁迭代）和 exec-plan（执行态，稳定）拆成两份文件用于 medium/large 任务；small 任务合并
-3. **逐决策弹窗** —— architect 每个关键决策当场调 `AskUserQuestion`，不积压成文字列表
-4. **交互角色 → skill / 自主角色 → subagent** —— analyst/architect 主会话执行（需要 `AskUserQuestion`）；developer/tester/reviewer/dba 独立 subagent 上下文
-5. **`[NEED-DECISION]` 模式** —— subagent 不能弹窗，在返回文本印一行，orchestrator grep 后调 `AskUserQuestion` 续派
-6. **SessionStart hook 注入 `docs_root`** —— bash 在 session 开始时检测一次上下文，分两模式：**project**（cwd 在 git repo 内：env 覆盖 > `.roundtable.json` > 以 repo 根为界的向上查找）和 **workspace**（cwd 是多 git 项目的父级工作区：注入项目清单，docs_root 按任务延迟解析）。所有角色从注入上下文读，不再 inline 检测。详见 [SessionStart hook](#sessionstart-hookdocs_root-检测)
+3. **逐决策提问** —— architect 每个关键决策当场提问，不积压成文字列表
+4. **交互角色 → skill / 自主角色 → subagent** —— analyst/architect 主会话执行（需要用户决策）；developer/tester/reviewer/dba 独立 subagent 上下文
+5. **`[NEED-DECISION]` 模式** —— subagent 不能弹窗，在返回文本印一行，orchestrator grep 后通过当前 runtime 的用户提问机制续派
+6. **SessionStart hook 注入 `docs_root`** —— bash 在 session 开始时检测一次上下文，分两模式：**project**（cwd 在 git repo 内：env 覆盖 > `.roundtable.json` > 以 repo 根为界的向上查找）和 **workspace**（cwd 是多 git 项目的父级工作区：注入项目清单，docs_root 按任务延迟解析）。runtime 暴露上下文时角色直接读取，否则按 workflow Step 1 兜底解析。详见 [SessionStart hook](#sessionstart-hookdocs_root-检测)
 7. **plugin 语言无关** —— prompt 全英文；输出语言由项目自己的 CLAUDE.md 决定（声明 `文档中文` 后所有产出自动中文）
 8. **无机制堆叠** —— 没有 decision-log / log.md / faq.md / progress JSONL / Monitor / `<escalation>` JSON。决策直接写进 exec-plan 的 `## Key Decisions`；FAQ 追加到对应 analyze/design-doc；INDEX.md 由 `/roundtable:lint` 重建
 

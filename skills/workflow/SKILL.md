@@ -12,10 +12,17 @@ Orchestrate the workflow. Don't design or code — dispatch each substantive ste
 
 ## Step 1: Read context
 
-The SessionStart hook injects roundtable context (`Roundtable context:` block). Check `mode` first:
+The SessionStart hook may inject roundtable context (`Roundtable context:` block) when the runtime exposes hook additionalContext. Check `mode` first:
 
-- **`mode: project`** — extract `docs_root`, `project_id`, `status`. If `status: needs-init`, ask the user (channel-aware: TG `reply` if telegram MCP is loaded, else `AskUserQuestion`) where to put `docs/` before proceeding.
-- **`mode: workspace`** — cwd is a parent workspace, not a single project; the context lists the git subprojects under `workspace_root` (`(docs)` marks those with a docs dir). Infer the **target subproject** from the task description / issue / files involved; if it can't be inferred, ask the user (channel-aware, options = the project list). Then resolve `docs_root = <workspace_root>/<project>/docs` and pass that `docs_root` in **every** role dispatch. This paragraph is the canonical workspace-resolution rule — `bugfix` and `lint` reference it.
+- **`mode: project`** — extract `docs_root`, `project_id`, `status`.
+- **`mode: workspace`** — cwd is a parent workspace, not a single project; the context lists the git subprojects under `workspace_root` (`(docs)` marks those with a docs dir). Infer the **target subproject** from the task description / issue / files involved; if it can't be inferred, ask the user (channel-aware: TG `reply` if telegram MCP is loaded, else `AskUserQuestion`; options = the project list). Then resolve `docs_root = <workspace_root>/<project>/docs` and pass that `docs_root` in **every** role dispatch. This paragraph is the canonical workspace-resolution rule — `bugfix` and `lint` reference it.
+- **Block missing** (runtime doesn't surface hook context) or **`status: needs-init`** — recover `docs_root` before asking:
+  1. Scan CWD for child git projects with docs:
+     `find . -maxdepth 2 -type d -name .git 2>/dev/null | sed 's|/.git$||' | sed 's|^\./||'`
+  2. Keep only candidates with `docs/` or `documentation/`; their `docs_root` is that directory.
+  3. If `$ARGUMENTS` uniquely mentions one candidate basename or path segment, use it. Prefer exact basename matches; if a shorter candidate name is embedded in a longer candidate name, treat that as ambiguous. If exactly one candidate exists, use it and report the choice.
+  4. If multiple candidates remain, ask the user to choose one using the runtime's user-question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex when available, or normal chat if not).
+  5. If no candidate exists, ask the user where to put `docs/`.
 
 Pick a kebab-case `slug` for this task (or ask).
 
@@ -56,9 +63,15 @@ Trigger phase 9 (dba) iff the task touches schema, migrations, or hot SQL.
 
 ## Step 4: Run phases
 
-Phase 1, 2, 4 are skills (run in main session via `Skill` tool):
+Phase 1, 2, 4 are skills (run in main session):
+
+Claude Code:
 - `Skill(skill: "roundtable:analyst", args: "<task summary + slug>")`
 - `Skill(skill: "roundtable:architect", args: "<task summary + slug + analyst report path if any>")` — architect handles both phase 2 (design-doc) and phase 4 (exec-plan) internally; it pauses for user confirm between them.
+
+Codex:
+- Open `skills/analyst/SKILL.md` / `skills/architect/SKILL.md` and execute their instructions directly in the main session.
+- If the skill needs runtime-specific tool syntax, read the matching `references/codex-tools.md` file first.
 
 Phase 3 and 5 are user gates. After architect produces design-doc (medium / large), render a 3-line summary + matrix and stop:
 
@@ -70,10 +83,11 @@ reply: `accept` / `modify: <…>` / `reject` / `ask: <…>`
 
 On `accept`, architect proceeds to write the exec-plan, then pauses again for the second confirmation.
 
-Phase 6–9 are subagents. Dispatch via `Agent` tool, one role per call:
-- Pass: exec-plan path, `docs_root`, slug, optional design-doc path
+Phase 6–9 are subagents. Dispatch one role per call:
+- Claude Code: use `Agent(subagent_type: "roundtable:<role>", prompt: ...)`.
+- Codex: first read `agents/<role>.md`, then call `spawn_agent` with `agent_type: "worker"` and a `message` containing that role prompt plus exec-plan path, `docs_root`, slug, optional design-doc path, and "You are not alone in the codebase; do not revert edits made by others." Keep the returned agent id for `wait_agent(targets: [id])` and `close_agent(target: id)`.
 - Read return text. Tick matrix status.
-- **If return text contains `[NEED-DECISION]`**: parse the line, ask the user (TG `reply` with `a/b` options if telegram MCP is loaded; else `AskUserQuestion`), append answer to the exec-plan's `## Change Log`, then re-dispatch the same role with the answer.
+- **If return text contains `[NEED-DECISION]`**: parse the line, ask the user (TG `reply` with `a/b` options if telegram MCP is loaded; else the runtime's user-question tool, falling back to normal chat when needed), append answer to the exec-plan's `## Change Log`, then re-dispatch the same role with the answer.
 - After phase 6 (developer), if the project's CLAUDE.md declares `critical_modules` and the diff hits one, phases 7 and 8 are mandatory; otherwise ask the user.
 
 ## Step 5: Closeout

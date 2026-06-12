@@ -1,13 +1,13 @@
 # Codex tool mapping — bugfix skill
 
-This skill uses Claude Code idiom. Under Codex, invoke the equivalent tool — behaviour is identical.
+This skill uses Claude Code idiom. Under Codex, keep the same bugfix workflow while using Codex tool wiring.
 
 ## Tool equivalents
 
 | Claude Code | Codex | Notes |
 |---|---|---|
-| `Agent(subagent_type: "roundtable:developer", ...)` | `spawn_agent(task_name="developer", message=...)` + `wait_agent` + `close_agent` | Pass bug description, tier, exec-plan path, slug |
-| `AskUserQuestion(...)` | `request_user_input(prompt=..., options=[...])` | Used for tier disambiguation + `[NEED-DECISION]` relay |
+| `Agent(subagent_type: "roundtable:developer", ...)` | `spawn_agent(agent_type="worker", message=...)` + `wait_agent(targets=[id])` + `close_agent(target=id)` | Read `agents/developer.md` first and embed it in the `message` |
+| `AskUserQuestion(...)` | `request_user_input(questions=[...])` when available; otherwise ask in normal chat and wait | Used for tier disambiguation + `[NEED-DECISION]` relay |
 | `Read(file_path=...)` | `shell` → `cat`/`head`/`tail` | — |
 | `Grep(pattern=..., path=...)` | `shell` → `rg <pattern> <path>` | Used in Step 2 to locate the bug |
 | `Glob(pattern=...)` | `shell` → `find` / `rg --files` | — |
@@ -20,17 +20,17 @@ This skill uses Claude Code idiom. Under Codex, invoke the equivalent tool — b
 
 Codex:
 ```
-spawn_agent(
-  task_name="developer",
-  message="bug: <description>\ntier: <0|1|2>\nslug: <slug>\ndocs_root: <path>\n\nMust add a regression test. Do not refactor unrelated code."
+result = spawn_agent(
+  agent_type="worker",
+  message="<contents of agents/developer.md>\n\nbug: <description>\ntier: <0|1|2>\nslug: <slug>\ndocs_root: <path>\n\nMust add a regression test. Do not refactor unrelated code.\nYou are not alone in the codebase; do not revert edits made by others."
 )
-wait_agent(task_name="developer")
-close_agent(task_name="developer")
+wait_agent(targets=[result.id])
+close_agent(target=result.id)
 ```
 
 ## `[NEED-DECISION]` relay
 
-Identical to workflow skill. Under Codex use `request_user_input`. See `skills/workflow/references/codex-tools.md` for the full pattern.
+Identical to workflow skill. Under Codex use `request_user_input(questions=[...])` when available; otherwise ask the user in normal chat and stop until they reply. See `skills/workflow/references/codex-tools.md` for the full pattern.
 
 ## Troubleshooting
 
