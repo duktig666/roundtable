@@ -9,8 +9,8 @@ analyst → architect → developer → tester → reviewer → dba.
 - `skills/` — 5 skills (analyst, architect, workflow, bugfix, lint), English prompts
 - `skills/*/references/` — per-skill `codex-tools.md` (Claude Code → Codex tool-mapping tables)
 - `commands/` — 3 thin command shells (workflow, bugfix, lint), each dispatching to the same-named skill
-- `hooks/` — `session-start` script (injects `docs_root` + `project_id`) + `hooks/hooks.json` (Claude Code-side registration, matcher `startup|clear|compact`)
-- `hooks.json` (root) — Codex-side hook declaration (matcher `*`); the fork from `hooks/hooks.json` is intentional: each runtime discovers its own file
+- `hooks/` — `session-start` script (injects `docs_root` + `project_id`), `hooks/hooks.json` (Claude Code registration), and `hooks/hooks-codex.json` (Codex registration)
+- `.codex-plugin/plugin.json` — Codex manifest; `hooks` explicitly points at `./hooks/hooks-codex.json` so Codex does not fall back to the Claude-side `hooks/hooks.json`
 - `tests/` — two hook test suites (`session-start.test.sh`, `session-start.adversarial.test.sh`)
 - `.codex-plugin/` — Codex manifest (`plugin.json`)
 - `AGENTS.md` — single-line pointer file (`CLAUDE.md`) for Codex

@@ -47,7 +47,7 @@ codex plugin add github.com/duktig666/roundtable
 ### Codex troubleshooting
 
 - **`spawn_agent` 报 unknown tool** —— 检查 `~/.codex/config.toml` 含 `[features] multi_agent = true`（当前 Codex 默认值为 `true`）。
-- **SessionStart 注入的 `Roundtable context:` block 不见** —— 检查 `~/.codex/config.toml` 含 `[features] plugin_hooks = true`、plugin 根目录含 `hooks.json`，并确认 `hooks/session-start` 有执行权限。部分 Codex CLI build 可能不会在 `codex exec` 中暴露 hook 的 `additionalContext`；这种情况下 workflow 会 fallback 询问 `docs_root`。
+- **SessionStart 注入的 `Roundtable context:` block 不见** —— 检查 hooks 已启用、`.codex-plugin/plugin.json` 指向 `./hooks/hooks-codex.json`，并确认 `hooks/session-start` 有执行权限。部分 Codex CLI build 可能不会在 `codex exec` 中暴露 hook 的 `additionalContext`；这种情况下 workflow 会 fallback 询问 `docs_root`。
 - **TG MCP 在 Codex 下可选** —— 无 TG MCP 时 phase 广播自动降级到终端模式。如需启用：`codex mcp add telegram -- <你的 telegram MCP 命令>`，channel-aware 逻辑会自动路由到 Codex 侧 TG MCP 工具名（见 `codex /mcp` 输出）。
 
 ## 在任何项目里用
