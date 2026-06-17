@@ -47,7 +47,7 @@ In the Codex App plugin UI, add `github.com/duktig666/roundtable`. The App handl
 ### Codex troubleshooting
 
 - **`spawn_agent` reports unknown tool** — verify `~/.codex/config.toml` has `[features] multi_agent = true` (default `true` on current builds).
-- **SessionStart `Roundtable context:` block missing** — verify `~/.codex/config.toml` has `[features] plugin_hooks = true`, the plugin root contains `hooks.json`, and `hooks/session-start` is executable. Some Codex CLI builds may not surface hook `additionalContext` in `codex exec`; in that case the workflow asks for `docs_root` as a fallback.
+- **SessionStart `Roundtable context:` block missing** — verify hooks are enabled, `.codex-plugin/plugin.json` points at `./hooks/hooks-codex.json`, and `hooks/session-start` is executable. Some Codex CLI builds may not surface hook `additionalContext` in `codex exec`; in that case the workflow asks for `docs_root` as a fallback.
 - **TG MCP is optional under Codex** — phase broadcasts automatically degrade to terminal mode when no TG MCP server is configured. To enable: `codex mcp add telegram -- <your-telegram-mcp-command>`; channel-aware logic then routes via the Codex-side TG MCP tool name (visible in `codex /mcp`).
 
 ## Use it in any project

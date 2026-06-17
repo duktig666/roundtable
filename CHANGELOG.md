@@ -6,6 +6,10 @@ All notable changes to **roundtable** will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Codex plugin hook discovery now uses an explicit `.codex-plugin/plugin.json` `hooks` entry pointing at `hooks/hooks-codex.json`, keeping the Codex `PLUGIN_ROOT` hook command separate from Claude Code's `CLAUDE_PLUGIN_ROOT` registration in `hooks/hooks.json`.
+
 ## [0.0.7] - 2026-06-12
 
 ### Added
